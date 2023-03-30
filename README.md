@@ -1,5 +1,7 @@
 # dr-app
 
+![](https://github.com/davreev/dr-app/actions/workflows/build.yml/badge.svg)
+
 ## Build
 
 Build with CMake

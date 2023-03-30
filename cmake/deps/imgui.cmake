@@ -7,7 +7,7 @@ set(FETCHCONTENT_QUIET FALSE) # Show download progress
 
 FetchContent_Declare(
     imgui
-    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    GIT_REPOSITORY git@github.com:ocornut/imgui.git
     GIT_TAG 9aae45eb4a05a5a1f96be1ef37eb503a12ceb889 # Version 1.88
     GIT_PROGRESS TRUE
 )
