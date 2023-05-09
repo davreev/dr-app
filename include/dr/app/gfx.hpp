@@ -5,11 +5,11 @@
 namespace dr
 {
 
-template <typename _Handle, typename _Desc>
+template <typename Handle_, typename Desc_>
 struct GfxResource
 {
-    using Handle = _Handle;
-    using Desc = _Desc;
+    using Handle = Handle_;
+    using Desc = Desc_;
 
     GfxResource() = default;
 
