@@ -41,10 +41,10 @@ sgl_desc_t default_gl_desc(sgl_logger_t const logger)
     };
 }
 
-simgui_desc_t default_ui_desc(void)
+simgui_desc_t default_ui_desc(int const sample_count)
 {
     return (simgui_desc_t){
-        .sample_count = 2,
+        .sample_count = sample_count,
         // ...
     };
 }

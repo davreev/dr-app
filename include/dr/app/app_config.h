@@ -24,7 +24,7 @@ sg_desc default_gfx_desc(sg_logger logger);
 
 sgl_desc_t default_gl_desc(sgl_logger_t logger);
 
-simgui_desc_t default_ui_desc(void);
+simgui_desc_t default_ui_desc(int sample_count);
 
 sg_pass_action default_pass_action(void);
 

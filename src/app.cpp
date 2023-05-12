@@ -43,7 +43,7 @@ void init()
         sgl_setup(default_gl_desc({log, nullptr}));
 
         // Sokol imgui
-        simgui_setup(default_ui_desc());
+        simgui_setup(default_ui_desc(sapp_sample_count()));
     }
 
     // Init ImGui
