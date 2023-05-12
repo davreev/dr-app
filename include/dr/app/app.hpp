@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sokol_app.h>
+#include <sokol_gfx.h>
 
 #include <dr/basic_types.hpp>
 
@@ -33,5 +34,7 @@ u64 app_time();
 u64 app_delta_time();
 
 f32 app_aspect();
+
+sg_pass_action& app_pass_action();
 
 } // namespace dr

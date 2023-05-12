@@ -1,14 +1,11 @@
 #include <dr/app/app.hpp>
 
-#include <sokol_gfx.h>
 #include <sokol_gl.h>
 #include <sokol_glue.h>
 #include <sokol_imgui.h>
 #include <sokol_time.h>
 
 #include <fmt/core.h>
-
-#include <dr/basic_types.hpp>
 
 #include <dr/app/app_config.h>
 #include <dr/app/shim/imgui.hpp>
@@ -152,5 +149,7 @@ u64 app_time() { return state.time; }
 u64 app_delta_time() { return state.delta_time; }
 
 f32 app_aspect() { return sapp_widthf() / sapp_heightf(); }
+
+sg_pass_action& app_pass_action() { return state.pass_action; }
 
 } // namespace dr
