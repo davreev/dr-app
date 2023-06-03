@@ -19,7 +19,7 @@ namespace
 struct
 {
     Scene const* scene{};
-    sg_pass_action pass_action{default_pass_action()};
+    sg_pass_action pass_action{};
     u64 time{};
     u64 delta_time{};
 } state;
@@ -48,6 +48,12 @@ void init()
 
     // Init ImGui
     ImGuiStyles::set_default(ImGui::GetStyle());
+
+    // Set default pass action
+    state.pass_action.colors[0] = {
+        SG_ACTION_CLEAR,
+        {0.15, 0.15, 0.15, 0.15},
+    };
 
     // Open default scene
     state.scene->open();
@@ -102,12 +108,12 @@ bool app_is_init() { return state.scene != nullptr; }
 
 bool scene_is_valid(Scene const* const scene)
 {
-    return scene != nullptr &&
-        scene->open != nullptr &&
-        scene->update != nullptr &&
-        scene->draw != nullptr &&
-        scene->close != nullptr &&
-        scene->input != nullptr;
+    return scene != nullptr
+        && scene->open != nullptr
+        && scene->update != nullptr
+        && scene->draw != nullptr
+        && scene->close != nullptr
+        && scene->input != nullptr;
 }
 
 } // namespace

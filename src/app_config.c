@@ -48,15 +48,3 @@ simgui_desc_t default_ui_desc(int const sample_count)
         // ...
     };
 }
-
-sg_pass_action default_pass_action(void)
-{
-    return (sg_pass_action){
-        .colors[0] = {
-            .action = SG_ACTION_CLEAR,
-            .value = {0.15f, 0.15f, 0.15f, 1.0f},
-            // ...
-        },
-        // ...
-    };
-}
