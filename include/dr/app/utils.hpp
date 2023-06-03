@@ -89,13 +89,52 @@ Mat3<f32> ortho_basis(Vec3<f32> const& unit_x, Vec3<f32> const& xy);
 
 Mat4<f32> as_affine(Mat3<f32> const& linear);
 
-template <bool use_ogl_ndc = false>
-Mat4<f32> perspective(f32 fov_y, f32 aspect, f32 near, f32 far);
-
-Mat4<f32> look_at(Vec3<f32> const& eye, Vec3<f32> const& target, Vec3<f32> const& up);
-
 Mat2<f32> rotate(f32 angle);
 
 Vec4<f32> to_plane_eqn(Vec3<f32> const& origin, Vec3<f32> const& normal);
+
+// Creates a matrix that maps points from world space to view space. By convention, the view space
+// is right-handed and looks in the negative z direction.
+Mat4<f32> look_at(Vec3<f32> const& eye, Vec3<f32> const& target, Vec3<f32> const& up);
+
+enum NdcType : u8
+{
+    NdcType_Default = 0, // z in [0, 1], y up
+    NdcType_OpenGl, // z in [-1, 1], y up
+    NdcType_Vulkan // z in [0, 1], y down
+};
+
+// Creates a perspective projection matrix which maps points from view space (Cartesian coordinates)
+// to clip space (homogenous coordinates). This assumes a right-handed view space that looks in the
+// negative z direction.
+template <NdcType ndc = NdcType_Default>
+Mat4<f32> perspective(f32 fov_y, f32 aspect, f32 near, f32 far);
+
+// Creates an projection matrix which maps points from view space (Cartesian coordinates) to clip
+// space (homogenous coordinates). This assumes a right-handed view space that looks in the negative
+// z direction.
+template <NdcType ndc = NdcType_Default>
+Mat4<f32> orthographic(
+    f32 const height,
+    f32 const aspect,
+    f32 const near,
+    f32 const far)
+{
+    f32 const half_h = height * 0.5f;
+    f32 const half_w = half_h * aspect;
+    return orthographic<ndc>(-half_w, half_w, -half_h, half_h, near, far);
+}
+
+// Creates an projection matrix which maps points from view space (Cartesian coordinates) to clip
+// space (homogenous coordinates). This assumes a right-handed view space that looks in the negative
+// z direction.
+template <NdcType ndc = NdcType_Default>
+Mat4<f32> orthographic(
+    f32 const left,
+    f32 const right,
+    f32 const bottom,
+    f32 const top,
+    f32 const near,
+    f32 const far);
 
 } // namespace dr

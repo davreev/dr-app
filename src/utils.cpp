@@ -105,18 +105,18 @@ Camera camera_look_at(
     Camera cam{};
     cam.pivot.position = target;
 
-    Vec3<f32> const delta = position - target;
-    f32 const mag = delta.norm();
+    Vec3<f32> const d = position - target;
+    f32 const d_norm = d.norm();
 
     // Create pivot rotation
     Mat3<f32> m;
-    m.col(2) = delta / mag;
+    m.col(2) = d / d_norm;
     m.col(0) = up.cross(m.col(2)).normalized();
     m.col(1) = m.col(2).cross(m.col(0));
 
     // Assign rotation and offset
     cam.pivot.rotation = Quat<f32>{m};
-    cam.offset.z() = mag;
+    cam.offset.z() = d_norm;
 
     return cam;
 }
@@ -312,38 +312,6 @@ Mat4<f32> as_affine(Mat3<f32> const& linear)
     return m;
 }
 
-template <>
-Mat4<f32> perspective<false>(f32 const fov_y, f32 const aspect, f32 const near, f32 const far)
-{
-    // NOTE: This impl maps z from [-near, -far] in view space to [0, 1] in NDC
-
-    f32 const y = std::tan(fov_y * 0.5f);
-
-    Mat4<f32> m;
-    m.col(0) << 1.0f / (y * aspect), 0.0f, 0.0f, 0.0f;
-    m.col(1) << 0.0f, 1.0f / y, 0.0f, 0.0f;
-    m.col(2) << 0.0f, 0.0f, far / (near - far), -1.0f;
-    m.col(3) << 0.0f, 0.0f, -far * near / (far - near), 0.0f;
-
-    return m;
-}
-
-template <>
-Mat4<f32> perspective<true>(f32 const fov_y, f32 const aspect, f32 const near, f32 const far)
-{
-    // NOTE: This impl maps z from [-near, -far] in view space to [-1, 1] in NDC
-
-    f32 const y = std::tan(fov_y * 0.5f);
-
-    Mat4<f32> m;
-    m.col(0) << 1.0f / (y * aspect), 0.0f, 0.0f, 0.0f;
-    m.col(1) << 0.0f, 1.0f / y, 0.0f, 0.0f;
-    m.col(2) << 0.0f, 0.0f, -(far + near) / (far - near), -1.0f;
-    m.col(3) << 0.0f, 0.0f, -2.0f * far * near / (far - near), 0.0f;
-
-    return m;
-}
-
 Mat4<f32> look_at(Vec3<f32> const& eye, Vec3<f32> const& target, Vec3<f32> const& up)
 {
     Vec3<f32> const z = (eye - target).normalized();
@@ -376,6 +344,132 @@ Vec4<f32> to_plane_eqn(Vec3<f32> const& origin, Vec3<f32> const& normal)
         normal.y(),
         normal.z(),
         -(normal.dot(origin))};
+}
+
+template <>
+Mat4<f32> perspective<NdcType_Default>(f32 const fov_y, f32 const aspect, f32 const near, f32 const far)
+{
+    // NOTE: This assumes a right-handed y-up view space i.e. [-near, -far] in view space maps to
+    // [-1, 1] in NDC space
+
+    f32 const y = std::tan(fov_y * 0.5f);
+
+    Mat4<f32> m;
+    m.col(0) << 1.0f / (y * aspect), 0.0f, 0.0f, 0.0f;
+    m.col(1) << 0.0f, 1.0f / y, 0.0f, 0.0f;
+    m.col(2) << 0.0f, 0.0f, far / (near - far), -1.0f;
+    m.col(3) << 0.0f, 0.0f, -far * near / (far - near), 0.0f;
+
+    return m;
+}
+
+template <>
+Mat4<f32> perspective<NdcType_OpenGl>(f32 const fov_y, f32 const aspect, f32 const near, f32 const far)
+{
+    // NOTE: This assumes a right-handed y-up view space i.e. [-near, -far] in view space maps to
+    // [-1, 1] in NDC space
+
+    f32 const y = std::tan(fov_y * 0.5f);
+
+    Mat4<f32> m;
+    m.col(0) << 1.0f / (y * aspect), 0.0f, 0.0f, 0.0f;
+    m.col(1) << 0.0f, 1.0f / y, 0.0f, 0.0f;
+    m.col(2) << 0.0f, 0.0f, -(far + near) / (far - near), -1.0f;
+    m.col(3) << 0.0f, 0.0f, -2.0f * far * near / (far - near), 0.0f;
+
+    return m;
+}
+
+template <>
+Mat4<f32> perspective<NdcType_Vulkan>(f32 const fov_y, f32 const aspect, f32 const near, f32 const far)
+{
+    // NOTE: This assumes a right-handed y-up view space i.e. [-near, -far] in view space maps to
+    // [0, 1] in NDC space
+
+    f32 const y = std::tan(fov_y * 0.5f);
+
+    Mat4<f32> m;
+    m.col(0) << 1.0f / (y * aspect), 0.0f, 0.0f, 0.0f;
+    m.col(1) << 0.0f, -1.0f / y, 0.0f, 0.0f;
+    m.col(2) << 0.0f, 0.0f, far / (near - far), -1.0f;
+    m.col(3) << 0.0f, 0.0f, -far * near / (far - near), 0.0f;
+
+    return m;
+}
+
+template <>
+Mat4<f32> orthographic<NdcType_Default>(
+    f32 const left,
+    f32 const right,
+    f32 const bottom,
+    f32 const top,
+    f32 const near,
+    f32 const far)
+{
+    // NOTE: This assumes a right-handed y-up view space i.e. [-near, -far] in view space maps to
+    // [0, 1] in NDC space
+
+    f32 const inv_w = 1.0f / (right - left);
+    f32 const inv_h = 1.0f / (top - bottom);
+    f32 const inv_d = 1.0f / (near - far);
+
+    Mat4<f32> m;
+    m.col(0) << 2.0f * inv_w, 0.0f, 0.0f, 0.0f;
+    m.col(1) << 0.0f, 2.0f * inv_h, 0.0f, 0.0f;
+    m.col(2) << 0.0f, 0.0f, inv_d, 0.0f;
+    m.col(3) << -(right + left) * inv_w, -(top + bottom) * inv_h, near * inv_d, 1.0f;
+
+    return m;
+}
+
+template <>
+Mat4<f32> orthographic<NdcType_OpenGl>(
+    f32 const left,
+    f32 const right,
+    f32 const bottom,
+    f32 const top,
+    f32 const near,
+    f32 const far)
+{
+    // NOTE: This assumes a right-handed y-up view space i.e. [-near, -far] in view space maps to
+    // [-1, 1] in NDC space
+
+    f32 const inv_w = 1.0f / (right - left);
+    f32 const inv_h = 1.0f / (top - bottom);
+    f32 const inv_d = 1.0f / (near - far);
+
+    Mat4<f32> m;
+    m.col(0) << 2.0f * inv_w, 0.0f, 0.0f, 0.0f;
+    m.col(1) << 0.0f, 2.0f * inv_h, 0.0f, 0.0f;
+    m.col(2) << 0.0f, 0.0f, 2.0f * inv_d, 0.0f;
+    m.col(3) << -(right + left) * inv_w, -(top + bottom) * inv_h, (far + near) * inv_d, 1.0f;
+
+    return m;
+}
+
+template <>
+Mat4<f32> orthographic<NdcType_Vulkan>(
+    f32 const left,
+    f32 const right,
+    f32 const bottom,
+    f32 const top,
+    f32 const near,
+    f32 const far)
+{
+    // NOTE: This assumes a right-handed y-up view space i.e. [-near, -far] in view space maps to
+    // [0, 1] in NDC space
+
+    f32 const inv_w = 1.0f / (right - left);
+    f32 const inv_h = 1.0f / (top - bottom);
+    f32 const inv_d = 1.0f / (near - far);
+
+    Mat4<f32> m;
+    m.col(0) << 2.0f * inv_w, 0.0f, 0.0f, 0.0f;
+    m.col(1) << 0.0f, -2.0f * inv_h, 0.0f, 0.0f;
+    m.col(2) << 0.0f, 0.0f, inv_d, 0.0f;
+    m.col(3) << -(right + left) * inv_w, (top + bottom) * inv_h, near * inv_d, 1.0f;
+
+    return m;
 }
 
 } // namespace dr
