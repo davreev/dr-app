@@ -68,7 +68,7 @@ add_library(
     src/app_config.c
     src/default_scene.cpp
     src/gfx.cpp
-    src/task.cpp
+    src/task_queue.cpp
     src/thread_pool.cpp
     src/utils.cpp
 )

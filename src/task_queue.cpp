@@ -1,4 +1,4 @@
-#include <dr/app/task.hpp>
+#include <dr/app/task_queue.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -19,24 +19,17 @@ WorkItem as_work_item(Task* const task)
 
 } // namespace
 
-void Task::execute()
-{
-    status = TaskStatus_Started;
-    do_execute();
-    status = TaskStatus_Finished;
-}
-
 bool TaskQueue::submit(
-    Task* const task, 
-    void* const context, 
-    InitTask const init, 
+    Task* const task,
+    void* const context,
+    InitTask const init,
     PublishTask const publish)
 {
-    if (task->status != TaskStatus_Default)
+    if (task->status != Task::Status_Default)
         return false;
 
     tasks_.push_back({task, context, init, publish, submit_gen_});
-    task->status = TaskStatus_Submitted;
+    task->status = Task::Status_Submitted;
     return true;
 }
 
@@ -59,20 +52,20 @@ void TaskQueue::poll()
 
         switch (task.ptr->status)
         {
-            case TaskStatus_Submitted:
+            case Task::Status_Submitted:
             {
                 if (task.init(task.ptr, task.context))
                 {
-                    task.ptr->status = TaskStatus_Initialized;
+                    task.ptr->status = Task::Status_Initialized;
                     thread_pool_queue_work(as_work_item(task.ptr));
                 }
 
                 break;
             }
-            case TaskStatus_Finished:
+            case Task::Status_Finished:
             {
                 if (task.publish(task.ptr, task.context))
-                    task.ptr->status = TaskStatus_Published;
+                    task.ptr->status = Task::Status_Published;
 
                 break;
             }
@@ -94,14 +87,14 @@ void TaskQueue::poll()
         auto it = std::remove_if(
             tasks_.begin(),
             tasks_.begin() + count,
-            [&](DelayedTask const& task) {
-                return task.gen == poll_gen_ && task.ptr->status == TaskStatus_Published;
+            [&](DeferredTask const& task) {
+                return task.gen == poll_gen_ && task.ptr->status == Task::Status_Published;
             });
 
         tasks_.erase(it, tasks_.begin() + count);
     }
 }
 
-isize TaskQueue::count() const { return size<isize>(tasks_); }
+isize TaskQueue::size() const { return dr::size<isize>(tasks_); }
 
 } // namespace dr
