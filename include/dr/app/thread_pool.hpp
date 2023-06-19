@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-    Dead simple thread pool for doing work off the main thread
+    Simple global thread pool for doing work off the main thread
 */
 
 #include <dr/basic_types.hpp>
