@@ -11,6 +11,8 @@
 #include <dr/app/shim/imgui.hpp>
 #include <dr/app/thread_pool.hpp>
 
+#include "default_scene.hpp"
+
 namespace dr
 {
 namespace
@@ -18,7 +20,7 @@ namespace
 
 struct
 {
-    Scene const* scene{};
+    Scene const* scene{default_scene()};
     sg_pass_action pass_action{};
     u64 time{};
     u64 delta_time{};
@@ -104,8 +106,6 @@ void input(sapp_event const* const event)
         state.scene->input(event);
 }
 
-bool app_is_init() { return state.scene != nullptr; }
-
 bool scene_is_valid(Scene const* const scene)
 {
     return scene != nullptr
@@ -123,24 +123,11 @@ sapp_desc app_desc()
     return default_app_desc(init, frame, cleanup, input, {log, nullptr});
 }
 
-bool app_init(Scene const* const scene, isize const num_worker_threads)
-{
-    if (app_is_init() || !scene_is_valid(scene))
-        return false;
-
-    state.scene = scene;
-
-    if (num_worker_threads > 0)
-        thread_pool_start_workers(num_worker_threads);
-
-    return true;
-}
-
 Scene const* app_scene() { return state.scene; }
 
 bool app_set_scene(Scene const* const scene)
 {
-    if (!app_is_init() || !scene_is_valid(scene))
+    if (!scene_is_valid(scene))
         return false;
 
     state.scene->close();

@@ -23,8 +23,6 @@ struct Scene
 
 sapp_desc app_desc();
 
-bool app_init(Scene const* scene, isize num_worker_threads = 0);
-
 Scene const* app_scene();
 
 bool app_set_scene(Scene const* scene);

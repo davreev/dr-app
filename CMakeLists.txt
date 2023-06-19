@@ -66,10 +66,11 @@ add_library(
     src/shim/imgui.cpp
     src/app.cpp
     src/app_config.c
-    src/utils.cpp
+    src/default_scene.cpp
     src/gfx.cpp
     src/task.cpp
     src/thread_pool.cpp
+    src/utils.cpp
 )
 add_library(dr::app ALIAS dr-app)
 
