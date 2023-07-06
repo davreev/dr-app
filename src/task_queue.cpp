@@ -95,6 +95,6 @@ void TaskQueue::poll()
     }
 }
 
-isize TaskQueue::size() const { return dr::size<isize>(tasks_); }
+isize TaskQueue::size() const { return dr::size(tasks_); }
 
 } // namespace dr
