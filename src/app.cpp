@@ -24,6 +24,7 @@ struct
     sg_pass_action pass_action{};
     u64 time{};
     u64 delta_time{};
+    bool is_init{};
 } state;
 
 void log(char const* const message, void* /*user_data*/)
@@ -57,8 +58,8 @@ void init()
         {0.15, 0.15, 0.15, 0.15},
     };
 
-    // Open default scene
     state.scene->open();
+    state.is_init = true;
 }
 
 void frame()
@@ -130,10 +131,13 @@ bool app_set_scene(Scene const* const scene)
     if (!scene_is_valid(scene))
         return false;
 
-    state.scene->close();
-    scene->open();
-    state.scene = scene;
+    if (state.is_init)
+    {
+        state.scene->close();
+        scene->open();
+    }
 
+    state.scene = scene;
     return true;
 }
 
