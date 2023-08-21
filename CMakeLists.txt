@@ -21,10 +21,18 @@ list(
 # Shim targets
 #
 
-add_library(
-    sokol-shim STATIC
-    src/shim/sokol.cpp
-)
+if(APPLE AND NOT EMSCRIPTEN)
+    # NOTE: sokol_app.h implementation must compiled as Objective-C on macOS
+    add_library(
+        sokol-shim STATIC
+        "src/shim/sokol.mm"
+    )
+else()
+    add_library(
+        sokol-shim STATIC
+        "src/shim/sokol.cpp"
+    )
+endif()
 
 include(deps/imgui)
 include(deps/sokol)
@@ -42,8 +50,13 @@ if(EMSCRIPTEN)
 elseif(WIN32)
     # ...
 elseif(APPLE)
-    message(WARNING "Apple platforms are not supported")
-    return()
+    target_link_libraries(
+        sokol-shim
+        PRIVATE
+            "-framework Cocoa"
+            "-framework QuartzCore"
+            "-framework OpenGL"
+    )
 elseif(UNIX)
     target_link_libraries(
         sokol-shim
