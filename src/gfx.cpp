@@ -48,7 +48,7 @@ void GfxPass::init(GfxPass::Desc const& desc)
 }
 
 template <>
-sg_resource_state GfxPass::query_state() const
+GfxPass::State GfxPass::query_state() const
 {
     return sg_query_pass_state(handle_);
 }
@@ -96,7 +96,7 @@ void GfxPipeline::init(GfxPipeline::Desc const& desc)
 }
 
 template <>
-sg_resource_state GfxPipeline::query_state() const
+GfxPipeline::State GfxPipeline::query_state() const
 {
     return sg_query_pipeline_state(handle_);
 }
@@ -144,7 +144,7 @@ void GfxShader::init(GfxShader::Desc const& desc)
 }
 
 template <>
-sg_resource_state GfxShader::query_state() const
+GfxShader::State GfxShader::query_state() const
 {
     return sg_query_shader_state(handle_);
 }
@@ -192,7 +192,7 @@ void GfxBuffer::init(GfxBuffer::Desc const& desc)
 }
 
 template <>
-sg_resource_state GfxBuffer::query_state() const
+GfxBuffer::State GfxBuffer::query_state() const
 {
     return sg_query_buffer_state(handle_);
 }
@@ -240,7 +240,7 @@ void GfxImage::init(GfxImage::Desc const& desc)
 }
 
 template <>
-sg_resource_state GfxImage::query_state() const
+GfxImage::State GfxImage::query_state() const
 {
     return sg_query_image_state(handle_);
 }

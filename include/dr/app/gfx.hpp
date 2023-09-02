@@ -35,22 +35,33 @@ struct GfxResource
 
     ~GfxResource() { destroy(); }
 
+    /// Implicit conversion to the resource's unique handle. This will be invalid if the resource
+    /// has not been allocated.
     constexpr operator Handle() const { return handle_; }
 
+    /// Allocates a unique handle for the resource. This can't be done until the backing graphics
+    /// API has been initialized.
     void alloc();
 
+    /// Initializes the resource. If the resource has not yet been allocted, this will also allocate
+    /// it. If the resource has already been initialized, this will reinitialize it.
     void init(Desc const& desc);
 
+    /// Destroys the resource if it has been allocated
     void destroy();
 
+    /// True if the resource has been allocated
     bool is_alloc() const { return handle_.id != SG_INVALID_ID; }
 
+    /// True if the resource has been initialized
+    bool is_init() const { return query_state() == SG_RESOURCESTATE_VALID; }
+
   private:
+    using State = sg_resource_state;
+
     Handle handle_;
 
-    sg_resource_state query_state() const;
-
-    bool is_init() const { return query_state() == SG_RESOURCESTATE_VALID; }
+    State query_state() const;
 };
 
 using GfxPass = GfxResource<sg_pass, sg_pass_desc>;
