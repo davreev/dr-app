@@ -30,15 +30,15 @@ enum NdcType : u8
     NdcType_Vulkan // z in [0, 1], y down
 };
 
-/// Creates a perspective projection matrix which maps points from view space (Cartesian coordinates)
-/// to clip space (homogenous coordinates). This assumes a right-handed view space that looks in the
-/// negative z direction.
+/// Creates a perspective projection matrix which maps points from view space (Cartesian
+/// coordinates) to clip space (homogenous coordinates). This assumes a right-handed view space that
+/// looks in the negative z direction.
 template <NdcType ndc = NdcType_Default>
 Mat4<f32> make_perspective(f32 fov_y, f32 aspect, f32 near, f32 far);
 
-/// Creates an projection matrix which maps points from view space (Cartesian coordinates) to clip
-/// space (homogenous coordinates). This assumes a right-handed view space that looks in the negative
-/// z direction.
+/// Creates a projection matrix which maps points from view space (Cartesian coordinates) to clip
+/// space (homogenous coordinates). This assumes a right-handed view space that looks in the
+/// negative z direction.
 template <NdcType ndc = NdcType_Default>
 Mat4<f32> make_orthographic(
     f32 const left,
@@ -48,9 +48,9 @@ Mat4<f32> make_orthographic(
     f32 const near,
     f32 const far);
 
-/// Creates an projection matrix which maps points from view space (Cartesian coordinates) to clip
-/// space (homogenous coordinates). This assumes a right-handed view space that looks in the negative
-/// z direction.
+/// Creates a projection matrix which maps points from view space (Cartesian coordinates) to clip
+/// space (homogenous coordinates). This assumes a right-handed view space that looks in the
+/// negative z direction.
 template <NdcType ndc = NdcType_Default>
 Mat4<f32> make_orthographic(
     f32 const height,
