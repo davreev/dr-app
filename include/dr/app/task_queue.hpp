@@ -2,42 +2,83 @@
 
 #include <vector>
 
-#include <dr/app/task.hpp>
+#include <dr/basic_types.hpp>
+
+#include <dr/app/task_ref.hpp>
 
 namespace dr
 {
 
 struct TaskQueue
 {
-    using InitTask = bool (*)(Task* task, void const* context);
-    using PublishTask = bool (*)(Task const* task, void* context);
+    struct PollEvent
+    {
+        enum Type : u8
+        {
+            Default = 0,
+            BeforeSubmit,
+            AfterComplete,
+            _Count,
+        };
 
-    // Submit a task for asynchronous execution. The calling context is responsible for keeping the
-    // task alive until it has been published.
-    bool submit(Task* task, void* context, InitTask init, PublishTask publish);
+        void* task;
+        void* context;
+        Type type;
+    };
 
-    // Inserts a barrier. Tasks submitted after inserting a barrier won't be initialized until
-    // all previously submitted tasks have been published.
+    /// Pushes a task onto the queue for deferred asynchronous execution. The calling context is
+    /// responsible for keeping the task alive until its results have been published.
+    void push(
+        TaskRef const& task,
+        void* context = nullptr,
+        bool (*poll_cb)(PollEvent const& event) = nullptr);
+
+    /// Inserts a barrier. Tasks queued after inserting a barrier won't start until all
+    /// previously queued tasks have completed.
     void barrier();
 
-    // Polls queued tasks. This should be called at regular intervals (e.g. every frame).
+    /// Polls tasks in the queue. This should be called at regular intervals (e.g. every frame).
     void poll();
 
-    // Returns the number of tasks in the queue
+    /// Returns the number of tasks in the queue
     isize size() const;
+
+    /// Returns true if the queue is empty
+    bool empty() const { return tasks_.size() == 0; }
 
   private:
     struct DeferredTask
     {
-        Task* ptr;
+        enum Status : u8
+        {
+            Status_Default = 0,
+            Status_Queued,
+            Status_Submitted,
+            Status_Completed,
+            _Status_Count,
+        };
+
+        TaskRef task;
         void* context;
-        InitTask init;
-        PublishTask publish;
+        bool (*poll_cb)(PollEvent const& event);
+        Status status;
         usize gen;
+
+        /// Invokes the referenced task
+        constexpr void operator()()
+        {
+            task();
+            status = Status_Completed;
+        };
+
+        constexpr bool raise_event(PollEvent::Type const type)
+        {
+            return (poll_cb) ? poll_cb({task.get(), context, type}) : true;
+        }
     };
 
     std::vector<DeferredTask> tasks_;
-    usize submit_gen_;
+    usize push_gen_;
     usize poll_gen_;
 };
 

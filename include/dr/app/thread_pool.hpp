@@ -6,21 +6,17 @@
 
 #include <dr/basic_types.hpp>
 
+#include <dr/app/task_ref.hpp>
+
 namespace dr
 {
 
-struct WorkItem
-{
-    void (*func)(void*);
-    void* state;
-};
+void thread_pool_start(isize size);
 
-void thread_pool_start_workers(isize count);
+void thread_pool_stop();
 
-void thread_pool_stop_workers();
+void thread_pool_submit(TaskRef const& task);
 
-isize thread_pool_num_workers();
-
-void thread_pool_queue_work(WorkItem const& item);
+isize thread_pool_size();
 
 } // namespace dr

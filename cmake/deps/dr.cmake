@@ -8,7 +8,7 @@ set(FETCHCONTENT_QUIET FALSE) # Show download progress
 FetchContent_Declare(
     dr
     GIT_REPOSITORY git@github.com:davreev/dr.git
-    GIT_TAG 8fb36a2e360c92fd64eb8d8bf09ffa6dbfcf0a00
+    GIT_TAG 464024462dc8b933b3f401824c774a169230c797
 )
 
 FetchContent_MakeAvailable(dr)

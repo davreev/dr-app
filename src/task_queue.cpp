@@ -9,63 +9,53 @@
 
 namespace dr
 {
-namespace
+
+void TaskQueue::push(
+    TaskRef const& task,
+    void* context,
+    bool (*poll_cb)(PollEvent const& event))
 {
-
-WorkItem as_work_item(Task* const task)
-{
-    return {[](void* task) { static_cast<Task*>(task)->execute(); }, task};
-}
-
-} // namespace
-
-bool TaskQueue::submit(
-    Task* const task,
-    void* const context,
-    InitTask const init,
-    PublishTask const publish)
-{
-    if (task->status != Task::Status_Default)
-        return false;
-
-    tasks_.push_back({task, context, init, publish, submit_gen_});
-    task->status = Task::Status_Submitted;
-    return true;
+    assert(task.is_valid());
+    tasks_.push_back({
+        task,
+        context,
+        poll_cb,
+        DeferredTask::Status_Queued,
+        push_gen_,
+    });
 }
 
 void TaskQueue::barrier()
 {
-    ++submit_gen_;
+    ++push_gen_;
 }
 
 void TaskQueue::poll()
 {
     usize count = 0;
 
-    // Poll tasks in current gen
+    // Poll tasks in the current generation
     for (auto& task : tasks_)
     {
         if (task.gen > poll_gen_)
             break;
 
-        ++count;
-
-        switch (task.ptr->status)
+        switch (task.status)
         {
-            case Task::Status_Submitted:
+            case DeferredTask::Status_Queued:
             {
-                if (task.init(task.ptr, task.context))
+                if (task.raise_event(PollEvent::BeforeSubmit))
                 {
-                    task.ptr->status = Task::Status_Initialized;
-                    thread_pool_queue_work(as_work_item(task.ptr));
+                    task.status = DeferredTask::Status_Submitted;
+                    thread_pool_submit(&task);
                 }
 
                 break;
             }
-            case Task::Status_Finished:
+            case DeferredTask::Status_Completed:
             {
-                if (task.publish(task.ptr, task.context))
-                    task.ptr->status = Task::Status_Published;
+                if (task.raise_event(PollEvent::AfterComplete))
+                    task.status = {};
 
                 break;
             }
@@ -73,13 +63,15 @@ void TaskQueue::poll()
             {
             }
         }
+
+        ++count;
     }
 
     // If no tasks left in the current generation, move on to the next. Otherwise, cull published
     // tasks from the current generation and continue.
     if (count == 0)
     {
-        if (poll_gen_ < submit_gen_)
+        if (poll_gen_ < push_gen_)
             ++poll_gen_;
     }
     else
@@ -88,7 +80,7 @@ void TaskQueue::poll()
             tasks_.begin(),
             tasks_.begin() + count,
             [&](DeferredTask const& task) {
-                return task.gen == poll_gen_ && task.ptr->status == Task::Status_Published;
+                return task.gen == poll_gen_ && task.status == 0;
             });
 
         tasks_.erase(it, tasks_.begin() + count);
