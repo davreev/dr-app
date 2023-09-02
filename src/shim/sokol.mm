@@ -1,9 +1,4 @@
-// Select graphics backend
-#ifdef __EMSCRIPTEN__
-#define SOKOL_GLES3
-#else
 #define SOKOL_GLCORE33
-#endif
 
 #define SOKOL_APP_IMPL
 #include <sokol_app.h>
