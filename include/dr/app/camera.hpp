@@ -33,6 +33,14 @@ struct Camera
             pivot.position + pivot.rotation * offset,
         };
     }
+
+    /// Transitions the camera to another
+    void transition_to(Camera const& other, f32 const t)
+    {
+        offset += (other.offset - offset) * t;
+        pivot.position += (other.pivot.position - pivot.position) * t;
+        pivot.rotation.q = pivot.rotation.q.slerp(t, other.pivot.rotation.q);
+    }
 };
 
 struct Pan
@@ -118,24 +126,6 @@ struct Orbit
         // TODO(dr): Clamp azimuth
 
         apply(camera);
-    }
-};
-
-struct SmoothCamera
-{
-    Camera current;
-    Camera target;
-    f32 sensitivity;
-
-    SmoothCamera(Camera const& init, f32 const sensitivity = 10.0f) :
-        current{init}, target{init}, sensitivity{sensitivity} {}
-
-    void update(f32 const delta_time)
-    {
-        f32 const t = saturate(sensitivity * delta_time);
-        current.offset += (target.offset - current.offset) * t;
-        current.pivot.position += (target.pivot.position - current.pivot.position) * t;
-        current.pivot.rotation.q = current.pivot.rotation.q.slerp(t, target.pivot.rotation.q);
     }
 };
 
