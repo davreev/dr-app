@@ -1,6 +1,7 @@
+#include "scene.hpp"
+
 #include <dr/basic_types.hpp>
 
-#include <dr/app/app.hpp>
 #include <dr/app/shim/imgui.hpp>
 
 namespace dr
@@ -11,7 +12,7 @@ namespace
 // clang-format off
 
 struct {
-    char const* name = "Example Scene";
+    char const* name = "Hello DR";
     char const* author = "David Reeves";
     char const* year = "2023";
     struct {
@@ -131,7 +132,7 @@ void input(sapp_event const* const event)
 
 } // namespace
 
-Scene const* example_scene()
+Scene const* scene()
 {
     static Scene const scene{
         scene_info.name,

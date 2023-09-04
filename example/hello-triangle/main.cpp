@@ -11,7 +11,7 @@ sapp_desc sokol_main(int /*argc*/, char** /*argv*/)
     sapp_desc desc = app_desc();
     desc.width = 1280;
     desc.height = 720;
-    desc.window_title = "Hello DR";
+    desc.window_title = "Hello Triangle";
 
     return desc;
 }
