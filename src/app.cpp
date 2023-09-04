@@ -142,8 +142,12 @@ bool app_set_scene(Scene const* const scene)
 }
 
 u64 app_time() { return state.time; }
+u64 app_time_s() { return stm_sec(state.time); }
+u64 app_time_ms() { return stm_ms(state.time); }
 
 u64 app_delta_time() { return state.delta_time; }
+f64 app_delta_time_s() { return stm_sec(state.delta_time); }
+f64 app_delta_time_ms() { return stm_ms(state.delta_time); }
 
 f32 app_aspect() { return sapp_widthf() / sapp_heightf(); }
 

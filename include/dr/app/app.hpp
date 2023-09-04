@@ -28,8 +28,12 @@ Scene const* app_scene();
 bool app_set_scene(Scene const* scene);
 
 u64 app_time();
+u64 app_time_s();
+u64 app_time_ms();
 
 u64 app_delta_time();
+f64 app_delta_time_s();
+f64 app_delta_time_ms();
 
 f32 app_aspect();
 
