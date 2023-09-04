@@ -25,7 +25,7 @@ void camera_handle_mouse(
     Orbit* const orbit,
     Zoom* const zoom,
     Pan* const pan,
-    bool* const mouse_down,
+    bool mouse_down[3],
     f32 const move_scale,
     sapp_event const& event)
 {
@@ -95,7 +95,7 @@ void camera_handle_touch(
     Orbit* const orbit,
     Zoom* const zoom,
     Pan* const /*pan*/,
-    Vec2<f32>* const last_touch_points,
+    Vec2<f32> last_touch_points[2],
     i8& last_num_touches,
     f32 const move_scale,
     sapp_event const& event)
