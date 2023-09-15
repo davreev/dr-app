@@ -26,12 +26,11 @@ struct TaskQueue
         Type type;
     };
 
+    using PollCallback = bool(PollEvent const& event);
+
     /// Pushes a task onto the queue for deferred asynchronous execution. The calling context is
     /// responsible for keeping the task alive until its results have been published.
-    void push(
-        TaskRef const& task,
-        void* context = nullptr,
-        bool (*poll_cb)(PollEvent const& event) = nullptr);
+    void push(TaskRef const& task, void* context = nullptr, PollCallback* poll_cb = nullptr);
 
     /// Inserts a barrier. Tasks queued after inserting a barrier won't start until all
     /// previously queued tasks have completed.
@@ -60,7 +59,7 @@ struct TaskQueue
 
         TaskRef task;
         void* context;
-        bool (*poll_cb)(PollEvent const& event);
+        PollCallback* poll_cb;
         Status status;
         usize gen;
 

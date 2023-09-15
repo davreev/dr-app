@@ -10,10 +10,7 @@
 namespace dr
 {
 
-void TaskQueue::push(
-    TaskRef const& task,
-    void* context,
-    bool (*poll_cb)(PollEvent const& event))
+void TaskQueue::push(TaskRef const& task, void* context, PollCallback* poll_cb)
 {
     assert(task.is_valid());
     tasks_.push_back({

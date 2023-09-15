@@ -10,15 +10,15 @@ namespace dr
 
 struct Scene
 {
-    using Callback = void (*)();
-    using EventCallback = void (*)(sapp_event const*);
+    using Callback = void();
+    using EventCallback = void(sapp_event const*);
 
     char const* name;
-    Callback open;
-    Callback update;
-    Callback draw;
-    Callback close;
-    EventCallback input;
+    Callback* open;
+    Callback* update;
+    Callback* draw;
+    Callback* close;
+    EventCallback* input;
 };
 
 sapp_desc app_desc();
