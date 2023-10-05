@@ -19,7 +19,7 @@ jobs:
       with:
         ssh-private-key: ${{secrets.DEPLOY_KEY}}
 
-    - name: Install Dependencies
+    - name: Install build dependencies
       run: >
        sudo apt-get update --yes &&
        sudo apt-get install --yes --no-install-recommends
@@ -49,7 +49,7 @@ jobs:
       with:
         ssh-private-key: ${{secrets.DEPLOY_KEY}}
 
-    - name: Install Dependencies
+    - name: Install build dependencies
       run: >
        sudo apt-get update --yes &&
        sudo apt-get install --yes --no-install-recommends
@@ -78,13 +78,17 @@ jobs:
       with:
         ssh-private-key: ${{secrets.DEPLOY_KEY}}
 
+    - name: Install build dependencies
+      run: >
+        choco install ninja
+
     - name: Configure CMake
       run: > 
-        cmake -B ${{github.workspace}}/build 
-        -G "Ninja Multi-Config" 
+        cmake -B ${{github.workspace}}/build -G "Ninja" 
+        -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
         -DCMAKE_CXX_COMPILER=clang++ 
         -DCMAKE_C_COMPILER=clang 
         -DDR_APP_EXAMPLE=ON
 
     - name: Build
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      run: cmake --build ${{github.workspace}}/build
