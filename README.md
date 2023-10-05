@@ -10,15 +10,14 @@ Build with CMake
 
 ```sh
 mkdir build
-cd build
 
 # If using a single-config generator (e.g. Unix Makefiles, Ninja)
-cmake -DCMAKE_BUILD_TYPE=(Debug|Release|RelWithDebInfo) [-DDR_APP_EXAMPLE=ON] ..
-cmake --build .
+cmake -S . -B ./build -DCMAKE_BUILD_TYPE=(Debug|Release|RelWithDebInfo) [-DDR_APP_EXAMPLE=ON]
+cmake --build ./build
 
 # If using a multi-config generator (e.g. Ninja Multi-Config, Xcode)
-cmake [-DDR_APP_EXAMPLE=ON] ..
-cmake --build . --config (Debug|Release|RelWithDebInfo)
+cmake -S . -B ./build [-DDR_APP_EXAMPLE=ON]
+cmake --build ./build --config (Debug|Release|RelWithDebInfo)
 ```
 
 ## Usage
