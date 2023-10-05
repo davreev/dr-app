@@ -23,6 +23,22 @@ bool read_text_file(char const* const path, std::string& buffer)
     }
 }
 
+bool append_text_file(char const* const path, std::string& buffer)
+{
+    std::ifstream in{path, std::ios::in};
+
+    if (in)
+    {
+        using Iter = std::istreambuf_iterator<char>;
+        std::copy(Iter{in}, Iter{}, std::back_inserter(buffer));
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 bool read_binary_file(char const* const path, std::vector<u8>& buffer)
 {
     std::ifstream in{path, std::ios::in | std::ios::binary};
@@ -31,6 +47,22 @@ bool read_binary_file(char const* const path, std::vector<u8>& buffer)
     {
         using Iter = std::istreambuf_iterator<char>;
         buffer.assign(Iter{in}, {});
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool append_binary_file(char const* const path, std::vector<u8>& buffer)
+{
+    std::ifstream in{path, std::ios::in};
+
+    if (in)
+    {
+        using Iter = std::istreambuf_iterator<char>;
+        std::copy(Iter{in}, Iter{}, std::back_inserter(buffer));
         return true;
     }
     else
