@@ -17,28 +17,75 @@ list(
     "${CMAKE_CURRENT_LIST_DIR}/cmake"
 )
 
+include(deps/dr)
+include(deps/imgui)
+include(deps/sokol)
+
 #
-# Shim targets
+# Util target
+#
+
+add_library(
+    dr-app-util STATIC
+    src/camera_utils.cpp
+    src/file_utils.cpp
+    src/gfx.cpp
+    src/gfx_utils.cpp
+    src/task_queue.cpp
+    src/thread_pool.cpp
+)
+add_library(dr::app-util ALIAS dr-app-util)
+
+target_include_directories(
+    dr-app-util
+    PUBLIC
+        "${CMAKE_CURRENT_LIST_DIR}/include"
+)
+
+target_link_libraries(
+    dr-app-util
+    PUBLIC
+        dr::dr
+        sokol::sokol
+)
+
+target_compile_options(
+    dr-app-util
+    PRIVATE 
+        -Wall -Wextra -Wpedantic -Werror
+)
+
+target_compile_definitions(
+    dr-app-util
+    PRIVATE 
+        # ...
+)
+
+target_link_options(
+    dr-app-util
+    PRIVATE
+        # ...
+)
+
+#
+# App target
 #
 
 if(APPLE AND NOT EMSCRIPTEN)
     # NOTE: sokol_app.h implementation must compiled as Objective-C on macOS
     add_library(
-        sokol-shim STATIC
+        dr-app-sokol STATIC
         "src/shim/sokol.mm"
     )
 else()
     add_library(
-        sokol-shim STATIC
+        dr-app-sokol STATIC
         "src/shim/sokol.cpp"
     )
 endif()
 
-include(deps/imgui)
-include(deps/sokol)
-
 target_link_libraries(
-    sokol-shim
+    dr-app-sokol
     PUBLIC
         imgui::imgui
         sokol::sokol
@@ -51,7 +98,7 @@ elseif(WIN32)
     # ...
 elseif(APPLE)
     target_link_libraries(
-        sokol-shim
+        dr-app-sokol
         PRIVATE
             "-framework Cocoa"
             "-framework QuartzCore"
@@ -59,7 +106,7 @@ elseif(APPLE)
     )
 elseif(UNIX)
     target_link_libraries(
-        sokol-shim
+        dr-app-sokol
         PRIVATE
             X11
             Xi
@@ -70,23 +117,13 @@ elseif(UNIX)
     )
 endif()
 
-#
-# Library target
-#
-
 add_library(
     dr-app STATIC
     src/shim/imgui.cpp
     src/app.cpp
     src/app_config.c
-    src/camera_utils.cpp
     src/default_scene.cpp
-    src/file_utils.cpp
-    src/gfx.cpp
-    src/gfx_utils.cpp
     src/input_utils.cpp
-    src/task_queue.cpp
-    src/thread_pool.cpp
 )
 add_library(dr::app ALIAS dr-app)
 
@@ -101,8 +138,8 @@ include(deps/dr)
 target_link_libraries(
     dr-app
     PUBLIC
-        dr::dr
-        sokol-shim
+        dr-app-sokol
+        dr-app-util
 )
 
 target_compile_options(
