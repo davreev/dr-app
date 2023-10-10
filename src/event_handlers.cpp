@@ -1,4 +1,6 @@
-#include <dr/app/input_utils.hpp>
+#include <dr/app/event_handlers.hpp>
+
+#include <cmath>
 
 #include <sokol_app.h>
 
@@ -9,9 +11,7 @@ namespace dr
 
 bool is_mouse_over(sapp_event const* const event)
 {
-    return event->mouse_x >= 0
-        && event->mouse_x < event->window_width
-        && event->mouse_y >= 0
+    return event->mouse_x >= 0 && event->mouse_x < event->window_width && event->mouse_y >= 0
         && event->mouse_y < event->window_height;
 }
 
@@ -20,7 +20,7 @@ f32 screen_to_view_scale(f32 const fov, f32 const size)
     return std::tan(fov * 0.5f) / (size * 0.5f);
 }
 
-void camera_handle_mouse(
+void camera_handle_mouse_event(
     Camera& camera,
     Orbit* const orbit,
     Zoom* const zoom,
@@ -67,10 +67,14 @@ void camera_handle_mouse(
         case SAPP_EVENTTYPE_MOUSE_MOVE:
         {
             if (mouse_down[0] && orbit != nullptr)
-                orbit->handle_drag(camera, {event.mouse_dx * move_scale, event.mouse_dy * move_scale});
+                orbit->handle_drag(
+                    camera,
+                    {event.mouse_dx * move_scale, event.mouse_dy * move_scale});
 
             if (mouse_down[1] && pan != nullptr)
-                pan->handle_drag(camera, {event.mouse_dx * move_scale, event.mouse_dy * move_scale});
+                pan->handle_drag(
+                    camera,
+                    {event.mouse_dx * move_scale, event.mouse_dy * move_scale});
 
             break;
         }
@@ -90,7 +94,7 @@ void camera_handle_mouse(
     }
 }
 
-void camera_handle_touch(
+void camera_handle_touch_event(
     Camera& camera,
     Orbit* const orbit,
     Zoom* const zoom,

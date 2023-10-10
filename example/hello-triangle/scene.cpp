@@ -5,9 +5,9 @@
 
 #include <dr/app/camera.hpp>
 #include <dr/app/camera_utils.hpp>
+#include <dr/app/event_handlers.hpp>
 #include <dr/app/gfx.hpp>
 #include <dr/app/gfx_utils.hpp>
-#include <dr/app/input_utils.hpp>
 #include <dr/app/shim/imgui.hpp>
 
 namespace dr
@@ -88,8 +88,8 @@ void main()
 
 // clang-format off
 
-// Layout: x y z r g b
 f32 const mesh_vertices[]{
+    // x, y, z, r, g, b
     -1.0, 0.0, -1.0, 1.0, 0.0, 0.5, 
     1.0, 0.0, -1.0, 0.0, 1.0, 0.5,
     0.0, 0.0, 1.0, 0.0, 0.0, 0.5,
@@ -118,7 +118,7 @@ GfxPipeline::Desc pipeline_desc(GfxShader const& shader)
     desc.depth.compare = SG_COMPAREFUNC_LESS;
     desc.depth.write_enabled = true;
     desc.index_type = SG_INDEXTYPE_UINT16;
-    desc.face_winding = SG_FACEWINDING_CCW,
+    desc.face_winding = SG_FACEWINDING_CCW;
     desc.cull_mode = SG_CULLMODE_NONE;
     return desc;
 }
@@ -140,15 +140,9 @@ void init_gfx_resources()
     gfx.index_buffer.init(buffer_desc(SG_RANGE(mesh_indices), SG_BUFFERTYPE_INDEXBUFFER));
 }
 
-void open()
-{
-    init_gfx_resources();
-}
+void open() { init_gfx_resources(); }
 
-void close()
-{
-    state.gfx = {};
-}
+void close() { state.gfx = {}; }
 
 void update()
 {
@@ -224,11 +218,11 @@ void draw()
     draw_ui();
 }
 
-void input(sapp_event const* const event)
+void handle_event(sapp_event const* const event)
 {
     f32 const move_scale = screen_to_view_scale(state.view.fov_y, sapp_heightf());
 
-    camera_handle_mouse(
+    camera_handle_mouse_event(
         state.camera.target,
         &state.camera.orbit,
         &state.camera.zoom,
@@ -240,15 +234,15 @@ void input(sapp_event const* const event)
 
 } // namespace
 
-Scene const* scene()
+App::Scene const* scene()
 {
-    static Scene const scene{
+    static App::Scene const scene{
         scene_info.name,
         open,
+        close,
         update,
         draw,
-        close,
-        input,
+        handle_event,
     };
 
     return &scene;

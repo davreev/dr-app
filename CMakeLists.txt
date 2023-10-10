@@ -119,11 +119,10 @@ endif()
 
 add_library(
     dr-app STATIC
-    src/shim/imgui.cpp
     src/app.cpp
-    src/app_config.c
-    src/default_scene.cpp
-    src/input_utils.cpp
+    src/app.c
+    src/event_handlers.cpp
+    src/shim/imgui.cpp
 )
 add_library(dr::app ALIAS dr-app)
 

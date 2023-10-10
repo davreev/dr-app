@@ -19,7 +19,7 @@ bool is_mouse_over(sapp_event const* event);
 f32 screen_to_view_scale(f32 fov, f32 size);
 
 /// Handles mouse events for camera control
-void camera_handle_mouse(
+void camera_handle_mouse_event(
     Camera& camera,
     Orbit* orbit,
     Zoom* zoom,
@@ -29,7 +29,7 @@ void camera_handle_mouse(
     sapp_event const& event);
 
 /// Handles touch events for camera control
-void camera_handle_touch(
+void camera_handle_touch_event(
     Camera& camera,
     Orbit* orbit,
     Zoom* zoom,

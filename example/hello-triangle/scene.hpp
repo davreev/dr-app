@@ -5,6 +5,6 @@
 namespace dr
 {
 
-Scene const* scene();
+App::Scene const* scene();
 
 }

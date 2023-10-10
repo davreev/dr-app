@@ -32,21 +32,6 @@ struct {
 
 // clang-format on
 
-void open()
-{
-    // ...
-}
-
-void close()
-{
-    // ...
-}
-
-void update()
-{
-    // ...
-}
-
 void draw_ui_tooltip()
 {
     ImGui::BeginTooltip();
@@ -58,7 +43,8 @@ void draw_ui_about_tab()
 {
     if (ImGui::BeginTabItem("About"))
     {
-        ImGui::TextWrapped("Press space bar to reveal the answer to the great question of life, the universe, and everything.");
+        ImGui::TextWrapped(
+            "Press space bar to reveal the answer to the great question of life, the universe, and everything.");
         ImGui::Spacing();
 
         ImGui::Text(
@@ -105,7 +91,7 @@ void draw()
     // ...
 }
 
-void input(sapp_event const* const event)
+void handle_event(sapp_event const* const event)
 {
     switch (event->type)
     {
@@ -132,15 +118,15 @@ void input(sapp_event const* const event)
 
 } // namespace
 
-Scene const* scene()
+App::Scene const* scene()
 {
-    static Scene const scene{
+    static App::Scene const scene{
         scene_info.name,
-        open,
-        update,
+        nullptr,
+        nullptr,
+        nullptr,
         draw,
-        close,
-        input,
+        handle_event,
     };
 
     return &scene;

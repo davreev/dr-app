@@ -7,65 +7,104 @@
 
 #include <fmt/core.h>
 
-#include <dr/app/app_config.h>
 #include <dr/app/shim/imgui.hpp>
 #include <dr/app/thread_pool.hpp>
 
-#include "default_scene.hpp"
+#include "app.h"
 
 namespace dr
 {
 namespace
 {
 
+App::Scene const* default_scene();
+
+App::Config default_config();
+
 struct
 {
-    Scene const* scene{default_scene()};
-    sg_pass_action pass_action{};
+    App::Scene const* scene{default_scene()};
+    App::Config config{default_config()};
     u64 time{};
     u64 delta_time{};
     bool is_init{};
 } state;
 
-void log(char const* const message, void* /*user_data*/)
+App::Scene const* default_scene()
 {
-    fmt::print("{}\n", message);
+    auto const draw = []() {
+        ImGui::BeginTooltip();
+        ImGui::Text("Did you forget to assign a scene?");
+        ImGui::EndTooltip();
+    };
+
+    static App::Scene const scene{
+        "Default Scene",
+        nullptr,
+        nullptr,
+        nullptr,
+        draw,
+        nullptr,
+    };
+
+    return &scene;
 }
+
+App::Config default_config()
+{
+    auto default_gfx_desc = []() { return sg_desc{}; };
+    auto default_ui_desc = []() { return simgui_desc_t{}; };
+
+    return App::Config{
+        default_gfx_desc,
+        default_gl_desc,
+        default_ui_desc,
+        default_pass_action(),
+    };
+}
+
+void log(char const* const message, void* /*user_data*/) { fmt::print("{}\n", message); }
 
 void init()
 {
-    // Init Sokol
+    auto gfx_desc = state.config.gfx_desc();
     {
-        // Sokol gfx
-        sg_setup(default_gfx_desc({log, nullptr}));
-
-        // Sokol time
-        stm_setup();
-
-        // Sokol GL
-        sgl_setup(default_gl_desc({log, nullptr}));
-
-        // Sokol imgui
-        simgui_setup(default_ui_desc(sapp_sample_count()));
+        gfx_desc.context = sapp_sgcontext();
+        gfx_desc.logger = {log, nullptr};
+        // ...
     }
+    sg_setup(gfx_desc);
 
-    // Init ImGui
+    auto gl_desc = state.config.gl_desc();
+    {
+        gl_desc.logger = {log, nullptr};
+        // ...
+    }
+    sgl_setup(gl_desc);
+
+    auto ui_desc = state.config.ui_desc();
+    {
+        ui_desc.sample_count = sapp_sample_count();
+        // ...
+    }
+    simgui_setup(ui_desc);
+
+    stm_setup();
+
     ImGuiStyles::set_default(ImGui::GetStyle());
 
-    // Set default pass action
-    state.pass_action.colors[0] = {
-        SG_ACTION_CLEAR,
-        {0.15, 0.15, 0.15, 0.15},
-    };
+    if (state.scene->open)
+        state.scene->open();
 
-    state.scene->open();
     state.is_init = true;
 }
 
 void frame()
 {
     state.delta_time = stm_laptime(&state.time);
-    state.scene->update();
+
+    if (state.scene->update)
+        state.scene->update();
 
     // Main render pass
     {
@@ -76,12 +115,10 @@ void frame()
             sapp_dpi_scale(),
         });
 
-        sg_begin_default_pass(
-            state.pass_action,
-            sapp_width(),
-            sapp_height());
+        sg_begin_default_pass(state.config.pass_action, sapp_width(), sapp_height());
 
-        state.scene->draw();
+        if (state.scene->draw)
+            state.scene->draw();
 
         simgui_render();
         sg_end_pass();
@@ -91,55 +128,59 @@ void frame()
 
 void cleanup()
 {
-    state.scene->close();
+    if (state.scene->close)
+        state.scene->close();
+
     simgui_shutdown();
     sgl_shutdown();
     sg_shutdown();
 }
 
-void input(sapp_event const* const event)
+void event(sapp_event const* const event)
 {
     // NOTE: Touch begin events aren't properly consumed by the UI event handler so they're always
     // forwarded. Specifically, the begin event of the first UI touch *isn't* consumed by the UI
     // handler and the begin event of the first non-UI touch *is* consumed the by UI handler.
 
     if (!simgui_handle_event(event) || (event->type == SAPP_EVENTTYPE_TOUCHES_BEGAN))
-        state.scene->input(event);
-}
-
-bool scene_is_valid(Scene const* const scene)
-{
-    return scene != nullptr
-        && scene->open != nullptr
-        && scene->update != nullptr
-        && scene->draw != nullptr
-        && scene->close != nullptr
-        && scene->input != nullptr;
+    {
+        if (state.scene->handle_event)
+            state.scene->handle_event(event);
+    }
 }
 
 } // namespace
 
 sapp_desc app_desc()
 {
-    return default_app_desc(init, frame, cleanup, input, {log, nullptr});
+    auto desc = default_app_desc();
+    {
+        desc.init_cb = init;
+        desc.frame_cb = frame;
+        desc.cleanup_cb = cleanup;
+        desc.event_cb = event;
+        desc.logger = {log, nullptr};
+    }
+    return desc;
 }
 
-Scene const* app_scene() { return state.scene; }
+App::Scene const* app_scene() { return state.scene; }
 
-bool app_set_scene(Scene const* const scene)
+void app_set_scene(App::Scene const* const scene)
 {
-    if (!scene_is_valid(scene))
-        return false;
-
     if (state.is_init)
     {
-        state.scene->close();
-        scene->open();
+        if (state.scene->close)
+            state.scene->close();
+
+        if (scene->open)
+            scene->open();
     }
 
     state.scene = scene;
-    return true;
 }
+
+App::Config& app_config() { return state.config; }
 
 u64 app_time() { return state.time; }
 u64 app_time_s() { return stm_sec(state.time); }
@@ -150,7 +191,5 @@ f64 app_delta_time_s() { return stm_sec(state.delta_time); }
 f64 app_delta_time_ms() { return stm_ms(state.delta_time); }
 
 f32 app_aspect() { return sapp_widthf() / sapp_heightf(); }
-
-sg_pass_action& app_pass_action() { return state.pass_action; }
 
 } // namespace dr

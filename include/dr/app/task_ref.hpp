@@ -22,7 +22,7 @@ struct TaskRef
             else
                 ptr_ = src;
 
-            invoke_ = [](void* task) { (*static_cast<Src*>(task))(); };
+            invoke_ = [](void* ptr) { (*static_cast<Src*>(ptr))(); };
         }
     }
 

@@ -15,11 +15,7 @@ struct GfxResource
 
     GfxResource(Desc const& desc);
 
-    GfxResource(GfxResource<Handle, Desc>&& other) noexcept :
-        handle_{other.handle_}
-    {
-        other.handle_ = {};
-    }
+    GfxResource(GfxResource<Handle, Desc>&& other) : handle_{other.handle_} { other.handle_ = {}; }
 
     GfxResource<Handle, Desc>& operator=(GfxResource<Handle, Desc>&& other) noexcept
     {
@@ -37,14 +33,18 @@ struct GfxResource
 
     /// Implicit conversion to the resource's unique handle. This will be invalid if the resource
     /// has not been allocated.
-    constexpr operator Handle() const { return handle_; }
+    operator Handle() const { return handle_; }
+
+    /// Returns the resource's unique handle. This will be invalid if the resource has not been
+    /// allocated.
+    Handle handle() const { return handle_; }
 
     /// Allocates a unique handle for the resource. This can't be done until the backing graphics
     /// API has been initialized.
     void alloc();
 
-    /// Initializes the resource. If the resource has not yet been allocted, this will also allocate
-    /// it. If the resource has already been initialized, this will reinitialize it.
+    /// Initializes the resource. If the resource has not yet been allocted, this will allocate
+    /// it first. If the resource has already been initialized, this will deinitialize it first.
     void init(Desc const& desc);
 
     /// Destroys the resource if it has been allocated

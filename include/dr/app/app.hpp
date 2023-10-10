@@ -2,30 +2,44 @@
 
 #include <sokol_app.h>
 #include <sokol_gfx.h>
+#include <sokol_gl.h>
+#include <sokol_imgui.h>
 
 #include <dr/basic_types.hpp>
 
 namespace dr
 {
 
-struct Scene
+struct App
 {
-    using Callback = void();
-    using EventCallback = void(sapp_event const*);
+    using Desc = sapp_desc;
 
-    char const* name;
-    Callback* open;
-    Callback* update;
-    Callback* draw;
-    Callback* close;
-    EventCallback* input;
+    struct Scene
+    {
+        char const* name;
+        void (*open)();
+        void (*close)();
+        void (*update)();
+        void (*draw)();
+        void (*handle_event)(sapp_event const*);
+    };
+
+    struct Config
+    {
+        sg_desc (*gfx_desc)();
+        sgl_desc_t (*gl_desc)();
+        simgui_desc_t (*ui_desc)();
+        sg_pass_action pass_action;
+    };
 };
 
-sapp_desc app_desc();
+App::Desc app_desc();
 
-Scene const* app_scene();
+App::Scene const* app_scene();
 
-bool app_set_scene(Scene const* scene);
+void app_set_scene(App::Scene const* scene);
+
+App::Config& app_config();
 
 u64 app_time();
 u64 app_time_s();
@@ -36,7 +50,5 @@ f64 app_delta_time_s();
 f64 app_delta_time_ms();
 
 f32 app_aspect();
-
-sg_pass_action& app_pass_action();
 
 } // namespace dr
