@@ -1,5 +1,7 @@
 #include <dr/app/app.hpp>
 
+#include <cassert>
+
 #include <sokol_gl.h>
 #include <sokol_glue.h>
 #include <sokol_imgui.h>
@@ -8,7 +10,6 @@
 #include <fmt/core.h>
 
 #include <dr/app/shim/imgui.hpp>
-#include <dr/app/thread_pool.hpp>
 
 #include "app.h"
 
@@ -32,18 +33,16 @@ struct
 
 App::Scene const* default_scene()
 {
-    auto const draw = []() {
-        ImGui::BeginTooltip();
-        ImGui::Text("Did you forget to assign a scene?");
-        ImGui::EndTooltip();
-    };
-
     static App::Scene const scene{
         "Default Scene",
         nullptr,
         nullptr,
         nullptr,
-        draw,
+        []() {
+            ImGui::BeginTooltip();
+            ImGui::Text("Did you forget to assign a scene?");
+            ImGui::EndTooltip();
+        },
         nullptr,
     };
 
@@ -52,13 +51,16 @@ App::Scene const* default_scene()
 
 App::Config default_config()
 {
-    auto default_gfx_desc = []() { return sg_desc{}; };
-    auto default_ui_desc = []() { return simgui_desc_t{}; };
-
     return App::Config{
-        default_gfx_desc,
-        default_gl_desc,
-        default_ui_desc,
+        {
+            []() { return sg_desc{}; },
+            default_gl_desc,
+            []() { return simgui_desc_t{}; },
+            nullptr,
+        },
+        {
+            nullptr,
+        },
         default_pass_action(),
     };
 }
@@ -67,31 +69,40 @@ void log(char const* const message, void* /*user_data*/) { fmt::print("{}\n", me
 
 void init()
 {
-    auto gfx_desc = state.config.gfx_desc();
+    auto const& config = state.config.init;
+
+    // Init sokol_gfx
+    auto gfx_desc = config.gfx_desc();
     {
         gfx_desc.context = sapp_sgcontext();
-        gfx_desc.logger = {log, nullptr};
+        gfx_desc.logger.log_cb = log;
         // ...
     }
     sg_setup(gfx_desc);
 
-    auto gl_desc = state.config.gl_desc();
+    // Init sokol_gl
+    auto gl_desc = config.gl_desc();
     {
-        gl_desc.logger = {log, nullptr};
+        gl_desc.logger.log_cb = log;
         // ...
     }
     sgl_setup(gl_desc);
 
-    auto ui_desc = state.config.ui_desc();
+    // Init sokol_imgui
+    auto imgui_desc = config.imgui_desc();
     {
-        ui_desc.sample_count = sapp_sample_count();
+        imgui_desc.sample_count = sapp_sample_count();
         // ...
     }
-    simgui_setup(ui_desc);
+    simgui_setup(imgui_desc);
 
+    // Init sokol_time
     stm_setup();
 
     ImGuiStyles::set_default(ImGui::GetStyle());
+
+    if (config.callback)
+        config.callback();
 
     if (state.scene->open)
         state.scene->open();
@@ -128,8 +139,13 @@ void frame()
 
 void cleanup()
 {
+    auto const& config = state.config.cleanup;
+
     if (state.scene->close)
         state.scene->close();
+
+    if (config.callback)
+        config.callback();
 
     simgui_shutdown();
     sgl_shutdown();
@@ -138,9 +154,9 @@ void cleanup()
 
 void event(sapp_event const* const event)
 {
-    // NOTE: Touch begin events aren't properly consumed by the UI event handler so they're always
-    // forwarded. Specifically, the begin event of the first UI touch *isn't* consumed by the UI
-    // handler and the begin event of the first non-UI touch *is* consumed the by UI handler.
+    // NOTE: Touch begin events aren't properly consumed by simgui_handle_event so they're always
+    // forwarded. Specifically, the begin event of the first UI touch *isn't* consumed and the begin
+    // event of the first non-UI touch *is* consumed.
 
     if (!simgui_handle_event(event) || (event->type == SAPP_EVENTTYPE_TOUCHES_BEGAN))
     {
@@ -159,7 +175,7 @@ sapp_desc app_desc()
         desc.frame_cb = frame;
         desc.cleanup_cb = cleanup;
         desc.event_cb = event;
-        desc.logger = {log, nullptr};
+        desc.logger.log_cb = log;
     }
     return desc;
 }
@@ -168,6 +184,8 @@ App::Scene const* app_scene() { return state.scene; }
 
 void app_set_scene(App::Scene const* const scene)
 {
+    assert(scene);
+
     if (state.is_init)
     {
         if (state.scene->close)

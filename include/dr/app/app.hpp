@@ -26,9 +26,19 @@ struct App
 
     struct Config
     {
-        sg_desc (*gfx_desc)();
-        sgl_desc_t (*gl_desc)();
-        simgui_desc_t (*ui_desc)();
+        struct
+        {
+            sg_desc (*gfx_desc)();
+            sgl_desc_t (*gl_desc)();
+            simgui_desc_t (*imgui_desc)();
+            void (*callback)();
+        } init;
+
+        struct
+        {
+            void (*callback)();
+        } cleanup;
+
         sg_pass_action pass_action;
     };
 };

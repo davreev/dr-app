@@ -1,4 +1,3 @@
-// Select graphics backend
 #ifdef __EMSCRIPTEN__
 #define SOKOL_GLES3
 #else

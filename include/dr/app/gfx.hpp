@@ -15,7 +15,10 @@ struct GfxResource
 
     GfxResource(Desc const& desc);
 
-    GfxResource(GfxResource<Handle, Desc>&& other) : handle_{other.handle_} { other.handle_ = {}; }
+    GfxResource(GfxResource<Handle, Desc>&& other) noexcept : handle_{other.handle_}
+    {
+        other.handle_ = {};
+    }
 
     GfxResource<Handle, Desc>& operator=(GfxResource<Handle, Desc>&& other) noexcept
     {
