@@ -21,13 +21,13 @@ f32 screen_to_view_scale(f32 const fov, f32 const size)
 }
 
 void camera_handle_mouse_event(
-    Camera& camera,
+    sapp_event const& event,
+    f32 const camera_distance,
+    f32 const screen_to_view,
     Orbit* const orbit,
     Zoom* const zoom,
     Pan* const pan,
-    bool mouse_down[3],
-    f32 const move_scale,
-    sapp_event const& event)
+    bool mouse_down[3])
 {
     switch (event.type)
     {
@@ -67,23 +67,28 @@ void camera_handle_mouse_event(
         case SAPP_EVENTTYPE_MOUSE_MOVE:
         {
             if (mouse_down[0] && orbit != nullptr)
-                orbit->handle_drag(
-                    camera,
-                    {event.mouse_dx * move_scale, event.mouse_dy * move_scale});
+            {
+                Vec2<f32> const d{event.mouse_dx, event.mouse_dy};
+                orbit->handle_drag(d * screen_to_view);
+            }
 
             if (mouse_down[1] && pan != nullptr)
-                pan->handle_drag(
-                    camera,
-                    {event.mouse_dx * move_scale, event.mouse_dy * move_scale});
+            {
+                Vec2<f32> const d{event.mouse_dx, event.mouse_dy};
+                pan->handle_drag(d * (camera_distance * screen_to_view));
+            }
 
             break;
         }
         case SAPP_EVENTTYPE_MOUSE_SCROLL:
         {
-            constexpr f32 scroll_scale = 0.1f; // TODO: Expose this?
+            constexpr f32 scroll_scale = 0.1f;
 
             if (zoom != nullptr)
-                zoom->handle_scroll(camera, sign(event.scroll_y) * scroll_scale);
+            {
+                f32 const d = scroll_scale * sign(event.scroll_y);
+                zoom->handle_scroll(d * camera_distance);
+            }
 
             break;
         }
@@ -95,14 +100,14 @@ void camera_handle_mouse_event(
 }
 
 void camera_handle_touch_event(
-    Camera& camera,
+    sapp_event const& event,
+    f32 const camera_distance,
+    f32 const screen_to_view,
     Orbit* const orbit,
     Zoom* const zoom,
     Pan* const /*pan*/,
     Vec2<f32> last_touch_points[2],
-    i8& last_num_touches,
-    f32 const move_scale,
-    sapp_event const& event)
+    i8& last_num_touches)
 {
     switch (event.type)
     {
@@ -132,7 +137,7 @@ void camera_handle_touch_event(
                         if (orbit != nullptr)
                         {
                             Vec2<f32> const d = p0 - last_touch_points[0];
-                            orbit->handle_drag(camera, d * move_scale);
+                            orbit->handle_drag(d * screen_to_view);
                         }
                         break;
                     }
@@ -143,7 +148,7 @@ void camera_handle_touch_event(
                         {
                             f32 const d0 = (last_touch_points[0] - last_touch_points[1]).norm();
                             f32 const d1 = (p0 - p1).norm();
-                            zoom->handle_scroll(camera, (d1 - d0) * move_scale);
+                            zoom->handle_scroll((d1 - d0) * (camera_distance * screen_to_view));
                         }
                         break;
                     }

@@ -1,6 +1,7 @@
 #include "scene.hpp"
 
 #include <dr/basic_types.hpp>
+#include <dr/bitwise.hpp>
 #include <dr/math.hpp>
 
 #include <dr/app/camera.hpp>
@@ -18,7 +19,7 @@ namespace
 // clang-format off
 
 struct {
-    char const* name = "Hello Triangle";
+    char const* name = "Scene Name";
     char const* author = "David Reeves";
     char const* year = "2023";
     struct {
@@ -47,10 +48,17 @@ struct {
     } view;
 
     struct {
-        Orbit orbit{0.0f, 0.5f * pi<f32>};
-        Zoom zoom{2.0f};
-        Camera target{make_camera(orbit, zoom)};
-        Camera current{target};
+        struct {
+            Orbit target{0.15f * pi<f32>, 0.35f * pi<f32>};
+            Orbit current{target};
+        } orbit;
+
+        struct {
+            Zoom target{4.0f};
+            Zoom current{target};
+        } zoom;
+        
+        Camera current{make_camera(orbit.current, zoom.current)};
     } camera;
 } state;
 
@@ -86,18 +94,20 @@ void main()
 
 )";
 
-// clang-format off
-
-f32 const mesh_vertices[]{
-    // x, y, z, r, g, b
-    -1.0, 0.0, -1.0, 1.0, 0.0, 0.5, 
-    1.0, 0.0, -1.0, 0.0, 1.0, 0.5,
-    0.0, 0.0, 1.0, 0.0, 0.0, 0.5,
+// Format: {x, y, z, r, g, b}
+f32 const mesh_vertices[][6]{
+    {0.0, 0.0, 0.0, 0.0, 0.0, 0.5},
+    {1.0, 1.0, 0.0, 1.0, 0.0, 0.5},
+    {0.0, 1.0, 1.0, 0.0, 1.0, 0.5},
+    {1.0, 0.0, 1.0, 1.0, 1.0, 0.5},
 };
 
-// clang-format on
-
-i16 const mesh_indices[]{0, 1, 2};
+i16 const mesh_indices[][3]{
+    {0, 3, 2},
+    {1, 2, 3},
+    {2, 1, 0},
+    {3, 0, 1},
+};
 
 GfxShader::Desc shader_desc(char const* vertex_src, char const* fragment_src)
 {
@@ -144,13 +154,21 @@ void open() { init_gfx_resources(); }
 
 void close() { state.gfx = {}; }
 
-void update()
+void update_camera()
 {
     auto& cam = state.camera;
-    cam.current.transition_to(cam.target, saturate(5.0 * app_delta_time_s()));
+    f32 const t = saturate(5.0 * app_delta_time_s());
+
+    cam.orbit.current.ease_to(cam.orbit.target, t);
+    cam.orbit.current.apply(cam.current);
+
+    cam.zoom.current.ease_to(cam.zoom.target, t);
+    cam.zoom.current.apply(cam.current);
 }
 
-void draw_mesh()
+void update() { update_camera(); }
+
+void draw_mesh(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
 {
     sg_apply_pipeline(state.gfx.pipeline);
 
@@ -164,23 +182,59 @@ void draw_mesh()
 
     // Apply uniforms
     {
-        Mat4<f32> const world_to_view = state.camera.current.transform().inverse_to_matrix();
-        Mat4<f32> const view_to_clip = make_perspective<NdcType_OpenGl>(
-            state.view.fov_y,
-            app_aspect(),
-            state.view.clip_near,
-            state.view.clip_far);
-
         struct
         {
             f32 local_to_clip[16];
         } vs_uniforms;
 
-        as_mat<4, 4>(vs_uniforms.local_to_clip) = view_to_clip * world_to_view;
+        as_mat<4, 4>(vs_uniforms.local_to_clip) = view_to_clip * local_to_view;
         sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, {&vs_uniforms, sizeof(vs_uniforms)});
     }
 
-    sg_draw(0, size(mesh_indices), 1);
+    sg_draw(0, 12, 1);
+}
+
+void draw_debug(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
+{
+    sgl_defaults();
+
+    sgl_matrix_mode_modelview();
+    sgl_load_matrix(local_to_view.data());
+
+    sgl_matrix_mode_projection();
+    sgl_load_matrix(view_to_clip.data());
+
+    // clang-format off
+    static constexpr u8 edge_verts[]{
+        0, 1,
+        2, 3,
+        4, 5,
+        6, 7,
+        0, 2,
+        1, 3,
+        4, 6,
+        5, 7,
+        0, 4,
+        1, 5,
+        2, 6,
+        3, 7,
+    };
+    // clang-format on
+
+    sgl_begin_lines();
+    {
+        sgl_c3f(1.0, 1.0, 1.0);
+        f32 p[3];
+
+        for (auto const& v : edge_verts)
+        {
+            unit_cube_vertex_coords(v, p);
+            sgl_v3f(p[0], p[1], p[2]);
+        }
+    }
+    sgl_end();
+
+    sgl_draw();
 }
 
 void draw_ui()
@@ -214,22 +268,32 @@ void draw_ui()
 
 void draw()
 {
-    draw_mesh();
+    Mat4<f32> const local_to_world = make_scale_translate(vec<3>(2.0f), vec<3>(-1.0f));
+    Mat4<f32> const world_to_view = state.camera.current.transform().inverse_to_matrix();
+
+    Mat4<f32> const local_to_view = world_to_view * local_to_world;
+    Mat4<f32> const view_to_clip = make_perspective<NdcType_OpenGl>(
+        state.view.fov_y,
+        app_aspect(),
+        state.view.clip_near,
+        state.view.clip_far);
+
+    draw_mesh(local_to_view, view_to_clip);
+    draw_debug(local_to_view, view_to_clip);
     draw_ui();
 }
 
 void handle_event(sapp_event const* const event)
 {
-    f32 const move_scale = screen_to_view_scale(state.view.fov_y, sapp_heightf());
-
+    auto& cam = state.camera;
     camera_handle_mouse_event(
-        state.camera.target,
-        &state.camera.orbit,
-        &state.camera.zoom,
+        *event,
+        cam.current.offset.z(),
+        screen_to_view_scale(state.view.fov_y, sapp_heightf()),
+        &cam.orbit.target,
+        &cam.zoom.target,
         nullptr,
-        state.input.mouse_down,
-        move_scale,
-        *event);
+        state.input.mouse_down);
 }
 
 } // namespace

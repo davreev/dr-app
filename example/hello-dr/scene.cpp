@@ -12,7 +12,7 @@ namespace
 // clang-format off
 
 struct {
-    char const* name = "Hello DR";
+    char const* name = "Scene Name";
     char const* author = "David Reeves";
     char const* year = "2023";
     struct {

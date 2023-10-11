@@ -20,23 +20,23 @@ f32 screen_to_view_scale(f32 fov, f32 size);
 
 /// Handles mouse events for camera control
 void camera_handle_mouse_event(
-    Camera& camera,
+    sapp_event const& event,
+    f32 camera_distance,
+    f32 screen_to_view,
     Orbit* orbit,
     Zoom* zoom,
     Pan* pan,
-    bool mouse_down[3],
-    f32 move_scale,
-    sapp_event const& event);
+    bool mouse_down[3]);
 
 /// Handles touch events for camera control
 void camera_handle_touch_event(
-    Camera& camera,
+    sapp_event const& event,
+    f32 camera_distance,
+    f32 screen_to_view,
     Orbit* orbit,
     Zoom* zoom,
     Pan* pan,
     Vec2<f32> last_touch_points[2],
-    i8& last_num_touches,
-    f32 move_scale,
-    sapp_event const& event);
+    i8& last_num_touches);
 
 } // namespace dr

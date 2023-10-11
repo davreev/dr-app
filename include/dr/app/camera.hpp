@@ -20,10 +20,7 @@ struct Camera
     Vec3<f32> offset{Vec3<f32>::UnitZ()};
 
     /// Returns the position of the camera in world space
-    Vec3<f32> position() const
-    {
-        return pivot.rotation * offset + pivot.position;
-    }
+    Vec3<f32> position() const { return pivot.rotation * offset + pivot.position; }
 
     /// Returns the transformation from local space to world space
     Rigid3<f32> transform() const
@@ -35,7 +32,7 @@ struct Camera
     }
 
     /// Transitions the camera to another
-    void transition_to(Camera const& other, f32 const t)
+    void ease_to(Camera const& other, f32 const t)
     {
         offset += (other.offset - offset) * t;
         pivot.position += (other.pivot.position - pivot.position) * t;
@@ -50,25 +47,18 @@ struct Pan
     // Vec2<f32> max_offset{};
     f32 sensitivity{1.0};
 
-    void apply(Camera& camera) const
-    {
-        camera.offset.head<2>() = offset;
-    }
+    void apply(Camera& camera) const { camera.offset.head<2>() = offset; }
 
-    void handle_drag(Camera& camera, Vec2<f32> const& delta)
+    void handle_drag(Vec2<f32> const& delta)
     {
         constexpr f32 dir_x{-1.0};
         constexpr f32 dir_y{1.0};
-
-        // Change in xy offset is proportional to the current z offset
-        f32 const scale = camera.offset.z() * sensitivity;
-        offset.x() += dir_x * delta.x() * scale;
-        offset.y() += dir_y * delta.y() * scale;
-
-        // TODO(dr): Clamp offsets
-
-        apply(camera);
+        offset.x() += dir_x * delta.x() * sensitivity;
+        offset.y() += dir_y * delta.y() * sensitivity;
+        // TODO(dr): Clamp offsets?
     }
+
+    void ease_to(Pan const& other, f32 const t) { offset += (other.offset - offset) * t; }
 };
 
 struct Zoom
@@ -78,23 +68,16 @@ struct Zoom
     // f32 max_distance{};
     f32 sensitivity{1.0};
 
-    void apply(Camera& camera) const
-    {
-        camera.offset.z() = distance;
-    }
+    void apply(Camera& camera) const { camera.offset.z() = distance; }
 
-    void handle_scroll(Camera& camera, f32 const delta)
+    void handle_scroll(f32 const delta)
     {
         constexpr f32 dir{-1.0};
-
-        // Change in distance is proportional to the current z offset
-        f32 const scale = camera.offset.z() * sensitivity;
-        distance += dir * delta * scale;
-
-        // TODO(dr): Clamp distance
-
-        apply(camera);
+        distance += dir * delta * sensitivity;
+        // TODO(dr): Clamp distance?
     }
+
+    void ease_to(Zoom const& other, f32 const t) { distance += (other.distance - distance) * t; }
 };
 
 struct Orbit
@@ -115,17 +98,19 @@ struct Orbit
         camera.pivot.rotation.q = r_z * r_x;
     }
 
-    void handle_drag(Camera& camera, Vec2<f32> const& delta)
+    void handle_drag(Vec2<f32> const& delta)
     {
         constexpr f32 dir_x{-1.0};
         constexpr f32 dir_y{-1.0};
-
         polar += dir_x * delta.x() * sensitivity;
         azimuth += dir_y * delta.y() * sensitivity;
+        // TODO(dr): Clamp azimuth?
+    }
 
-        // TODO(dr): Clamp azimuth
-
-        apply(camera);
+    void ease_to(Orbit const& other, f32 const t)
+    {
+        polar += (other.polar - polar) * t;
+        azimuth += (other.azimuth - azimuth) * t;
     }
 };
 
