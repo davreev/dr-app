@@ -15,7 +15,7 @@ bool is_mouse_over(sapp_event const* const event)
         && event->mouse_y < event->window_height;
 }
 
-f32 screen_to_view_scale(f32 const fov, f32 const size)
+f32 screen_to_view(f32 const fov, f32 const size)
 {
     return std::tan(fov * 0.5f) / (size * 0.5f);
 }

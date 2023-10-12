@@ -289,7 +289,7 @@ void handle_event(sapp_event const* const event)
     camera_handle_mouse_event(
         *event,
         cam.current.offset.z(),
-        screen_to_view_scale(state.view.fov_y, sapp_heightf()),
+        screen_to_view(state.view.fov_y, sapp_heightf()),
         &cam.orbit.target,
         &cam.zoom.target,
         nullptr,

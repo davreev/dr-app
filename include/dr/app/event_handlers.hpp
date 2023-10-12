@@ -15,8 +15,8 @@ struct Pan;
 /// True if the mouse is over the app window
 bool is_mouse_over(sapp_event const* event);
 
-/// Scale factor for taking input deltas from screen to view space (at z = -1).
-f32 screen_to_view_scale(f32 fov, f32 size);
+/// Scale factor for taking screen space distances to view space (at z = -1).
+f32 screen_to_view(f32 fov, f32 size);
 
 /// Handles mouse events for camera control
 void camera_handle_mouse_event(
