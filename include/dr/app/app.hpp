@@ -13,6 +13,7 @@ namespace dr
 struct App
 {
     using Desc = sapp_desc;
+    using Event = sapp_event;
 
     struct Scene
     {
@@ -21,7 +22,7 @@ struct App
         void (*close)();
         void (*update)();
         void (*draw)();
-        void (*handle_event)(sapp_event const*);
+        void (*handle_event)(Event const&);
     };
 
     struct Config
@@ -41,24 +42,24 @@ struct App
 
         sg_pass_action pass_action;
     };
+
+    static Desc desc();
+
+    static Scene const* scene();
+
+    static void set_scene(App::Scene const* scene);
+
+    static App::Config& config();
+
+    static u64 time();
+    static f64 time_s();
+    static f64 time_ms();
+
+    static u64 delta_time();
+    static f64 delta_time_s();
+    static f64 delta_time_ms();
+
+    static f32 aspect();
 };
-
-App::Desc app_desc();
-
-App::Scene const* app_scene();
-
-void app_set_scene(App::Scene const* scene);
-
-App::Config& app_config();
-
-u64 app_time();
-u64 app_time_s();
-u64 app_time_ms();
-
-u64 app_delta_time();
-f64 app_delta_time_s();
-f64 app_delta_time_ms();
-
-f32 app_aspect();
 
 } // namespace dr

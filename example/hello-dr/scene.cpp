@@ -87,24 +87,23 @@ void draw_ui()
 void draw()
 {
     draw_ui();
-
     // ...
 }
 
-void handle_event(sapp_event const* const event)
+void handle_event(App::Event const& event)
 {
-    switch (event->type)
+    switch (event.type)
     {
         case SAPP_EVENTTYPE_KEY_DOWN:
         {
-            if (event->key_code == SAPP_KEYCODE_SPACE)
+            if (event.key_code == SAPP_KEYCODE_SPACE)
                 state.input.space_down = true;
 
             break;
         }
         case SAPP_EVENTTYPE_KEY_UP:
         {
-            if (event->key_code == SAPP_KEYCODE_SPACE)
+            if (event.key_code == SAPP_KEYCODE_SPACE)
                 state.input.space_down = false;
 
             break;

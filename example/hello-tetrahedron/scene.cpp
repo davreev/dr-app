@@ -157,7 +157,7 @@ void close() { state.gfx = {}; }
 void update_camera()
 {
     auto& cam = state.camera;
-    f32 const t = saturate(5.0 * app_delta_time_s());
+    f32 const t = saturate(5.0 * App::delta_time_s());
 
     cam.orbit.current.ease_to(cam.orbit.target, t);
     cam.orbit.current.apply(cam.current);
@@ -274,7 +274,7 @@ void draw()
     Mat4<f32> const local_to_view = world_to_view * local_to_world;
     Mat4<f32> const view_to_clip = make_perspective<NdcType_OpenGl>(
         state.view.fov_y,
-        app_aspect(),
+        App::aspect(),
         state.view.clip_near,
         state.view.clip_far);
 
@@ -283,11 +283,11 @@ void draw()
     draw_ui();
 }
 
-void handle_event(sapp_event const* const event)
+void handle_event(App::Event const& event)
 {
     auto& cam = state.camera;
     camera_handle_mouse_event(
-        *event,
+        event,
         cam.current.offset.z(),
         screen_to_view(state.view.fov_y, sapp_heightf()),
         &cam.orbit.target,

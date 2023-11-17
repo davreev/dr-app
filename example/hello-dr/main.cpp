@@ -6,9 +6,9 @@ sapp_desc sokol_main(int /*argc*/, char** /*argv*/)
 {
     using namespace dr;
 
-    app_set_scene(scene());
+    App::set_scene(scene());
 
-    sapp_desc desc = app_desc();
+    App::Desc desc = App::desc();
     {
         desc.width = 1280;
         desc.height = 720;

@@ -2,17 +2,16 @@
 
 #include <cmath>
 
-#include <sokol_app.h>
-
+#include <dr/app/app.hpp>
 #include <dr/app/camera.hpp>
 
 namespace dr
 {
 
-bool is_mouse_over(sapp_event const* const event)
+bool is_mouse_over(App::Event const& event)
 {
-    return event->mouse_x >= 0 && event->mouse_x < event->window_width && event->mouse_y >= 0
-        && event->mouse_y < event->window_height;
+    return event.mouse_x >= 0 && event.mouse_x < event.window_width && event.mouse_y >= 0
+        && event.mouse_y < event.window_height;
 }
 
 f32 screen_to_view(f32 const fov, f32 const size)
@@ -21,7 +20,7 @@ f32 screen_to_view(f32 const fov, f32 const size)
 }
 
 void camera_handle_mouse_event(
-    sapp_event const& event,
+    App::Event const& event,
     f32 const camera_distance,
     f32 const screen_to_view,
     Orbit* const orbit,
@@ -100,7 +99,7 @@ void camera_handle_mouse_event(
 }
 
 void camera_handle_touch_event(
-    sapp_event const& event,
+    App::Event const& event,
     f32 const camera_distance,
     f32 const screen_to_view,
     Orbit* const orbit,

@@ -19,7 +19,6 @@ namespace
 {
 
 App::Scene const* default_scene();
-
 App::Config default_config();
 
 struct
@@ -152,7 +151,7 @@ void cleanup()
     sg_shutdown();
 }
 
-void event(sapp_event const* const event)
+void event(App::Event const* const event)
 {
     // NOTE: Touch begin events aren't properly consumed by simgui_handle_event so they're always
     // forwarded. Specifically, the begin event of the first UI touch *isn't* consumed and the begin
@@ -161,13 +160,13 @@ void event(sapp_event const* const event)
     if (!simgui_handle_event(event) || (event->type == SAPP_EVENTTYPE_TOUCHES_BEGAN))
     {
         if (state.scene->handle_event)
-            state.scene->handle_event(event);
+            state.scene->handle_event(*event);
     }
 }
 
 } // namespace
 
-sapp_desc app_desc()
+sapp_desc App::desc()
 {
     auto desc = default_app_desc();
     {
@@ -180,9 +179,9 @@ sapp_desc app_desc()
     return desc;
 }
 
-App::Scene const* app_scene() { return state.scene; }
+App::Scene const* App::scene() { return state.scene; }
 
-void app_set_scene(App::Scene const* const scene)
+void App::set_scene(App::Scene const* const scene)
 {
     assert(scene);
 
@@ -198,16 +197,16 @@ void app_set_scene(App::Scene const* const scene)
     state.scene = scene;
 }
 
-App::Config& app_config() { return state.config; }
+App::Config& App::config() { return state.config; }
 
-u64 app_time() { return state.time; }
-u64 app_time_s() { return stm_sec(state.time); }
-u64 app_time_ms() { return stm_ms(state.time); }
+u64 App::time() { return state.time; }
+f64 App::time_s() { return stm_sec(state.time); }
+f64 App::time_ms() { return stm_ms(state.time); }
 
-u64 app_delta_time() { return state.delta_time; }
-f64 app_delta_time_s() { return stm_sec(state.delta_time); }
-f64 app_delta_time_ms() { return stm_ms(state.delta_time); }
+u64 App::delta_time() { return state.delta_time; }
+f64 App::delta_time_s() { return stm_sec(state.delta_time); }
+f64 App::delta_time_ms() { return stm_ms(state.delta_time); }
 
-f32 app_aspect() { return sapp_widthf() / sapp_heightf(); }
+f32 App::aspect() { return sapp_widthf() / sapp_heightf(); }
 
 } // namespace dr
