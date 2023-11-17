@@ -20,4 +20,7 @@ Camera make_camera_look_at(Vec3<f32> const& position, Vec3<f32> const& target, V
 /// Translates the camera to fit a given sphere in view
 void frame_bounds(Camera& camera, Vec3<f32> const& center, f32 radius, f32 fov_min);
 
+/// Transitions the camera to another
+void transition(Camera& camera, Camera const& target, f32 const t);
+
 } // namespace dr

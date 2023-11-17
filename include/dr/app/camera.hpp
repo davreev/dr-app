@@ -30,14 +30,6 @@ struct Camera
             pivot.position + pivot.rotation * offset,
         };
     }
-
-    /// Transitions the camera to another
-    void ease_to(Camera const& other, f32 const t)
-    {
-        offset += (other.offset - offset) * t;
-        pivot.position += (other.pivot.position - pivot.position) * t;
-        pivot.rotation.q = pivot.rotation.q.slerp(t, other.pivot.rotation.q);
-    }
 };
 
 struct Pan
@@ -57,8 +49,6 @@ struct Pan
         offset.y() += dir_y * delta.y() * sensitivity;
         // TODO(dr): Clamp offsets?
     }
-
-    void ease_to(Pan const& other, f32 const t) { offset += (other.offset - offset) * t; }
 };
 
 struct Zoom
@@ -76,8 +66,6 @@ struct Zoom
         distance += dir * delta * sensitivity;
         // TODO(dr): Clamp distance?
     }
-
-    void ease_to(Zoom const& other, f32 const t) { distance += (other.distance - distance) * t; }
 };
 
 struct Orbit
@@ -106,12 +94,46 @@ struct Orbit
         azimuth += dir_y * delta.y() * sensitivity;
         // TODO(dr): Clamp azimuth?
     }
+};
 
-    void ease_to(Orbit const& other, f32 const t)
+struct EasedPan
+{
+    Pan current;
+    Pan target;
+
+    EasedPan(Pan const& pan) : current{pan}, target{pan} {}
+
+    void apply(Camera& camera) const { current.apply(camera); }
+
+    void update(f32 const t) { current.offset += (target.offset - current.offset) * t; }
+};
+
+struct EasedZoom
+{
+    Zoom current;
+    Zoom target;
+
+    EasedZoom(Zoom const& zoom) : current{zoom}, target{zoom} {}
+
+    void apply(Camera& camera) const { current.apply(camera); }
+
+    void update(f32 const t) { current.distance += (target.distance - current.distance) * t; };
+};
+
+struct EasedOrbit
+{
+    Orbit current;
+    Orbit target;
+
+    EasedOrbit(Orbit const& orbit) : current{orbit}, target{orbit} {}
+
+    void apply(Camera& camera) const { current.apply(camera); }
+
+    void update(f32 const t)
     {
-        polar += (other.polar - polar) * t;
-        azimuth += (other.azimuth - azimuth) * t;
-    }
+        current.polar += (target.polar - current.polar) * t;
+        current.azimuth += (target.azimuth - current.azimuth) * t;
+    };
 };
 
 } // namespace dr

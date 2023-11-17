@@ -47,19 +47,9 @@ struct {
         f32 clip_far{100.0f};
     } view;
 
-    struct {
-        struct {
-            Orbit target{0.15f * pi<f32>, 0.35f * pi<f32>};
-            Orbit current{target};
-        } orbit;
-
-        struct {
-            Zoom target{4.0f};
-            Zoom current{target};
-        } zoom;
-        
-        Camera current{make_camera(orbit.current, zoom.current)};
-    } camera;
+    EasedOrbit orbit{{0.15f * pi<f32>, 0.35f * pi<f32>}};
+    EasedZoom zoom{{4.0f}};
+    Camera camera{make_camera(orbit.current, zoom.current)};
 } state;
 
 // clang-format on
@@ -154,19 +144,16 @@ void open() { init_gfx_resources(); }
 
 void close() { state.gfx = {}; }
 
-void update_camera()
+void update()
 {
-    auto& cam = state.camera;
     f32 const t = saturate(5.0 * App::delta_time_s());
 
-    cam.orbit.current.ease_to(cam.orbit.target, t);
-    cam.orbit.current.apply(cam.current);
+    state.orbit.update(t);
+    state.orbit.apply(state.camera);
 
-    cam.zoom.current.ease_to(cam.zoom.target, t);
-    cam.zoom.current.apply(cam.current);
+    state.zoom.update(t);
+    state.zoom.apply(state.camera);
 }
-
-void update() { update_camera(); }
 
 void draw_mesh(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
 {
@@ -269,7 +256,7 @@ void draw_ui()
 void draw()
 {
     Mat4<f32> const local_to_world = make_scale_translate(vec<3>(2.0f), vec<3>(-1.0f));
-    Mat4<f32> const world_to_view = state.camera.current.transform().inverse_to_matrix();
+    Mat4<f32> const world_to_view = state.camera.transform().inverse_to_matrix();
 
     Mat4<f32> const local_to_view = world_to_view * local_to_world;
     Mat4<f32> const view_to_clip = make_perspective<NdcType_OpenGl>(
@@ -285,13 +272,12 @@ void draw()
 
 void handle_event(App::Event const& event)
 {
-    auto& cam = state.camera;
     camera_handle_mouse_event(
         event,
-        cam.current.offset.z(),
+        state.camera.offset.z(),
         screen_to_view(state.view.fov_y, sapp_heightf()),
-        &cam.orbit.target,
-        &cam.zoom.target,
+        &state.orbit.target,
+        &state.zoom.target,
         nullptr,
         state.input.mouse_down);
 }
