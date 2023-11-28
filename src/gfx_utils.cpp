@@ -80,7 +80,7 @@ template <>
 Mat4<f32> make_perspective<NdcType_Default>(f32 const fov_y, f32 const aspect, f32 const near, f32 const far)
 {
     // NOTE: This assumes a right-handed y-up view space i.e. [-near, -far] in view space maps to
-    // [-1, 1] in NDC space
+    // [0, 1] in NDC space
 
     f32 const y = std::tan(fov_y * 0.5f);
 

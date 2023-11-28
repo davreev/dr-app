@@ -15,11 +15,11 @@ struct AssetTable
         assets_[id].path = path;
     }
 
-    const Data* get(Handle const id, bool const force_reload = false)
+    Data const* get(Handle const id, bool const force_load = false)
     {
         auto& asset = assets_[id];
 
-        if(asset.data == nullptr || force_reload)
+        if(asset.data == nullptr || force_load)
             load(asset);
 
         return asset.data.get();
