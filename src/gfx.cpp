@@ -24,7 +24,7 @@ void GfxPass::alloc()
 template <>
 void GfxPass::destroy()
 {
-    if (is_alloc())
+    if (is_alloc() && sg_isvalid())
     {
         sg_destroy_pass(handle_);
         handle_ = {};
@@ -72,7 +72,7 @@ void GfxPipeline::alloc()
 template <>
 void GfxPipeline::destroy()
 {
-    if (is_alloc())
+    if (is_alloc() && sg_isvalid())
     {
         sg_destroy_pipeline(handle_);
         handle_ = {};
@@ -120,7 +120,7 @@ void GfxShader::alloc()
 template <>
 void GfxShader::destroy()
 {
-    if (is_alloc())
+    if (is_alloc() && sg_isvalid())
     {
         sg_destroy_shader(handle_);
         handle_ = {};
@@ -168,7 +168,7 @@ void GfxBuffer::alloc()
 template <>
 void GfxBuffer::destroy()
 {
-    if (is_alloc())
+    if (is_alloc() && sg_isvalid())
     {
         sg_destroy_buffer(handle_);
         handle_ = {};
@@ -216,7 +216,7 @@ void GfxImage::alloc()
 template <>
 void GfxImage::destroy()
 {
-    if (is_alloc())
+    if (is_alloc() && sg_isvalid())
     {
         sg_destroy_image(handle_);
         handle_ = {};
