@@ -84,13 +84,13 @@ void draw_ui()
         draw_ui_tooltip();
 }
 
-void draw()
+void draw(void* /*context*/)
 {
     draw_ui();
     // ...
 }
 
-void handle_event(App::Event const& event)
+void handle_event(void* /*context*/, App::Event const& event)
 {
     switch (event.type)
     {
@@ -117,18 +117,17 @@ void handle_event(App::Event const& event)
 
 } // namespace
 
-App::Scene const* scene()
+App::Scene scene()
 {
-    static App::Scene const scene{
+    return {
         scene_info.name,
         nullptr,
         nullptr,
         nullptr,
         draw,
         handle_event,
+        nullptr,
     };
-
-    return &scene;
 }
 
 } // namespace dr

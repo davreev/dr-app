@@ -140,11 +140,11 @@ void init_gfx_resources()
     gfx.index_buffer.init(buffer_desc(SG_RANGE(mesh_indices), SG_BUFFERTYPE_INDEXBUFFER));
 }
 
-void open() { init_gfx_resources(); }
+void open(void* /*context*/) { init_gfx_resources(); }
 
-void close() { state.gfx = {}; }
+void close(void* /*context*/) { state.gfx = {}; }
 
-void update()
+void update(void* /*context*/)
 {
     f32 const t = saturate(5.0 * App::delta_time_s());
 
@@ -253,7 +253,7 @@ void draw_ui()
     ImGui::End();
 }
 
-void draw()
+void draw(void* /*context*/)
 {
     Mat4<f32> const local_to_world = make_scale_translate(vec<3>(2.0f), vec<3>(-1.0f));
     Mat4<f32> const world_to_view = state.camera.transform().inverse_to_matrix();
@@ -270,7 +270,7 @@ void draw()
     draw_ui();
 }
 
-void handle_event(App::Event const& event)
+void handle_event(void* /*context*/, App::Event const& event)
 {
     camera_handle_mouse_event(
         event,
@@ -284,18 +284,17 @@ void handle_event(App::Event const& event)
 
 } // namespace
 
-App::Scene const* scene()
+App::Scene scene()
 {
-    static App::Scene const scene{
+    return {
         scene_info.name,
         open,
         close,
         update,
         draw,
         handle_event,
+        nullptr
     };
-
-    return &scene;
 }
 
 } // namespace dr

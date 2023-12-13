@@ -18,36 +18,37 @@ struct App
     struct Scene
     {
         char const* name;
-        void (*open)();
-        void (*close)();
-        void (*update)();
-        void (*draw)();
-        void (*handle_event)(Event const&);
+        void (*open)(void*);
+        void (*close)(void*);
+        void (*update)(void*);
+        void (*draw)(void*);
+        void (*handle_event)(void*, Event const&);
+        void* context;
     };
 
     struct Config
     {
         struct
         {
-            sg_desc (*gfx_desc)();
-            sgl_desc_t (*gl_desc)();
-            simgui_desc_t (*imgui_desc)();
-            void (*callback)();
+            void (*override_gfx)(sg_desc&);
+            void (*override_gl)(sgl_desc_t&);
+            void (*override_imgui)(simgui_desc_t&);
+            void (*callback)(void*);
         } init;
 
         struct
         {
-            void (*callback)();
+            void (*callback)(void*);
         } cleanup;
 
         sg_pass_action pass_action;
+        void* context;
     };
 
     static Desc desc();
 
-    static Scene const* scene();
-
-    static void set_scene(App::Scene const* scene);
+    static Scene const& scene();
+    static void set_scene(App::Scene const& scene);
 
     static App::Config& config();
 

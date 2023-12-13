@@ -18,80 +18,77 @@ namespace dr
 namespace
 {
 
-App::Scene const* default_scene();
+App::Scene default_scene();
 App::Config default_config();
 
 struct
 {
-    App::Scene const* scene{default_scene()};
+    App::Scene scene{default_scene()};
     App::Config config{default_config()};
     u64 time{};
     u64 delta_time{};
     bool is_init{};
 } state;
 
-App::Scene const* default_scene()
+App::Scene default_scene()
 {
-    static App::Scene const scene{
+    return {
         "Default Scene",
         nullptr,
         nullptr,
         nullptr,
-        []() {
+        [](void* /*context*/) {
             ImGui::BeginTooltip();
-            ImGui::Text("Did you forget to assign a scene?");
+            ImGui::Text("This is the default scene. Nothing to see here.");
             ImGui::EndTooltip();
         },
         nullptr,
+        nullptr,
     };
-
-    return &scene;
 }
 
 App::Config default_config()
 {
-    return App::Config{
-        {
-            []() { return sg_desc{}; },
-            default_gl_desc,
-            []() { return simgui_desc_t{}; },
-            nullptr,
-        },
-        {
-            nullptr,
-        },
-        default_pass_action(),
-    };
+    return {{}, {}, default_pass_action(), nullptr};
 }
 
 void log(char const* const message, void* /*user_data*/) { fmt::print("{}\n", message); }
 
 void init()
 {
-    auto const& config = state.config.init;
+    auto const& config = state.config;
 
     // Init sokol_gfx
-    auto gfx_desc = config.gfx_desc();
+    auto gfx_desc = sg_desc{};
     {
         gfx_desc.context = sapp_sgcontext();
         gfx_desc.logger.log_cb = log;
         // ...
+
+        if(config.init.override_gfx)
+            config.init.override_gfx(gfx_desc);
     }
     sg_setup(gfx_desc);
 
     // Init sokol_gl
-    auto gl_desc = config.gl_desc();
+    auto gl_desc = default_gl_desc();
     {
         gl_desc.logger.log_cb = log;
         // ...
+
+        if(config.init.override_gl)
+            config.init.override_gl(gl_desc);
     }
     sgl_setup(gl_desc);
 
     // Init sokol_imgui
-    auto imgui_desc = config.imgui_desc();
+    auto imgui_desc = simgui_desc_t{};
     {
         imgui_desc.sample_count = sapp_sample_count();
         // ...
+
+        if(config.init.override_imgui)
+            config.init.override_imgui(imgui_desc);
     }
     simgui_setup(imgui_desc);
 
@@ -100,11 +97,11 @@ void init()
 
     ImGuiStyles::set_default(ImGui::GetStyle());
 
-    if (config.callback)
-        config.callback();
+    if (config.init.callback)
+        config.init.callback(config.context);
 
-    if (state.scene->open)
-        state.scene->open();
+    if (state.scene.open)
+        state.scene.open(state.scene.context);
 
     state.is_init = true;
 }
@@ -113,8 +110,8 @@ void frame()
 {
     state.delta_time = stm_laptime(&state.time);
 
-    if (state.scene->update)
-        state.scene->update();
+    if (state.scene.update)
+        state.scene.update(state.scene.context);
 
     // Main render pass
     {
@@ -127,8 +124,8 @@ void frame()
 
         sg_begin_default_pass(state.config.pass_action, sapp_width(), sapp_height());
 
-        if (state.scene->draw)
-            state.scene->draw();
+        if (state.scene.draw)
+            state.scene.draw(state.scene.context);
 
         simgui_render();
         sg_end_pass();
@@ -138,13 +135,13 @@ void frame()
 
 void cleanup()
 {
-    auto const& config = state.config.cleanup;
+    auto const& config = state.config;
 
-    if (state.scene->close)
-        state.scene->close();
+    if (state.scene.close)
+        state.scene.close(state.scene.context);
 
-    if (config.callback)
-        config.callback();
+    if (config.cleanup.callback)
+        config.cleanup.callback(config.context);
 
     simgui_shutdown();
     sgl_shutdown();
@@ -159,8 +156,8 @@ void event(App::Event const* const event)
 
     if (!simgui_handle_event(event) || (event->type == SAPP_EVENTTYPE_TOUCHES_BEGAN))
     {
-        if (state.scene->handle_event)
-            state.scene->handle_event(*event);
+        if (state.scene.handle_event)
+            state.scene.handle_event(state.scene.context, *event);
     }
 }
 
@@ -179,19 +176,17 @@ sapp_desc App::desc()
     return desc;
 }
 
-App::Scene const* App::scene() { return state.scene; }
+App::Scene const& App::scene() { return state.scene; }
 
-void App::set_scene(App::Scene const* const scene)
+void App::set_scene(App::Scene const& scene)
 {
-    assert(scene);
-
     if (state.is_init)
     {
-        if (state.scene->close)
-            state.scene->close();
+        if (state.scene.close)
+            state.scene.close(state.scene.context);
 
-        if (scene->open)
-            scene->open();
+        if (scene.open)
+            scene.open(state.scene.context);
     }
 
     state.scene = scene;

@@ -1,17 +1,17 @@
 add_executable(
-    hello-dr
+    hello-tetra
     main.cpp
     scene.cpp
 )
 
 target_link_libraries(
-    hello-dr 
+    hello-tetra 
     PRIVATE
         dr::app
 )
 
 target_compile_options(
-    hello-dr
+    hello-tetra
     PRIVATE 
         -Wall -Wextra -Wpedantic -Werror
 )
