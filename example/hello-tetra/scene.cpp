@@ -134,10 +134,12 @@ GfxBuffer::Desc buffer_desc(sg_range const& data, sg_buffer_type const type)
 void init_gfx_resources()
 {
     auto& gfx = state.gfx;
-    gfx.shader.init(shader_desc(vertex_shader_src, fragment_shader_src));
-    gfx.pipeline.init(pipeline_desc(gfx.shader));
-    gfx.vertex_buffer.init(buffer_desc(SG_RANGE(mesh_vertices), SG_BUFFERTYPE_VERTEXBUFFER));
-    gfx.index_buffer.init(buffer_desc(SG_RANGE(mesh_indices), SG_BUFFERTYPE_INDEXBUFFER));
+    gfx.shader = GfxShader::make(shader_desc(vertex_shader_src, fragment_shader_src));
+    gfx.pipeline = GfxPipeline::make(pipeline_desc(gfx.shader));
+    gfx.vertex_buffer =
+        GfxBuffer::make(buffer_desc(SG_RANGE(mesh_vertices), SG_BUFFERTYPE_VERTEXBUFFER));
+    gfx.index_buffer =
+        GfxBuffer::make(buffer_desc(SG_RANGE(mesh_indices), SG_BUFFERTYPE_INDEXBUFFER));
 }
 
 void open(void* /*context*/) { init_gfx_resources(); }
@@ -284,17 +286,6 @@ void handle_event(void* /*context*/, App::Event const& event)
 
 } // namespace
 
-App::Scene scene()
-{
-    return {
-        scene_info.name,
-        open,
-        close,
-        update,
-        draw,
-        handle_event,
-        nullptr
-    };
-}
+App::Scene scene() { return {scene_info.name, open, close, update, draw, handle_event, nullptr}; }
 
 } // namespace dr

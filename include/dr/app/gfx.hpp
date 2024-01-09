@@ -11,9 +11,13 @@ struct GfxResource
     using Handle = Handle_;
     using Desc = Desc_;
 
-    GfxResource() = default;
+    /// Allocates a new resource without initializing it
+    static GfxResource alloc();
 
-    GfxResource(Desc const& desc);
+    /// Allocates and initializes a new resource
+    static GfxResource make(Desc const& desc);
+
+    GfxResource() = default;
 
     GfxResource(GfxResource<Handle, Desc>&& other) noexcept : handle_{other.handle_}
     {
@@ -34,37 +38,30 @@ struct GfxResource
 
     ~GfxResource() { destroy(); }
 
-    /// Implicit conversion to the resource's unique handle. This will be invalid if the resource
-    /// has not been allocated.
+    /// Implicit conversion to the resource's unique handle
     operator Handle() const { return handle_; }
 
-    /// Returns the resource's unique handle. This will be invalid if the resource has not been
-    /// allocated.
+    /// Returns the resource's unique handle
     Handle handle() const { return handle_; }
 
-    /// Allocates a unique handle for the resource. This can't be done until the backing graphics
-    /// API has been initialized.
-    void alloc();
-
-    /// Initializes the resource. If the resource has not yet been allocted, this will allocate
-    /// it first. If the resource has already been initialized, this will deinitialize it first.
+    /// Initializes the resource. If the resource has already been initialized, this will
+    /// reinitialize it.
     void init(Desc const& desc);
 
-    /// Destroys the resource if it has been allocated
-    void destroy();
-
-    /// True if the resource has been allocated
-    bool is_alloc() const { return handle_.id != SG_INVALID_ID; }
+    /// True if the resource has a valid handle
+    bool is_valid() const { return handle_.id != SG_INVALID_ID; }
 
     /// True if the resource has been initialized
     bool is_init() const { return query_state() == SG_RESOURCESTATE_VALID; }
 
   private:
-    using State = sg_resource_state;
-
     Handle handle_;
 
-    State query_state() const;
+    GfxResource(Handle const handle) : handle_{handle} {}
+
+    sg_resource_state query_state() const;
+
+    void destroy();
 };
 
 using GfxPass = GfxResource<sg_pass, sg_pass_desc>;

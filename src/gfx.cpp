@@ -9,22 +9,21 @@ namespace dr
 // GfxPass
 
 template <>
-GfxPass::GfxResource(GfxPass::Desc const& desc) :
-    handle_{sg_make_pass(desc)}
+GfxPass GfxPass::alloc()
 {
+    return {sg_alloc_pass()};
 }
 
 template <>
-void GfxPass::alloc()
+GfxPass GfxPass::make(Desc const& desc)
 {
-    assert(!is_alloc());
-    handle_ = sg_alloc_pass();
+    return {sg_make_pass(desc)};
 }
 
 template <>
 void GfxPass::destroy()
 {
-    if (is_alloc() && sg_isvalid())
+    if (is_valid() && sg_isvalid())
     {
         sg_destroy_pass(handle_);
         handle_ = {};
@@ -34,21 +33,14 @@ void GfxPass::destroy()
 template <>
 void GfxPass::init(GfxPass::Desc const& desc)
 {
-    if (!is_alloc())
-    {
-        handle_ = sg_make_pass(desc);
-    }
-    else
-    {
-        if (is_init())
-            sg_uninit_pass(handle_);
+    if (is_init())
+        sg_uninit_pass(handle_);
 
-        sg_init_pass(handle_, desc);
-    }
+    sg_init_pass(handle_, desc);
 }
 
 template <>
-GfxPass::State GfxPass::query_state() const
+sg_resource_state GfxPass::query_state() const
 {
     return sg_query_pass_state(handle_);
 }
@@ -57,22 +49,21 @@ GfxPass::State GfxPass::query_state() const
 // GfxPipeline
 
 template <>
-GfxPipeline::GfxResource(GfxPipeline::Desc const& desc) :
-    handle_{sg_make_pipeline(desc)}
+GfxPipeline GfxPipeline::alloc()
 {
+    return {sg_alloc_pipeline()};
 }
 
 template <>
-void GfxPipeline::alloc()
+GfxPipeline GfxPipeline::make(Desc const& desc)
 {
-    assert(!is_alloc());
-    handle_ = sg_alloc_pipeline();
+    return {sg_make_pipeline(desc)};
 }
 
 template <>
 void GfxPipeline::destroy()
 {
-    if (is_alloc() && sg_isvalid())
+    if (is_valid() && sg_isvalid())
     {
         sg_destroy_pipeline(handle_);
         handle_ = {};
@@ -82,21 +73,14 @@ void GfxPipeline::destroy()
 template <>
 void GfxPipeline::init(GfxPipeline::Desc const& desc)
 {
-    if (!is_alloc())
-    {
-        handle_ = sg_make_pipeline(desc);
-    }
-    else
-    {
-        if (is_init())
-            sg_uninit_pipeline(handle_);
+    if (is_init())
+        sg_uninit_pipeline(handle_);
 
-        sg_init_pipeline(handle_, desc);
-    }
+    sg_init_pipeline(handle_, desc);
 }
 
 template <>
-GfxPipeline::State GfxPipeline::query_state() const
+sg_resource_state GfxPipeline::query_state() const
 {
     return sg_query_pipeline_state(handle_);
 }
@@ -105,22 +89,21 @@ GfxPipeline::State GfxPipeline::query_state() const
 // GfxShader
 
 template <>
-GfxShader::GfxResource(GfxShader::Desc const& desc) :
-    handle_{sg_make_shader(desc)}
+GfxShader GfxShader::alloc()
 {
+    return {sg_alloc_shader()};
 }
 
 template <>
-void GfxShader::alloc()
+GfxShader GfxShader::make(Desc const& desc)
 {
-    assert(!is_alloc());
-    handle_ = sg_alloc_shader();
+    return {sg_make_shader(desc)};
 }
 
 template <>
 void GfxShader::destroy()
 {
-    if (is_alloc() && sg_isvalid())
+    if (is_valid() && sg_isvalid())
     {
         sg_destroy_shader(handle_);
         handle_ = {};
@@ -130,21 +113,14 @@ void GfxShader::destroy()
 template <>
 void GfxShader::init(GfxShader::Desc const& desc)
 {
-    if (!is_alloc())
-    {
-        handle_ = sg_make_shader(desc);
-    }
-    else
-    {
-        if (is_init())
-            sg_uninit_shader(handle_);
+    if (is_init())
+        sg_uninit_shader(handle_);
 
-        sg_init_shader(handle_, desc);
-    }
+    sg_init_shader(handle_, desc);
 }
 
 template <>
-GfxShader::State GfxShader::query_state() const
+sg_resource_state GfxShader::query_state() const
 {
     return sg_query_shader_state(handle_);
 }
@@ -153,22 +129,21 @@ GfxShader::State GfxShader::query_state() const
 // GfxBuffer
 
 template <>
-GfxBuffer::GfxResource(GfxBuffer::Desc const& desc) :
-    handle_{sg_make_buffer(desc)}
+GfxBuffer GfxBuffer::alloc()
 {
+    return {sg_alloc_buffer()};
 }
 
 template <>
-void GfxBuffer::alloc()
+GfxBuffer GfxBuffer::make(Desc const& desc)
 {
-    assert(!is_alloc());
-    handle_ = sg_alloc_buffer();
+    return {sg_make_buffer(desc)};
 }
 
 template <>
 void GfxBuffer::destroy()
 {
-    if (is_alloc() && sg_isvalid())
+    if (is_valid() && sg_isvalid())
     {
         sg_destroy_buffer(handle_);
         handle_ = {};
@@ -178,21 +153,14 @@ void GfxBuffer::destroy()
 template <>
 void GfxBuffer::init(GfxBuffer::Desc const& desc)
 {
-    if (!is_alloc())
-    {
-        handle_ = sg_make_buffer(desc);
-    }
-    else
-    {
-        if (is_init())
-            sg_uninit_buffer(handle_);
+    if (is_init())
+        sg_uninit_buffer(handle_);
 
-        sg_init_buffer(handle_, desc);
-    }
+    sg_init_buffer(handle_, desc);
 }
 
 template <>
-GfxBuffer::State GfxBuffer::query_state() const
+sg_resource_state GfxBuffer::query_state() const
 {
     return sg_query_buffer_state(handle_);
 }
@@ -201,22 +169,21 @@ GfxBuffer::State GfxBuffer::query_state() const
 // GfxImage
 
 template <>
-GfxImage::GfxResource(GfxImage::Desc const& desc) :
-    handle_{sg_make_image(desc)}
+GfxImage GfxImage::alloc()
 {
+    return {sg_alloc_image()};
 }
 
 template <>
-void GfxImage::alloc()
+GfxImage GfxImage::make(Desc const& desc)
 {
-    assert(!is_alloc());
-    handle_ = sg_alloc_image();
+    return {sg_make_image(desc)};
 }
 
 template <>
 void GfxImage::destroy()
 {
-    if (is_alloc() && sg_isvalid())
+    if (is_valid() && sg_isvalid())
     {
         sg_destroy_image(handle_);
         handle_ = {};
@@ -226,21 +193,14 @@ void GfxImage::destroy()
 template <>
 void GfxImage::init(GfxImage::Desc const& desc)
 {
-    if (!is_alloc())
-    {
-        handle_ = sg_make_image(desc);
-    }
-    else
-    {
-        if (is_init())
-            sg_uninit_image(handle_);
+    if (is_init())
+        sg_uninit_image(handle_);
 
-        sg_init_image(handle_, desc);
-    }
+    sg_init_image(handle_, desc);
 }
 
 template <>
-GfxImage::State GfxImage::query_state() const
+sg_resource_state GfxImage::query_state() const
 {
     return sg_query_image_state(handle_);
 }
