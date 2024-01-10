@@ -217,7 +217,7 @@ void draw_debug(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
 
         for (auto const& v : edge_verts)
         {
-            unit_cube_vertex_coords(v, p);
+            unit_cube_corner(v, p);
             sgl_v3f(p[0], p[1], p[2]);
         }
     }
