@@ -48,7 +48,7 @@ struct {
     } view;
 
     EasedOrbit orbit{{0.15f * pi<f32>, 0.35f * pi<f32>}};
-    EasedZoom zoom{{4.0f}};
+    EasedZoom zoom{{4.0f, 1.0f, view.clip_near, view.clip_far}};
     Camera camera{make_camera(orbit.current, zoom.current)};
 } state;
 

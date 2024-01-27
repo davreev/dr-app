@@ -35,8 +35,6 @@ struct Camera
 struct Pan
 {
     Vec2<f32> offset{};
-    // Vec2<f32> min_offset{};
-    // Vec2<f32> max_offset{};
     f32 sensitivity{1.0};
 
     void apply(Camera& camera) const { camera.offset.head<2>() = offset; }
@@ -47,16 +45,15 @@ struct Pan
         constexpr f32 dir_y{1.0};
         offset.x() += dir_x * delta.x() * sensitivity;
         offset.y() += dir_y * delta.y() * sensitivity;
-        // TODO(dr): Clamp offsets?
     }
 };
 
 struct Zoom
 {
     f32 distance{1.0};
-    // f32 min_distance{};
-    // f32 max_distance{};
     f32 sensitivity{1.0};
+    f32 min_distance{0.0};
+    f32 max_distance{1000.0};
 
     void apply(Camera& camera) const { camera.offset.z() = distance; }
 
@@ -64,7 +61,7 @@ struct Zoom
     {
         constexpr f32 dir{-1.0};
         distance += dir * delta * sensitivity;
-        // TODO(dr): Clamp distance?
+        distance = clamp(distance, min_distance, max_distance);
     }
 };
 
@@ -72,9 +69,9 @@ struct Orbit
 {
     f32 polar{};
     f32 azimuth{};
-    // Vec2<f32> min_azimuth{};
-    // Vec2<f32> max_azimuth{};
     f32 sensitivity{5.0};
+    f32 min_azimuth{0.0f};
+    f32 max_azimuth{pi<f32>};
 
     void apply(Camera& camera) const
     {
@@ -92,7 +89,7 @@ struct Orbit
         constexpr f32 dir_y{-1.0};
         polar += dir_x * delta.x() * sensitivity;
         azimuth += dir_y * delta.y() * sensitivity;
-        // TODO(dr): Clamp azimuth?
+        azimuth = clamp(azimuth, min_azimuth, max_azimuth);
     }
 };
 
