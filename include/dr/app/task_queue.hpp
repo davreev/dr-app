@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <vector>
 
 #include <dr/basic_types.hpp>
@@ -60,7 +61,7 @@ struct TaskQueue
         TaskRef task;
         void* context;
         PollCallback* poll_cb;
-        Status status;
+        std::atomic<Status> status;
         usize gen;
 
         /// Invokes the referenced task
