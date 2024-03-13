@@ -48,15 +48,15 @@ void do_work()
 
 } // namespace
 
-void thread_pool_start(isize const size)
+void thread_pool_start(isize const num_workers)
 {
-    assert(size > 0);
+    assert(num_workers > 0);
 
     // Wrap up any in progress tasks
     if (state.is_active)
         thread_pool_stop();
 
-    state.workers.resize(size);
+    state.workers.resize(num_workers);
 
     for (auto& worker : state.workers)
         worker = std::thread{do_work};
@@ -94,7 +94,5 @@ void thread_pool_submit(TaskRef const& task)
     }
     state.condition.notify_one();
 }
-
-isize thread_pool_size() { return (state.is_active) ? state.workers.size() : 0; }
 
 } // namespace dr
