@@ -2,16 +2,10 @@
 
 #include <cmath>
 
-#include <fstream>
 #include <vector>
+#include <string>
 
-#include <sokol_app.h>
-
-#include <dr/math_types.hpp>
-#include <dr/span.hpp>
-
-#include "app.hpp"
-#include "camera.hpp"
+#include <dr/basic_types.hpp>
 
 namespace dr
 {

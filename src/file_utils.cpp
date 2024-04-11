@@ -1,8 +1,6 @@
 #include <dr/app/file_utils.hpp>
 
-#include <sokol_app.h>
-
-#include <dr/math.hpp>
+#include <fstream>
 
 namespace dr
 {
