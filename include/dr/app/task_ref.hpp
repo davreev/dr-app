@@ -27,7 +27,7 @@ struct TaskRef
     }
 
     /// Returns an opaque pointer to the referenced function object
-    void* get() const { return ptr_; }
+    constexpr void* get() const { return ptr_; }
 
     /// Invokes the referenced task
     constexpr void operator()() const { invoke_(ptr_); }

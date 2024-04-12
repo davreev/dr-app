@@ -1,31 +1,30 @@
 #include <dr/app/task_queue.hpp>
 
 #include <algorithm>
-#include <cassert>
-
-#include <dr/container_utils.hpp>
+#include <atomic>
 
 #include <dr/app/thread_pool.hpp>
 
 namespace dr
 {
-
-void TaskQueue::push(TaskRef const& task, void* context, PollCallback* poll_cb)
+namespace
 {
-    assert(task.is_valid());
-    tasks_.push_back({
-        task,
-        context,
-        poll_cb,
-        DeferredTask::Status_Queued,
-        push_gen_,
-    });
+
+/// Partial backport of functionality offered by std::atomic_ref in C++20 limited to integral types
+/// an enums. Likely UB but should work with most implementations. See links below for further
+/// discussion (1) and precedent (2).
+///
+/// 1. https://stackoverflow.com/a/67620988
+/// 2. https://github.com/facebook/folly/blob/main/folly/synchronization/AtomicRef.h#L86
+template <typename T, std::enable_if_t<(std::is_integral_v<T> || std::is_enum_v<T>)>* = nullptr>
+std::atomic<T>* as_atomic(T* t)
+{
+    static_assert(sizeof(std::atomic<T>) == sizeof(T));
+    static_assert(alignof(std::atomic<T>) == alignof(T));
+    return reinterpret_cast<std::atomic<T>*>(t);
 }
 
-void TaskQueue::barrier()
-{
-    ++push_gen_;
-}
+} // namespace
 
 void TaskQueue::poll()
 {
@@ -37,7 +36,8 @@ void TaskQueue::poll()
         if (task.gen > poll_gen_)
             break;
 
-        switch (task.status)
+        auto const status = as_atomic(&task.status)->load();
+        switch (status)
         {
             case DeferredTask::Status_Queued:
             {
@@ -73,17 +73,19 @@ void TaskQueue::poll()
     }
     else
     {
-        auto it = std::remove_if(
-            tasks_.begin(),
-            tasks_.begin() + count,
-            [&](DeferredTask const& task) {
-                return task.gen == poll_gen_ && task.status == 0;
+        auto it =
+            std::remove_if(tasks_.begin(), tasks_.begin() + count, [&](DeferredTask const& task) {
+                return task.gen == poll_gen_ && task.status == DeferredTask::Status_Default;
             });
 
         tasks_.erase(it, tasks_.begin() + count);
     }
 }
 
-isize TaskQueue::size() const { return dr::size(tasks_); }
+void TaskQueue::DeferredTask::operator()()
+{
+    task();
+    as_atomic(&status)->store(Status_Completed);
+};
 
 } // namespace dr
