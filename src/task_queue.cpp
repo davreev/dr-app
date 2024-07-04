@@ -1,58 +1,52 @@
 #include <dr/app/task_queue.hpp>
 
 #include <algorithm>
-#include <atomic>
 
 #include <dr/app/thread_pool.hpp>
 
 namespace dr
 {
-namespace
-{
 
-/// Partial backport of functionality offered by std::atomic_ref in C++20 limited to integral types
-/// an enums. Likely UB but should work with most implementations. See links below for further
-/// discussion (1) and precedent (2).
-///
-/// 1. https://stackoverflow.com/a/67620988
-/// 2. https://github.com/facebook/folly/blob/main/folly/synchronization/AtomicRef.h#L86
-template <typename T, std::enable_if_t<(std::is_integral_v<T> || std::is_enum_v<T>)>* = nullptr>
-std::atomic<T>* as_atomic(T* t)
+void TaskQueue::push(TaskRef const& ref, void* const context, PollCallback* const poll_cb)
 {
-    static_assert(sizeof(std::atomic<T>) == sizeof(T));
-    static_assert(alignof(std::atomic<T>) == alignof(T));
-    return reinterpret_cast<std::atomic<T>*>(t);
+    assert(ref.is_valid());
+    Task* const task = tasks_.acquire(ref, context, poll_cb);
+    batches_.back().push_back(task);
+    ++size_;
 }
-
-} // namespace
 
 void TaskQueue::poll()
 {
-    usize count = 0;
+    auto& batch = batches_.front();
 
-    // Poll tasks in the current generation
-    for (auto& task : tasks_)
+    // Early out if batch is empty
+    if (batch.empty())
+        return;
+
+    // Poll tasks in the current batch
+    for (auto& task : batch)
     {
-        if (task.gen > poll_gen_)
-            break;
+        Task::Status const status = task->status.load();
 
-        auto const status = as_atomic(&task.status)->load();
         switch (status)
         {
-            case DeferredTask::Status_Queued:
+            case Task::Status_Queued:
             {
-                if (task.raise_event(PollEvent::BeforeSubmit))
+                if (task->raise_event(PollEvent::BeforeSubmit))
                 {
-                    task.status = DeferredTask::Status_Submitted;
-                    thread_pool_submit(&task);
+                    task->status.store(Task::Status_Submitted);
+                    thread_pool_submit(task);
                 }
 
                 break;
             }
-            case DeferredTask::Status_Completed:
+            case Task::Status_Completed:
             {
-                if (task.raise_event(PollEvent::AfterComplete))
-                    task.status = {};
+                if (task->raise_event(PollEvent::AfterComplete))
+                {
+                    tasks_.release(task);
+                    task = nullptr;
+                }
 
                 break;
             }
@@ -60,32 +54,53 @@ void TaskQueue::poll()
             {
             }
         }
-
-        ++count;
     }
 
-    // If no tasks left in the current generation, move on to the next. Otherwise, cull published
-    // tasks from the current generation and continue.
-    if (count == 0)
+    // Cull cleared tasks from batch
     {
-        if (poll_gen_ < push_gen_)
-            ++poll_gen_;
+        auto it = std::remove_if(batch.begin(), batch.end(), [](Task const* task) {
+            return task == nullptr;
+        });
+        size_ -= batch.end() - it;
+        batch.erase(it, batch.end());
+    }
+
+    // Remove batch if empty and not the last one
+    if (batch.empty() && batches_.size() > 1)
+        batches_.pop_front();
+}
+
+TaskQueue::Task* TaskQueue::TaskPool::acquire(
+    TaskRef const& ref,
+    void* const context,
+    PollCallback* const poll_cb)
+{
+    Task* task{};
+
+    if (free_.empty())
+    {
+        pool_.emplace_back();
+        task = &pool_.back();
     }
     else
     {
-        auto it =
-            std::remove_if(tasks_.begin(), tasks_.begin() + count, [&](DeferredTask const& task) {
-                return task.gen == poll_gen_ && task.status == DeferredTask::Status_Default;
-            });
-
-        tasks_.erase(it, tasks_.begin() + count);
+        task = free_.back();
+        free_.pop_back();
     }
+
+    task->ref = ref;
+    task->context = context;
+    task->poll_cb = poll_cb;
+    return task;
 }
 
-void TaskQueue::DeferredTask::operator()()
+void TaskQueue::TaskPool::release(Task* const task)
 {
-    task();
-    as_atomic(&status)->store(Status_Completed);
-};
+    task->ref = {};
+    task->context = {};
+    task->poll_cb = {};
+    task->status.store({});
+    free_.push_back(task);
+}
 
 } // namespace dr

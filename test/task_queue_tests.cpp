@@ -28,7 +28,7 @@ UTEST(task_queue, poll)
     queue.push(&square_x);
     queue.push(&negate_y);
 
-    while (!queue.empty())
+    while (queue.size() > 0)
         queue.poll();
 
     ASSERT_EQ(4, x);
@@ -62,7 +62,7 @@ UTEST(task_queue, poll_barrier)
     queue.barrier();
     queue.push(&cube_x);
 
-    while (!queue.empty())
+    while (queue.size() > 0)
         queue.poll();
 
     ASSERT_EQ(-64, x);
