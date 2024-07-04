@@ -2,6 +2,10 @@
 
 ![](https://github.com/davreev/dr-app/actions/workflows/build.yml/badge.svg)
 
+Scaffolding for simple 3D applications
+
+> ⚠️ This libray exists mainly to cut down on boilerplate in personal projects. It's likely to undergo frequent breaking changes.
+
 ## Build
 
 Build with CMake
