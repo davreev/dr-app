@@ -24,7 +24,7 @@ struct {
     char const* year = "2023";
     struct {
         u16 major{0};
-        u16 minor{1};
+        u16 minor{2};
         u16 patch{0};
     } version;
 } const scene_info;
