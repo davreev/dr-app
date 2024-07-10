@@ -2,13 +2,14 @@
 
 ![](https://github.com/davreev/dr-app/actions/workflows/build.yml/badge.svg)
 
-Scaffolding for simple 3D applications
+Scaffolding and utilities for simple 3D applications built on top of [Sokol](https://github.com/floooh/sokol) libraries
 
-> ⚠️ This libray exists mainly to cut down on boilerplate in personal projects. It's likely to undergo frequent breaking changes.
+> ⚠️ This libray exists mainly to cut down on boilerplate when prototyping. It's likely to undergo
+> frequent breaking changes.
 
 ## Build
 
-Build with CMake
+Use CMake to build
 
 > ⚠️ Currently only tested with Clang and GCC. MSVC is not supported.
 
@@ -16,11 +17,11 @@ Build with CMake
 mkdir build
 
 # If using a single-config generator (e.g. Unix Makefiles, Ninja)
-cmake -S . -B ./build -DCMAKE_BUILD_TYPE=(Debug|Release|RelWithDebInfo) [-DDR_APP_EXAMPLE=ON]
+cmake -S . -B ./build -DCMAKE_BUILD_TYPE=(Debug|Release|RelWithDebInfo) [-DDR_APP_EXAMPLE=ON] [-DDR_APP_TEST=ON]
 cmake --build ./build
 
 # If using a multi-config generator (e.g. Ninja Multi-Config, Xcode)
-cmake -S . -B ./build [-DDR_APP_EXAMPLE=ON]
+cmake -S . -B ./build [-DDR_APP_EXAMPLE=ON] [-DDR_APP_TEST=ON]
 cmake --build ./build --config (Debug|Release|RelWithDebInfo)
 ```
 
