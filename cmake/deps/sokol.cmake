@@ -6,9 +6,7 @@ include(FetchContent)
 
 FetchContent_Declare(
     sokol
-    GIT_REPOSITORY https://github.com/davreev/sokol.git
-    GIT_TAG a53aac381384de7c115958167409ca2024c47a79
-    GIT_PROGRESS TRUE
+    URL https://github.com/davreev/sokol/archive/refs/tags/dr-app-0.2.0.zip
 )
 
 FetchContent_GetProperties(sokol)

@@ -5,9 +5,8 @@
 #include <sokol_gl.h>
 #include <sokol_glue.h>
 #include <sokol_imgui.h>
+#include <sokol_log.h>
 #include <sokol_time.h>
-
-#include <fmt/core.h>
 
 #include <dr/app/shim/imgui.hpp>
 
@@ -47,12 +46,7 @@ App::Scene default_scene()
     };
 }
 
-App::Config default_config()
-{
-    return {{}, {}, default_pass_action(), nullptr};
-}
-
-void log(char const* const message, void* /*user_data*/) { fmt::print("{}\n", message); }
+App::Config default_config() { return {{}, {}, default_pass_action(), nullptr}; }
 
 void init()
 {
@@ -61,11 +55,11 @@ void init()
     // Init sokol_gfx
     auto gfx_desc = sg_desc{};
     {
-        gfx_desc.context = sapp_sgcontext();
-        gfx_desc.logger.log_cb = log;
+        gfx_desc.environment = sglue_environment();
+        gfx_desc.logger.func = slog_func;
         // ...
 
-        if(config.init.override_gfx)
+        if (config.init.override_gfx)
             config.init.override_gfx(gfx_desc);
     }
     sg_setup(gfx_desc);
@@ -73,10 +67,10 @@ void init()
     // Init sokol_gl
     auto gl_desc = default_gl_desc();
     {
-        gl_desc.logger.log_cb = log;
+        gl_desc.logger.func = slog_func;
         // ...
 
-        if(config.init.override_gl)
+        if (config.init.override_gl)
             config.init.override_gl(gl_desc);
     }
     sgl_setup(gl_desc);
@@ -87,7 +81,7 @@ void init()
         imgui_desc.sample_count = sapp_sample_count();
         // ...
 
-        if(config.init.override_imgui)
+        if (config.init.override_imgui)
             config.init.override_imgui(imgui_desc);
     }
     simgui_setup(imgui_desc);
@@ -122,7 +116,12 @@ void frame()
             sapp_dpi_scale(),
         });
 
-        sg_begin_default_pass(state.config.pass_action, sapp_width(), sapp_height());
+        sg_pass pass{};
+        {
+            pass.action = state.config.pass_action;
+            pass.swapchain = sglue_swapchain();
+        }
+        sg_begin_pass(&pass);
 
         if (state.scene.draw)
             state.scene.draw(state.scene.context);
@@ -171,7 +170,7 @@ sapp_desc App::desc()
         desc.frame_cb = frame;
         desc.cleanup_cb = cleanup;
         desc.event_cb = event;
-        desc.logger.log_cb = log;
+        desc.logger.func = slog_func;
     }
     return desc;
 }

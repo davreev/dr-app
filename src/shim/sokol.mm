@@ -1,4 +1,4 @@
-#define SOKOL_GLCORE33
+#define SOKOL_GLCORE
 
 #define SOKOL_APP_IMPL
 #include <sokol_app.h>
@@ -18,3 +18,6 @@
 
 #define SOKOL_GLUE_IMPL
 #include <sokol_glue.h>
+
+#define SOKOL_LOG_IMPL
+#include <sokol_log.h>

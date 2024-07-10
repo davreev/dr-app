@@ -23,7 +23,11 @@ sgl_desc_t default_gl_desc(void)
 sg_pass_action default_pass_action(void)
 {
     return (sg_pass_action){
-        .colors[0] = {SG_ACTION_CLEAR, {0.15, 0.15, 0.15, 0.15}},
+        .colors[0] =
+            {
+                .load_action = SG_LOADACTION_CLEAR,
+                .clear_value = {0.15, 0.15, 0.15, 1.0},
+            },
         // ...
     };
 }

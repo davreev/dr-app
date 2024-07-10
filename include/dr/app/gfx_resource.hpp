@@ -64,7 +64,7 @@ struct GfxResource
     void destroy();
 };
 
-using GfxPass = GfxResource<sg_pass, sg_pass_desc>;
+using GfxAttachments = GfxResource<sg_attachments, sg_attachments_desc>;
 using GfxPipeline = GfxResource<sg_pipeline, sg_pipeline_desc>;
 using GfxShader = GfxResource<sg_shader, sg_shader_desc>;
 using GfxBuffer = GfxResource<sg_buffer, sg_buffer_desc>;

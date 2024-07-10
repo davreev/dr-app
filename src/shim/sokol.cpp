@@ -1,7 +1,7 @@
 #ifdef __EMSCRIPTEN__
 #define SOKOL_GLES3
 #else
-#define SOKOL_GLCORE33
+#define SOKOL_GLCORE
 #endif
 
 #define SOKOL_APP_IMPL
@@ -22,3 +22,6 @@
 
 #define SOKOL_GLUE_IMPL
 #include <sokol_glue.h>
+
+#define SOKOL_LOG_IMPL
+#include <sokol_log.h>

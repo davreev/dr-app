@@ -4,43 +4,43 @@ namespace dr
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// GfxPass
+// GfxAttachment
 
 template <>
-GfxPass GfxPass::alloc()
+GfxAttachments GfxAttachments::alloc()
 {
-    return {sg_alloc_pass()};
+    return {sg_alloc_attachments()};
 }
 
 template <>
-GfxPass GfxPass::make(Desc const& desc)
+GfxAttachments GfxAttachments::make(Desc const& desc)
 {
-    return {sg_make_pass(desc)};
+    return {sg_make_attachments(desc)};
 }
 
 template <>
-void GfxPass::destroy()
+void GfxAttachments::destroy()
 {
     if (is_valid() && sg_isvalid())
     {
-        sg_destroy_pass(handle_);
+        sg_destroy_attachments(handle_);
         handle_ = {};
     }
 }
 
 template <>
-void GfxPass::init(GfxPass::Desc const& desc)
+void GfxAttachments::init(GfxAttachments::Desc const& desc)
 {
     if (is_init())
-        sg_uninit_pass(handle_);
+        sg_uninit_attachments(handle_);
 
-    sg_init_pass(handle_, desc);
+    sg_init_attachments(handle_, desc);
 }
 
 template <>
-sg_resource_state GfxPass::query_state() const
+sg_resource_state GfxAttachments::query_state() const
 {
-    return sg_query_pass_state(handle_);
+    return sg_query_attachments_state(handle_);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
