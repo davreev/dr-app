@@ -5,9 +5,9 @@
 #include <dr/math.hpp>
 
 #include <dr/app/camera.hpp>
-#include <dr/app/camera_utils.hpp>
+#include <dr/app/debug_draw.hpp>
 #include <dr/app/event_handlers.hpp>
-#include <dr/app/gfx.hpp>
+#include <dr/app/gfx_resource.hpp>
 #include <dr/app/gfx_utils.hpp>
 #include <dr/app/shim/imgui.hpp>
 
@@ -48,7 +48,8 @@ struct {
     } view;
 
     EasedOrbit orbit{{0.15f * pi<f32>, 0.35f * pi<f32>}};
-    EasedZoom zoom{{4.0f, 1.0f, view.clip_near, view.clip_far}};
+    EasedZoom zoom{{4.0f, 1.0f, 0.1f}};
+    EasedPan pan{Pan{}};
     Camera camera{make_camera(orbit.current, zoom.current)};
 } state;
 
@@ -85,14 +86,14 @@ void main()
 )";
 
 // Format: {x, y, z, r, g, b}
-f32 const mesh_vertices[][6]{
+constexpr f32 mesh_vertices[][6]{
     {0.0, 0.0, 0.0, 0.0, 0.0, 0.5},
     {1.0, 1.0, 0.0, 1.0, 0.0, 0.5},
     {0.0, 1.0, 1.0, 0.0, 1.0, 0.5},
     {1.0, 0.0, 1.0, 1.0, 1.0, 0.5},
 };
 
-i16 const mesh_indices[][3]{
+constexpr i16 const mesh_indices[][3]{
     {0, 3, 2},
     {1, 2, 3},
     {2, 1, 0},
@@ -155,6 +156,9 @@ void update(void* /*context*/)
 
     state.zoom.update(t);
     state.zoom.apply(state.camera);
+
+    state.pan.update(t);
+    state.pan.apply(state.camera);
 }
 
 void draw_mesh(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
@@ -183,46 +187,10 @@ void draw_mesh(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
     sg_draw(0, 12, 1);
 }
 
-void draw_debug(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
+void debug_draw(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
 {
-    sgl_defaults();
-
-    sgl_matrix_mode_modelview();
-    sgl_load_matrix(local_to_view.data());
-
-    sgl_matrix_mode_projection();
-    sgl_load_matrix(view_to_clip.data());
-
-    // clang-format off
-    static constexpr u8 edge_verts[]{
-        0, 1,
-        2, 3,
-        4, 5,
-        6, 7,
-        0, 2,
-        1, 3,
-        4, 6,
-        5, 7,
-        0, 4,
-        1, 5,
-        2, 6,
-        3, 7,
-    };
-    // clang-format on
-
-    sgl_begin_lines();
-    {
-        sgl_c3f(1.0, 1.0, 1.0);
-        f32 p[3];
-
-        for (auto const& v : edge_verts)
-        {
-            unit_cube_corner(v, p);
-            sgl_v3f(p[0], p[1], p[2]);
-        }
-    }
-    sgl_end();
-
+    debug_draw_axes(local_to_view, view_to_clip, 0.1f);
+    debug_draw_unit_cube_edges(local_to_view, view_to_clip);
     sgl_draw();
 }
 
@@ -268,7 +236,7 @@ void draw(void* /*context*/)
         state.view.clip_far);
 
     draw_mesh(local_to_view, view_to_clip);
-    draw_debug(local_to_view, view_to_clip);
+    debug_draw(local_to_view, view_to_clip);
     draw_ui();
 }
 
@@ -280,8 +248,37 @@ void handle_event(void* /*context*/, App::Event const& event)
         screen_to_view(state.view.fov_y, sapp_heightf()),
         &state.orbit.target,
         &state.zoom.target,
-        nullptr,
+        &state.pan.target,
         state.input.mouse_down);
+
+    constexpr auto center_camera = [](){
+        state.zoom.target.distance = 4.0f;
+        state.pan.target.offset = {};
+    };
+
+    switch (event.type)
+    {
+        case SAPP_EVENTTYPE_KEY_DOWN:
+        {
+            switch (event.key_code)
+            {
+                case SAPP_KEYCODE_F:
+                {
+                    center_camera();
+                    break;
+                }
+                default:
+                {
+                    // ...
+                }
+            }
+            break;
+        }
+        default:
+        {
+            // ...
+        }
+    }
 }
 
 } // namespace

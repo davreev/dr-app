@@ -1,7 +1,6 @@
 #pragma once
 
 #include <atomic>
-#include <cassert>
 #include <deque>
 #include <vector>
 
@@ -12,10 +11,10 @@
 namespace dr
 {
 
-// TODO(dr): Make allocator-aware
-
 struct TaskQueue
 {
+    // TODO(dr): Make allocator-aware
+
     struct PollEvent
     {
         enum Type : u8

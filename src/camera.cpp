@@ -1,4 +1,4 @@
-#include <dr/app/camera_utils.hpp>
+#include <dr/app/camera.hpp>
 
 namespace dr
 {
@@ -59,13 +59,13 @@ Camera make_camera_look_at(
     return cam;
 }
 
-void frame_bounds(Camera& camera, Vec3<f32> const& center, f32 const radius, f32 const fov_min)
+void camera_frame_bounds(Camera& camera, Vec3<f32> const& center, f32 const radius, f32 const fov_min)
 {
     camera.pivot.position = center;
     camera.offset = {0.0f, 0.0f, radius / std::sin(fov_min * 0.5f)};
 }
 
-void transition(Camera& camera, Camera const& target, f32 const t)
+void camera_transition(Camera& camera, Camera const& target, f32 const t)
 {
     camera.offset += (target.offset - camera.offset) * t;
     camera.pivot.position += (target.pivot.position - camera.pivot.position) * t;

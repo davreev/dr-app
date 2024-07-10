@@ -1,9 +1,9 @@
 #pragma once
 
-#include <vector>
 #include <string>
 
 #include <dr/basic_types.hpp>
+#include <dr/dynamic_array.hpp>
 
 namespace dr
 {
@@ -15,9 +15,9 @@ bool read_text_file(char const* path, std::string& buffer);
 bool append_text_file(char const* path, std::string& buffer);
 
 /// Reads a file to a given buffer
-bool read_binary_file(char const* path, std::vector<u8>& buffer);
+bool read_binary_file(char const* path, DynamicArray<u8>& buffer);
 
 /// Appends a file to a given buffer
-bool append_binary_file(char const* path, std::vector<u8>& buffer);
+bool append_binary_file(char const* path, DynamicArray<u8>& buffer);
 
 } // namespace dr

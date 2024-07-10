@@ -1,6 +1,4 @@
-#include <dr/app/gfx.hpp>
-
-#include <cassert>
+#include <dr/app/gfx_resource.hpp>
 
 namespace dr
 {

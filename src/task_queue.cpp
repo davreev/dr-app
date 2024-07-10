@@ -1,6 +1,7 @@
 #include <dr/app/task_queue.hpp>
 
 #include <algorithm>
+#include <cassert>
 
 #include <dr/app/thread_pool.hpp>
 
