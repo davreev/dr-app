@@ -2,7 +2,7 @@
 
 ![](https://github.com/davreev/dr-app/actions/workflows/build.yml/badge.svg)
 
-Scaffolding and utilities for simple 3D applications built on top of [Sokol](https://github.com/floooh/sokol) libraries
+Cross-platform scaffolding for simple 3D applications via [Sokol](https://github.com/floooh/sokol) and [Dear ImGui](https://github.com/ocornut/imgui)
 
 > ⚠️ This libray exists mainly to cut down on boilerplate when prototyping. It's likely to undergo
 > frequent breaking changes.
