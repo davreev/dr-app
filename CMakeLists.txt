@@ -58,18 +58,6 @@ target_compile_options(
         -Wall -Wextra -Wpedantic -Werror
 )
 
-target_compile_definitions(
-    dr-app-util
-    PRIVATE 
-        # ...
-)
-
-target_link_options(
-    dr-app-util
-    PRIVATE
-        # ...
-)
-
 #
 # App target
 #
@@ -148,18 +136,6 @@ target_compile_options(
     dr-app
     PRIVATE 
         -Wall -Wextra -Wpedantic -Werror
-)
-
-target_compile_definitions(
-    dr-app
-    PRIVATE 
-        # ...
-)
-
-target_link_options(
-    dr-app
-    PRIVATE
-        # ...
 )
 
 #

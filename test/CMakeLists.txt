@@ -19,18 +19,6 @@ target_compile_options(
         -Wall -Wextra -Wpedantic -Werror
 )
 
-target_compile_definitions(
-    dr-app-test
-    PRIVATE 
-        # ...
-)
-
-target_link_options(
-    dr-app-test
-    PRIVATE
-        # ...
-)
-
 add_test(
     NAME dr-app-test
     COMMAND dr-app-test
