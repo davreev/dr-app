@@ -1,10 +1,11 @@
 #pragma once
 
 #include <atomic>
-#include <deque>
-#include <vector>
 
 #include <dr/basic_types.hpp>
+#include <dr/dynamic_array.hpp>
+#include <dr/string.hpp>
+#include <dr/deque.hpp>
 
 #include <dr/app/task_ref.hpp>
 
@@ -82,11 +83,11 @@ struct TaskQueue
         void release(Task* const task);
 
       private:
-        std::deque<Task> pool_{};
-        std::vector<Task*> free_{};
+        Deque<Task> pool_{};
+        DynamicArray<Task*> free_{};
     };
 
-    std::deque<std::vector<Task*>> batches_{1};
+    Deque<DynamicArray<Task*>> batches_{1};
     TaskPool tasks_{};
     isize size_{};
 };

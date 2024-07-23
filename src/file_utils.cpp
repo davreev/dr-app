@@ -5,7 +5,7 @@
 namespace dr
 {
 
-bool read_text_file(char const* const path, std::string& buffer)
+bool read_text_file(char const* const path, String& buffer)
 {
     std::ifstream in{path, std::ios::in};
 
@@ -21,7 +21,7 @@ bool read_text_file(char const* const path, std::string& buffer)
     }
 }
 
-bool append_text_file(char const* const path, std::string& buffer)
+bool append_text_file(char const* const path, String& buffer)
 {
     std::ifstream in{path, std::ios::in};
 

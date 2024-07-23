@@ -2,10 +2,11 @@
 
 #include <cassert>
 #include <condition_variable>
-#include <deque>
 #include <mutex>
 #include <thread>
-#include <vector>
+
+#include <dr/deque.hpp>
+#include <dr/dynamic_array.hpp>
 
 namespace dr
 {
@@ -14,8 +15,8 @@ namespace
 
 struct
 {
-    std::vector<std::thread> workers;
-    std::deque<TaskRef> tasks;
+    DynamicArray<std::thread> workers;
+    Deque<TaskRef> tasks;
     std::mutex mutex;
     std::condition_variable condition;
     bool is_active{false};

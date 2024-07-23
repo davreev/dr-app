@@ -1,8 +1,7 @@
 #pragma once
 
-#include <string>
-
 #include <dr/hash_map.hpp>
+#include <dr/string.hpp>
 
 namespace dr
 {
@@ -13,7 +12,7 @@ struct AssetCache
     // TODO(dr): Make allocator-aware
 
     /// Returns the asset at the given path if it's in the cache. Otherwise, returns a null pointer.
-    T const* get(std::string const& path)
+    T const* get(String const& path)
     {
         auto itr = assets_.find(path);
         return (itr == assets_.end()) ? nullptr : &itr->second;
@@ -22,9 +21,9 @@ struct AssetCache
     /// Returns the asset at the given path. If the asset is not in the cache, it will be loaded by
     /// the given function object and cached.
     template <typename Loader>
-    T const* get(std::string path, Loader&& load, bool const force_load = false)
+    T const* get(String path, Loader&& load, bool const force_load = false)
     {
-        static_assert(std::is_invocable_r_v<bool, Loader, std::string const&, T&>);
+        static_assert(std::is_invocable_r_v<bool, Loader, String const&, T&>);
 
         auto const [itr, ok] = assets_.try_emplace(std::move(path));
 
@@ -42,13 +41,13 @@ struct AssetCache
     }
 
     /// Removes the asset at the given path from the cache
-    void remove(std::string const& path) { assets_.erase(path); }
+    void remove(String const& path) { assets_.erase(path); }
 
     /// Clears all assets from the cache
     void clear() { assets_.clear(); }
 
   private:
-    HashMap<std::string, T> assets_{};
+    HashMap<String, T> assets_{};
 };
 
 } // namespace dr
