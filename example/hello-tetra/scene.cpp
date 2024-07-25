@@ -16,18 +16,9 @@ namespace dr
 namespace
 {
 
-// clang-format off
+constexpr char scene_name[]{"Hello Tetrahedron"};
 
-struct {
-    char const* name = "Scene Name";
-    char const* author = "David Reeves";
-    char const* year = "2023";
-    struct {
-        u16 major{0};
-        u16 minor{2};
-        u16 patch{0};
-    } version;
-} const scene_info;
+// clang-format off
 
 struct {
     struct {
@@ -51,7 +42,7 @@ struct {
     EasedZoom zoom{{4.0f, 1.0f, 0.1f}};
     EasedPan pan{Pan{}};
     Camera camera{make_camera(orbit.current, zoom.current)};
-} state;
+} state{};
 
 // clang-format on
 
@@ -197,23 +188,16 @@ void debug_draw(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
 void draw_ui()
 {
     ImGui::SetNextWindowPos({20.0f, 20.0f}, ImGuiCond_FirstUseEver);
-    constexpr int window_flags = ImGuiWindowFlags_AlwaysAutoResize;
+    constexpr auto window_flags = ImGuiWindowFlags_AlwaysAutoResize;
 
-    ImGui::Begin(scene_info.name, nullptr, window_flags);
+    ImGui::Begin(scene_name, nullptr, window_flags);
     ImGui::PushItemWidth(200.0f);
 
     if (ImGui::BeginTabBar("TabBar", ImGuiTabBarFlags_None))
     {
         if (ImGui::BeginTabItem("About"))
         {
-            ImGui::Text(
-                "Version %u.%u.%u",
-                scene_info.version.major,
-                scene_info.version.minor,
-                scene_info.version.patch);
-
-            ImGui::Text("Copyright %s %s", scene_info.author, scene_info.year);
-
+            ImGui::Text("Version %u.%u.%u", 0, 1, 0);
             ImGui::EndTabItem();
         }
 
@@ -251,7 +235,7 @@ void handle_event(void* /*context*/, App::Event const& event)
         &state.pan.target,
         state.input.mouse_down);
 
-    constexpr auto center_camera = [](){
+    constexpr auto center_camera = []() {
         state.zoom.target.distance = 4.0f;
         state.pan.target.offset = {};
     };
@@ -283,6 +267,6 @@ void handle_event(void* /*context*/, App::Event const& event)
 
 } // namespace
 
-App::Scene scene() { return {scene_info.name, open, close, update, draw, handle_event, nullptr}; }
+App::Scene scene() { return {scene_name, open, close, update, draw, handle_event, nullptr}; }
 
 } // namespace dr

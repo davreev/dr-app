@@ -12,82 +12,20 @@ namespace
 // clang-format off
 
 struct {
-    char const* name = "Scene Name";
-    char const* author = "David Reeves";
-    char const* year = "2023";
-    struct {
-        u16 major{0};
-        u16 minor{2};
-        u16 patch{0};
-    } version;
-} const scene_info;
-
-struct {
     struct {
         bool space_down;
         // ...
     } input;
     // ...
-} state;
+} state{};
 
 // clang-format on
 
-void draw_ui_tooltip()
-{
-    ImGui::BeginTooltip();
-    ImGui::Text("42");
-    ImGui::EndTooltip();
-}
-
-void draw_ui_about_tab()
-{
-    if (ImGui::BeginTabItem("About"))
-    {
-        ImGui::TextWrapped(
-            "Press space bar to reveal the answer to the great question of life, the universe, and everything.");
-        ImGui::Spacing();
-
-        ImGui::Text(
-            "Version %u.%u.%u",
-            scene_info.version.major,
-            scene_info.version.minor,
-            scene_info.version.patch);
-
-        ImGui::Text("Copyright %s %s", scene_info.author, scene_info.year);
-
-        ImGui::EndTabItem();
-    }
-}
-
-void draw_ui_main_window()
-{
-    ImGui::SetNextWindowPos({20.0f, 20.0f}, ImGuiCond_FirstUseEver);
-    constexpr int window_flags = ImGuiWindowFlags_AlwaysAutoResize;
-
-    ImGui::Begin(scene_info.name, nullptr, window_flags);
-    ImGui::PushItemWidth(200.0f);
-
-    if (ImGui::BeginTabBar("TabBar", ImGuiTabBarFlags_None))
-    {
-        draw_ui_about_tab();
-        ImGui::EndTabBar();
-    }
-
-    ImGui::End();
-}
-
-void draw_ui()
-{
-    draw_ui_main_window();
-
-    if (state.input.space_down)
-        draw_ui_tooltip();
-}
-
 void draw(void* /*context*/)
 {
-    draw_ui();
-    // ...
+    ImGui::BeginTooltip();
+    ImGui::Text(state.input.space_down ? "Hello!" : "Press spacebar");
+    ImGui::EndTooltip();
 }
 
 void handle_event(void* /*context*/, App::Event const& event)
@@ -120,7 +58,7 @@ void handle_event(void* /*context*/, App::Event const& event)
 App::Scene scene()
 {
     return {
-        scene_info.name,
+        "Hello DR",
         nullptr,
         nullptr,
         nullptr,

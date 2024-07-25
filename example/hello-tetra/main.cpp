@@ -12,7 +12,7 @@ dr::App::Desc DR_APP_MAIN(int /*argc*/, char** /*argv*/)
     {
         desc.width = 1280;
         desc.height = 720;
-        desc.window_title = "App Name";
+        desc.window_title = "Example App";
         // ...
     }
     return desc;
