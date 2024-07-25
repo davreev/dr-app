@@ -7,6 +7,8 @@
 
 #include <dr/basic_types.hpp>
 
+#define DR_APP_MAIN sokol_main
+
 namespace dr
 {
 

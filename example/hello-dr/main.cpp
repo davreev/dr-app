@@ -1,8 +1,8 @@
-#include <sokol_app.h>
+#include <dr/app/app.hpp>
 
 #include "scene.hpp"
 
-sapp_desc sokol_main(int /*argc*/, char** /*argv*/)
+dr::App::Desc DR_APP_MAIN(int /*argc*/, char** /*argv*/)
 {
     using namespace dr;
 
