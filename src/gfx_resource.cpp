@@ -203,4 +203,44 @@ sg_resource_state GfxImage::query_state() const
     return sg_query_image_state(handle_);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// GfxSampler
+
+template <>
+GfxSampler GfxSampler::alloc()
+{
+    return {sg_alloc_sampler()};
+}
+
+template <>
+GfxSampler GfxSampler::make(Desc const& desc)
+{
+    return {sg_make_sampler(desc)};
+}
+
+template <>
+void GfxSampler::destroy()
+{
+    if (is_valid() && sg_isvalid())
+    {
+        sg_destroy_sampler(handle_);
+        handle_ = {};
+    }
+}
+
+template <>
+void GfxSampler::init(GfxSampler::Desc const& desc)
+{
+    if (is_init())
+        sg_uninit_sampler(handle_);
+
+    sg_init_sampler(handle_, desc);
+}
+
+template <>
+sg_resource_state GfxSampler::query_state() const
+{
+    return sg_query_sampler_state(handle_);
+}
+
 } // namespace dr
