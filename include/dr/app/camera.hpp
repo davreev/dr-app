@@ -98,7 +98,7 @@ struct EasedPan
     Pan current;
     Pan target;
 
-    EasedPan(Pan const& pan) : current{pan}, target{pan} {}
+    EasedPan(Pan const& pan = {}) : current{pan}, target{pan} {}
 
     void apply(Camera& camera) const { current.apply(camera); }
 
@@ -110,7 +110,7 @@ struct EasedZoom
     Zoom current;
     Zoom target;
 
-    EasedZoom(Zoom const& zoom) : current{zoom}, target{zoom} {}
+    EasedZoom(Zoom const& zoom = {}) : current{zoom}, target{zoom} {}
 
     void apply(Camera& camera) const { current.apply(camera); }
 
@@ -122,7 +122,7 @@ struct EasedOrbit
     Orbit current;
     Orbit target;
 
-    EasedOrbit(Orbit const& orbit) : current{orbit}, target{orbit} {}
+    EasedOrbit(Orbit const& orbit = {}) : current{orbit}, target{orbit} {}
 
     void apply(Camera& camera) const { current.apply(camera); }
 
