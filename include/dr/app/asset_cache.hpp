@@ -47,7 +47,7 @@ struct AssetCache
     void clear() { assets_.clear(); }
 
   private:
-    HashMap<String, T> assets_{};
+    StableHashMap<String, T> assets_{};
 };
 
 } // namespace dr
