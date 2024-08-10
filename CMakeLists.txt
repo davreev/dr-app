@@ -58,6 +58,12 @@ target_compile_options(
         -Wall -Wextra -Wpedantic -Werror
 )
 
+if(EMSCRIPTEN)
+    # Enable use of std::thread
+    target_compile_options(dr-app-util PRIVATE -pthread)
+    target_link_options(dr-app-util PRIVATE -pthread)
+endif()
+
 #
 # App target
 #
