@@ -13,7 +13,7 @@ FetchContent_Declare(
 ]]
 FetchContent_Declare(
     dr
-    GIT_REPOSITORY git@github.com:davreev/dr.git
+    GIT_REPOSITORY https://github.com/davreev/dr.git
     GIT_TAG 8f301117c336123fd0b4dc0e2bf72c32607b901a
 )
 
