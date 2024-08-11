@@ -59,9 +59,16 @@ target_compile_options(
 )
 
 if(EMSCRIPTEN)
+    # Emscripten compiler options
+    target_link_options(
+        ${app_name}
+        PUBLIC
+            "-sSTACK_SIZE=128kb" # Mirrors default limit used by Eigen
+    )
+
     # Enable use of std::thread
-    target_compile_options(dr-app-util PRIVATE -pthread)
-    target_link_options(dr-app-util PRIVATE -pthread)
+    target_compile_options(dr-app-util PUBLIC -pthread)
+    target_link_options(dr-app-util PUBLIC -pthread)
 endif()
 
 #
