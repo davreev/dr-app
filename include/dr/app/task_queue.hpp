@@ -3,9 +3,9 @@
 #include <atomic>
 
 #include <dr/basic_types.hpp>
+#include <dr/deque.hpp>
 #include <dr/dynamic_array.hpp>
 #include <dr/string.hpp>
-#include <dr/deque.hpp>
 
 #include <dr/app/task_ref.hpp>
 
@@ -34,18 +34,18 @@ struct TaskQueue
     using PollCallback = bool(PollEvent const& event);
 
     /// Pushes a task onto the queue for deferred asynchronous execution. The calling context is
-    /// responsible for keeping the task alive until its results have been published.
+    /// responsible for keeping the task alive until completion.
     void push(TaskRef const& ref, void* context = nullptr, PollCallback* poll_cb = nullptr);
 
     /// Inserts a barrier. Tasks queued after inserting a barrier won't start until all
     /// previously queued tasks have completed.
-    void barrier() { batches_.push_back({}); }
+    void barrier() { queue_.push_back(nullptr); }
 
     /// Polls tasks in the queue. This should be called at regular intervals (e.g. every frame).
     void poll();
 
     /// Returns the number of tasks in the queue
-    isize size() const { return size_; }
+    isize size() const { return static_cast<isize>(queue_.size()); }
 
   private:
     struct Task
@@ -79,7 +79,7 @@ struct TaskQueue
 
     struct TaskPool
     {
-        Task* acquire(TaskRef const& ref, void* context, PollCallback* poll_cb);
+        Task* make(TaskRef const& ref, void* context, PollCallback* poll_cb);
         void release(Task* const task);
 
       private:
@@ -87,9 +87,8 @@ struct TaskQueue
         DynamicArray<Task*> free_{};
     };
 
-    Deque<DynamicArray<Task*>> batches_{1};
-    TaskPool tasks_{};
-    isize size_{};
+    Deque<Task*> queue_{};
+    TaskPool pool_{};
 };
 
 } // namespace dr

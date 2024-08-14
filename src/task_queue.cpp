@@ -1,6 +1,5 @@
 #include <dr/app/task_queue.hpp>
 
-#include <algorithm>
 #include <cassert>
 
 #include <dr/app/thread_pool.hpp>
@@ -11,24 +10,24 @@ namespace dr
 void TaskQueue::push(TaskRef const& ref, void* const context, PollCallback* const poll_cb)
 {
     assert(ref.is_valid());
-    Task* const task = tasks_.acquire(ref, context, poll_cb);
-    batches_.back().push_back(task);
-    ++size_;
+    queue_.push_back(pool_.make(ref, context, poll_cb));
 }
 
 void TaskQueue::poll()
 {
-    auto& batch = batches_.front();
-
-    // Early out if batch is empty
-    if (batch.empty())
+    // Early out if queue is empty
+    if (queue_.empty())
         return;
 
-    // Poll tasks in the current batch
-    for (auto& task : batch)
-    {
-        Task::Status const status = task->status.load();
+    isize batch_size{0};
 
+    // Poll tasks in the current batch
+    for (auto& task : queue_)
+    {
+        if (task == nullptr)
+            break;
+
+        Task::Status const status = task->status.load();
         switch (status)
         {
             case Task::Status_Queued:
@@ -45,7 +44,7 @@ void TaskQueue::poll()
             {
                 if (task->raise_event(PollEvent::AfterComplete))
                 {
-                    tasks_.release(task);
+                    pool_.release(task);
                     task = nullptr;
                 }
 
@@ -55,23 +54,27 @@ void TaskQueue::poll()
             {
             }
         }
+
+        ++batch_size;
     }
 
-    // Cull cleared tasks from batch
+    // Parittion the batch, placing nulls at the front
+    for (isize i = 0, j = 0; i < batch_size; ++i)
     {
-        auto it = std::remove_if(batch.begin(), batch.end(), [](Task const* task) {
-            return task == nullptr;
-        });
-        size_ -= batch.end() - it;
-        batch.erase(it, batch.end());
+        if (queue_[i] == nullptr)
+        {
+            queue_[i] = queue_[j];
+            queue_[j] = nullptr;
+            ++j;
+        }
     }
 
-    // Remove batch if empty and not the last one
-    if (batch.empty() && batches_.size() > 1)
-        batches_.pop_front();
+    // Remove nulls from front of batch
+    while (!queue_.empty() && queue_.front() == nullptr)
+        queue_.pop_front();
 }
 
-TaskQueue::Task* TaskQueue::TaskPool::acquire(
+TaskQueue::Task* TaskQueue::TaskPool::make(
     TaskRef const& ref,
     void* const context,
     PollCallback* const poll_cb)
