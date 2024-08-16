@@ -9,18 +9,10 @@
 namespace dr
 {
 
-inline void debug_draw_axes(
-    Mat4<f32> const& local_to_view,
-    Mat4<f32> const& view_to_clip,
-    f32 const scale = 1.0f)
+inline void debug_draw_axes(Mat4<f32> const& local_to_view, f32 const scale = 1.0f)
 {
-    sgl_defaults();
-
     sgl_matrix_mode_modelview();
     sgl_load_matrix(local_to_view.data());
-
-    sgl_matrix_mode_projection();
-    sgl_load_matrix(view_to_clip.data());
 
     sgl_begin_lines();
     {
@@ -39,15 +31,10 @@ inline void debug_draw_axes(
     sgl_end();
 }
 
-void debug_draw_unit_cube_edges(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
+void debug_draw_unit_cube_edges(Mat4<f32> const& local_to_view)
 {
-    sgl_defaults();
-
     sgl_matrix_mode_modelview();
     sgl_load_matrix(local_to_view.data());
-
-    sgl_matrix_mode_projection();
-    sgl_load_matrix(view_to_clip.data());
 
     // clang-format off
     static constexpr u8 edge_verts[]{

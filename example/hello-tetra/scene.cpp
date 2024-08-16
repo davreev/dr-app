@@ -128,10 +128,10 @@ void init_gfx_resources()
     auto& gfx = state.gfx;
     gfx.shader = GfxShader::make(shader_desc(vertex_shader_src, fragment_shader_src));
     gfx.pipeline = GfxPipeline::make(pipeline_desc(gfx.shader));
-    gfx.vertex_buffer =
-        GfxBuffer::make(buffer_desc(SG_RANGE(mesh_vertices), SG_BUFFERTYPE_VERTEXBUFFER));
-    gfx.index_buffer =
-        GfxBuffer::make(buffer_desc(SG_RANGE(mesh_indices), SG_BUFFERTYPE_INDEXBUFFER));
+    gfx.vertex_buffer = GfxBuffer::make(
+        buffer_desc(SG_RANGE(mesh_vertices), SG_BUFFERTYPE_VERTEXBUFFER));
+    gfx.index_buffer = GfxBuffer::make(
+        buffer_desc(SG_RANGE(mesh_indices), SG_BUFFERTYPE_INDEXBUFFER));
 }
 
 void open(void* /*context*/) { init_gfx_resources(); }
@@ -180,15 +180,21 @@ void draw_mesh(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
 
 void debug_draw(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
 {
-    debug_draw_axes(local_to_view, view_to_clip, 0.1f);
-    debug_draw_unit_cube_edges(local_to_view, view_to_clip);
+    sgl_defaults();
+
+    sgl_matrix_mode_projection();
+    sgl_load_matrix(view_to_clip.data());
+
+    debug_draw_axes(local_to_view, 0.1f);
+    debug_draw_unit_cube_edges(local_to_view);
+
     sgl_draw();
 }
 
 void draw_ui()
 {
     ImGui::SetNextWindowPos({20.0f, 20.0f}, ImGuiCond_FirstUseEver);
-    constexpr auto window_flags = ImGuiWindowFlags_AlwaysAutoResize;
+    constexpr auto window_flags = ImGuiWindowFlags_NoResize;
 
     ImGui::Begin(scene_name, nullptr, window_flags);
     ImGui::PushItemWidth(200.0f);
@@ -198,6 +204,9 @@ void draw_ui()
         if (ImGui::BeginTabItem("About"))
         {
             ImGui::Text("Version %u.%u.%u", 0, 1, 0);
+            ImGui::TextLinkOpenURL(
+                "Source",
+                "https://github.com/davreev/dr-app/tree/master/example/hello-tetra");
             ImGui::EndTabItem();
         }
 
