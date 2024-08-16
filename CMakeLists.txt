@@ -63,7 +63,7 @@ if(EMSCRIPTEN)
     target_link_options(
         ${app_name}
         PUBLIC
-            "-sSTACK_SIZE=128kb" # Mirrors default limit used by Eigen
+            "-sSTACK_SIZE=512kb" # https://groups.google.com/g/emscripten-discuss/c/MgHWuq2oq7Q
     )
 
     # Enable use of std::thread
