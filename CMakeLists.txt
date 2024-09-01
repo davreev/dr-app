@@ -61,7 +61,7 @@ target_compile_options(
 if(EMSCRIPTEN)
     # Emscripten compiler options
     target_link_options(
-        ${app_name}
+        dr-app-util
         PUBLIC
             "-sSTACK_SIZE=512kb" # https://groups.google.com/g/emscripten-discuss/c/MgHWuq2oq7Q
     )
