@@ -3,7 +3,7 @@
 sapp_desc default_app_desc(void)
 {
     return (sapp_desc){
-        .sample_count = 2,
+        .sample_count = 4,
         .high_dpi = true,
         .enable_clipboard = true,
         .win32_console_utf8 = true,
