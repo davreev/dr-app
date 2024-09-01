@@ -30,6 +30,8 @@ struct {
 
     struct {
         bool mouse_down[3];
+        Vec2<f32> last_touch_points[2];
+        i8 last_num_touches;
     } input;
 
     struct {
@@ -178,14 +180,17 @@ void draw_mesh(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
     sg_draw(0, 12, 1);
 }
 
-void debug_draw(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
+void debug_draw(
+    Mat4<f32> const& local_to_view,
+    Mat4<f32> const& world_to_view,
+    Mat4<f32> const& view_to_clip)
 {
     sgl_defaults();
 
     sgl_matrix_mode_projection();
     sgl_load_matrix(view_to_clip.data());
 
-    debug_draw_axes(local_to_view, 0.1f);
+    debug_draw_axes(world_to_view, 0.25f);
     debug_draw_unit_cube_edges(local_to_view);
 
     sgl_draw();
@@ -229,20 +234,30 @@ void draw(void* /*context*/)
         state.view.clip_far);
 
     draw_mesh(local_to_view, view_to_clip);
-    debug_draw(local_to_view, view_to_clip);
+    debug_draw(local_to_view, world_to_view, view_to_clip);
     draw_ui();
 }
 
 void handle_event(void* /*context*/, App::Event const& event)
 {
+    f32 const screen_to_view = dr::screen_to_view(state.view.fov_y, sapp_heightf());
+
     camera_handle_mouse_event(
         event,
-        state.camera.offset.z(),
-        screen_to_view(state.view.fov_y, sapp_heightf()),
+        state.zoom.target,
         &state.orbit.target,
-        &state.zoom.target,
         &state.pan.target,
+        screen_to_view,
         state.input.mouse_down);
+
+    camera_handle_touch_event(
+        event,
+        state.zoom.target,
+        &state.orbit.target,
+        &state.pan.target,
+        screen_to_view,
+        state.input.last_touch_points,
+        state.input.last_num_touches);
 
     constexpr auto center_camera = []() {
         state.zoom.target.distance = 4.0f;
