@@ -12,8 +12,10 @@ dr::App::Desc DR_APP_MAIN(int /*argc*/, char** /*argv*/)
     {
         desc.width = 1280;
         desc.height = 720;
-        desc.window_title = "Example App";
-        // ...
+        desc.window_title = "Example: Hello DR";
+#if __EMSCRIPTEN__
+        desc.html5_canvas_name = "hello-dr";
+#endif
     }
     return desc;
 }
