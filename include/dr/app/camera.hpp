@@ -102,6 +102,8 @@ struct EasedPan
 
     void apply(Camera& camera) const { current.apply(camera); }
 
+    void handle_drag(Vec2<f32> const& delta) { target.handle_drag(delta); }
+
     void update(f32 const t) { current.offset += (target.offset - current.offset) * t; }
 };
 
@@ -114,6 +116,8 @@ struct EasedZoom
 
     void apply(Camera& camera) const { current.apply(camera); }
 
+    void handle_scroll(f32 const delta) { target.handle_scroll(delta); }
+
     void update(f32 const t) { current.distance += (target.distance - current.distance) * t; };
 };
 
@@ -125,6 +129,8 @@ struct EasedOrbit
     EasedOrbit(Orbit const& orbit = {}) : current{orbit}, target{orbit} {}
 
     void apply(Camera& camera) const { current.apply(camera); }
+
+    void handle_drag(Vec2<f32> const& delta) { target.handle_drag(delta); }
 
     void update(f32 const t)
     {

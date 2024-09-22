@@ -39,10 +39,7 @@ Camera make_camera_back(Vec3<f32> const& target, f32 const offset)
     return cam;
 }
 
-Camera make_camera_look_at(
-    Vec3<f32> const& position,
-    Vec3<f32> const& target,
-    Vec3<f32> const& up)
+Camera make_camera_look_at(Vec3<f32> const& position, Vec3<f32> const& target, Vec3<f32> const& up)
 {
     Vec3<f32> const d = position - target;
     f32 const d_norm = d.norm();
@@ -59,7 +56,11 @@ Camera make_camera_look_at(
     return cam;
 }
 
-void camera_frame_bounds(Camera& camera, Vec3<f32> const& center, f32 const radius, f32 const fov_min)
+void camera_frame_bounds(
+    Camera& camera,
+    Vec3<f32> const& center,
+    f32 const radius,
+    f32 const fov_min)
 {
     camera.pivot.position = center;
     camera.offset = {0.0f, 0.0f, radius / std::sin(fov_min * 0.5f)};
