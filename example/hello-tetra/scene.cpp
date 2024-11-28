@@ -37,15 +37,21 @@ struct {
     } input;
 
     struct {
-        f32 fov_y{deg_to_rad(60.0f)};
-        f32 clip_near{0.01f};
-        f32 clip_far{100.0f};
+        struct {
+            f32 fov_y{deg_to_rad(60.0f)};
+            f32 clip_near{0.01f};
+            f32 clip_far{100.0f};
+        } frustum;
+
+        struct {
+            EasedOrbit orbit{{0.15f * pi<f32>, 0.35f * pi<f32>}};
+            EasedZoom zoom{{4.0f, 1.0f, 0.1f}};
+            EasedPan pan{Pan{}};
+        } controls;
+
+        Camera camera{make_camera(controls.orbit.current, controls.zoom.current)};
     } view;
 
-    EasedOrbit orbit{{0.15f * pi<f32>, 0.35f * pi<f32>}};
-    EasedZoom zoom{{4.0f, 1.0f, 0.1f}};
-    EasedPan pan{Pan{}};
-    Camera camera{make_camera(orbit.current, zoom.current)};
 } state{};
 
 // clang-format on
@@ -68,10 +74,11 @@ constexpr i16 const mesh_indices[][3]{
 GfxShader::Desc shader_desc(char const* vertex_src, char const* fragment_src)
 {
     GfxShader::Desc desc{};
-    desc.vs.source = vertex_src;
-    desc.vs.uniform_blocks[0].uniforms[0] = {"u_local_to_clip", SG_UNIFORMTYPE_MAT4, 1};
-    desc.vs.uniform_blocks[0].size = 16 * sizeof(f32);
-    desc.fs.source = fragment_src;
+    desc.vertex_func.source = vertex_src;
+    desc.fragment_func.source = fragment_src;
+    desc.uniform_blocks[0].stage = SG_SHADERSTAGE_VERTEX;
+    desc.uniform_blocks[0].size = 16 * sizeof(f32);
+    desc.uniform_blocks[0].glsl_uniforms[0] = {SG_UNIFORMTYPE_MAT4, 1, "u_local_to_clip"};
     return desc;
 }
 
@@ -115,15 +122,16 @@ void close(void* /*context*/) { state.gfx = {}; }
 void update(void* /*context*/)
 {
     f32 const t = saturate(5.0 * App::delta_time_s());
+    auto& view = state.view;
 
-    state.orbit.update(t);
-    state.orbit.apply(state.camera);
+    view.controls.orbit.update(t);
+    view.controls.orbit.apply(view.camera);
 
-    state.zoom.update(t);
-    state.zoom.apply(state.camera);
+    view.controls.zoom.update(t);
+    view.controls.zoom.apply(view.camera);
 
-    state.pan.update(t);
-    state.pan.apply(state.camera);
+    view.controls.pan.update(t);
+    view.controls.pan.apply(view.camera);
 }
 
 void draw_mesh(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
@@ -146,7 +154,7 @@ void draw_mesh(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
         } vs_uniforms;
 
         as_mat<4, 4>(vs_uniforms.local_to_clip) = view_to_clip * local_to_view;
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, {&vs_uniforms, sizeof(vs_uniforms)});
+        sg_apply_uniforms(0, {&vs_uniforms, sizeof(vs_uniforms)});
     }
 
     sg_draw(0, 12, 1);
@@ -195,15 +203,17 @@ void draw_ui()
 
 void draw(void* /*context*/)
 {
+    auto const& view = state.view;
+
     Mat4<f32> const local_to_world = make_scale_translate(vec<3>(2.0f), vec<3>(-1.0f));
-    Mat4<f32> const world_to_view = state.camera.transform().inverse_to_matrix();
+    Mat4<f32> const world_to_view = view.camera.transform().inverse_to_matrix();
 
     Mat4<f32> const local_to_view = world_to_view * local_to_world;
     Mat4<f32> const view_to_clip = make_perspective<NdcType_OpenGl>(
-        state.view.fov_y,
+        view.frustum.fov_y,
         App::aspect(),
-        state.view.clip_near,
-        state.view.clip_far);
+        view.frustum.clip_near,
+        view.frustum.clip_far);
 
     draw_mesh(local_to_view, view_to_clip);
     debug_draw(local_to_view, world_to_view, view_to_clip);
@@ -212,28 +222,29 @@ void draw(void* /*context*/)
 
 void handle_event(void* /*context*/, App::Event const& event)
 {
-    f32 const screen_to_view = dr::screen_to_view(state.view.fov_y, sapp_heightf());
+    auto& view = state.view;
+    f32 const screen_to_view = dr::screen_to_view(view.frustum.fov_y, sapp_heightf());
 
     camera_handle_mouse_event(
         event,
-        state.zoom.target,
-        &state.orbit.target,
-        &state.pan.target,
+        view.controls.zoom.target,
+        &view.controls.orbit.target,
+        &view.controls.pan.target,
         screen_to_view,
         state.input.mouse_down);
 
     camera_handle_touch_event(
         event,
-        state.zoom.target,
-        &state.orbit.target,
-        &state.pan.target,
+        view.controls.zoom.target,
+        &view.controls.orbit.target,
+        &view.controls.pan.target,
         screen_to_view,
         state.input.last_touch_points,
         state.input.last_num_touches);
 
     constexpr auto center_camera = []() {
-        state.zoom.target.distance = 4.0f;
-        state.pan.target.offset = {};
+        view.controls.zoom.target.distance = 4.0f;
+        view.controls.pan.target.offset = {};
     };
 
     switch (event.type)

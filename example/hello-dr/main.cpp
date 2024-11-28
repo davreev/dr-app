@@ -14,7 +14,7 @@ dr::App::Desc DR_APP_MAIN(int /*argc*/, char** /*argv*/)
         desc.height = 720;
         desc.window_title = "Example: Hello DR";
 #if __EMSCRIPTEN__
-        desc.html5_canvas_name = "hello-dr";
+        desc.html5_canvas_selector = "#hello-dr";
 #endif
     }
     return desc;

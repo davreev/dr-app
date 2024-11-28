@@ -6,7 +6,7 @@ include(FetchContent)
 
 FetchContent_Declare(
     sokol
-    URL https://github.com/davreev/sokol/archive/refs/tags/dr-app-0.2.0.zip
+    URL https://github.com/davreev/sokol/archive/refs/tags/dr-app-0.3.0.zip
 )
 
 FetchContent_GetProperties(sokol)
