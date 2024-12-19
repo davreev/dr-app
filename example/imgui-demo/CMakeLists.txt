@@ -1,4 +1,4 @@
-set(app_name hello-dr)
+set(app_name imgui-demo)
 
 add_executable(
     ${app_name}
@@ -6,10 +6,17 @@ add_executable(
     scene.cpp
 )
 
+ # TODO(dr): Enable ImPlot3D once https://github.com/brenocq/implot3d/issues/4 is resolved
+
+include(deps/implot)
+# include(deps/implot3d)
+
 target_link_libraries(
     ${app_name} 
     PRIVATE
         dr::app
+        implot::implot
+        # implot3d::implot3d
 )
 
 target_compile_options(
