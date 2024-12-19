@@ -14,7 +14,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     dr
     GIT_REPOSITORY https://github.com/davreev/dr.git
-    GIT_TAG 8f301117c336123fd0b4dc0e2bf72c32607b901a
+    GIT_TAG 82b866b16ce72cc6463cd5f1517b0ca0e902ab34
 )
 
 FetchContent_MakeAvailable(dr)
