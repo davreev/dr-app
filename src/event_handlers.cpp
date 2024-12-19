@@ -98,8 +98,8 @@ void camera_handle_touch_event(
     Orbit* const orbit,
     Pan* const pan,
     f32 const screen_to_view,
-    Vec2<f32> last_touch_points[2],
-    i8& last_num_touches)
+    Vec2<f32> prev_touch_points[2],
+    i8& prev_num_touches)
 {
     f32 const cam_offset = zoom.distance;
 
@@ -107,7 +107,7 @@ void camera_handle_touch_event(
     {
         case SAPP_EVENTTYPE_TOUCHES_BEGAN:
         {
-            last_num_touches = 0;
+            prev_num_touches = 0;
             break;
         }
         case SAPP_EVENTTYPE_TOUCHES_MOVED:
@@ -116,10 +116,10 @@ void camera_handle_touch_event(
             Vec2<f32> const p0{touches[0].pos_x, touches[0].pos_y};
             Vec2<f32> const p1{touches[1].pos_x, touches[1].pos_y};
 
-            if (event.num_touches != last_num_touches)
+            if (event.num_touches != prev_num_touches)
             {
                 // Start new gesture
-                last_num_touches = event.num_touches;
+                prev_num_touches = event.num_touches;
             }
             else
             {
@@ -130,7 +130,7 @@ void camera_handle_touch_event(
                     {
                         if (orbit)
                         {
-                            Vec2<f32> const d = p0 - last_touch_points[0];
+                            Vec2<f32> const d = p0 - prev_touch_points[0];
                             orbit->handle_drag(d * screen_to_view);
                         }
                         break;
@@ -140,8 +140,8 @@ void camera_handle_touch_event(
                         // Handle drag pan
                         if(pan)
                         {
-                            Vec2<f32> const d0 = screen_to_view * (p0 - last_touch_points[0]);
-                            Vec2<f32> const d1 = screen_to_view * (p1 - last_touch_points[1]);
+                            Vec2<f32> const d0 = screen_to_view * (p0 - prev_touch_points[0]);
+                            Vec2<f32> const d1 = screen_to_view * (p1 - prev_touch_points[1]);
 
                             constexpr f32 abs_tol = 1.0e-2;
                             if(near_equal(d0, d1, abs_tol))
@@ -150,7 +150,7 @@ void camera_handle_touch_event(
 
                         // Handle pinch zoom
                         {
-                            f32 const d0 = (last_touch_points[0] - last_touch_points[1]).norm();
+                            f32 const d0 = (prev_touch_points[0] - prev_touch_points[1]).norm();
                             f32 const d1 = (p0 - p1).norm();
                             zoom.handle_scroll((d1 - d0) * (cam_offset * screen_to_view));
                         }
@@ -159,8 +159,8 @@ void camera_handle_touch_event(
                 }
             }
 
-            last_touch_points[0] = p0;
-            last_touch_points[1] = p1;
+            prev_touch_points[0] = p0;
+            prev_touch_points[1] = p1;
             break;
         }
         default:

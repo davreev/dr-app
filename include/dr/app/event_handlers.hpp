@@ -33,7 +33,7 @@ void camera_handle_touch_event(
     Orbit* orbit,
     Pan* pan,
     f32 screen_to_view,
-    Vec2<f32> last_touch_points[2],
-    i8& last_num_touches);
+    Vec2<f32> prev_touch_points[2],
+    i8& prev_num_touches);
 
 } // namespace dr
