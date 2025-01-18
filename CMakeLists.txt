@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 project(
     dr-app
-    VERSION 0.2.0
+    VERSION 0.3.0
     LANGUAGES C CXX
 )
 
@@ -76,7 +76,7 @@ endif()
 #
 
 if(APPLE AND NOT EMSCRIPTEN)
-    # NOTE: sokol_app.h implementation must compiled as Objective-C on macOS
+    # NOTE: sokol_app.h implementation is compiled as Objective-C on macOS
     add_library(
         dr-app-sokol STATIC
         "src/shim/sokol.mm"
