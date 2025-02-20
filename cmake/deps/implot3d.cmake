@@ -6,7 +6,7 @@ include(FetchContent)
 
 FetchContent_Declare(
     implot3d
-    URL https://github.com/brenocq/implot3d/archive/refs/tags/v0.1.zip
+    URL https://github.com/brenocq/implot3d/archive/refs/tags/v0.2.zip
 )
 
 FetchContent_GetProperties(implot3d)

@@ -1,4 +1,5 @@
 #include <implot.h>
+#include <implot3d.h>
 
 #include <dr/app/app.hpp>
 
@@ -12,10 +13,12 @@ dr::App::Desc DR_APP_MAIN(int /*argc*/, char** /*argv*/)
 
     App::config().init.callback = [](void* /*context*/) {
         ImPlot::CreateContext();
+        ImPlot3D::CreateContext();
     };
 
     App::config().cleanup.callback = [](void* /*context*/) {
         ImPlot::DestroyContext();
+        ImPlot3D::DestroyContext();
     };
 
     App::Desc desc = App::desc();

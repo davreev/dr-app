@@ -5,6 +5,7 @@
 #include <dr/app/shim/imgui.hpp>
 
 #include <implot.h>
+#include <implot3d.h>
 
 namespace dr
 {
@@ -15,6 +16,7 @@ void draw(void* /*context*/)
 {
     ImGui::ShowDemoWindow();
     ImPlot::ShowDemoWindow();
+    ImPlot3D::ShowDemoWindow();
 }
 
 } // namespace
