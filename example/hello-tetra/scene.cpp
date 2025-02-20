@@ -77,7 +77,7 @@ GfxShader::Desc shader_desc(char const* vertex_src, char const* fragment_src)
     desc.vertex_func.source = vertex_src;
     desc.fragment_func.source = fragment_src;
     desc.uniform_blocks[0].stage = SG_SHADERSTAGE_VERTEX;
-    desc.uniform_blocks[0].size = 16 * sizeof(f32);
+    desc.uniform_blocks[0].size = sizeof(f32[16]);
     desc.uniform_blocks[0].glsl_uniforms[0] = {SG_UNIFORMTYPE_MAT4, 1, "u_local_to_clip"};
     return desc;
 }
@@ -151,10 +151,10 @@ void draw_mesh(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
         struct
         {
             f32 local_to_clip[16];
-        } vs_uniforms;
+        } uniforms;
 
-        as_mat<4, 4>(vs_uniforms.local_to_clip) = view_to_clip * local_to_view;
-        sg_apply_uniforms(0, {&vs_uniforms, sizeof(vs_uniforms)});
+        as_mat<4, 4>(uniforms.local_to_clip) = view_to_clip * local_to_view;
+        sg_apply_uniforms(0, {&uniforms, sizeof(uniforms)});
     }
 
     sg_draw(0, 12, 1);
