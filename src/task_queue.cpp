@@ -58,7 +58,7 @@ void TaskQueue::poll()
         ++batch_size;
     }
 
-    // Parittion the batch, placing nulls at the front
+    // Partition the batch, placing nulls at the front
     for (isize i = 0, j = 0; i < batch_size; ++i)
     {
         if (queue_[i] == nullptr)
