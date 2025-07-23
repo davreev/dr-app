@@ -70,16 +70,16 @@ struct Orbit
     f32 polar{};
     f32 azimuth{};
     f32 sensitivity{5.0};
-    f32 min_azimuth{0.0f};
-    f32 max_azimuth{pi<f32>};
+    f32 min_polar{0.0f};
+    f32 max_polar{pi<f32>};
 
     void apply(Camera& camera) const
     {
         constexpr f32 up[]{0.0, 0.0, 1.0};
         constexpr f32 right[]{1.0, 0.0, 0.0};
 
-        Eigen::AngleAxis const r_z{polar, as_vec<3>(up)};
-        Eigen::AngleAxis const r_x{azimuth, as_vec<3>(right)};
+        Eigen::AngleAxis const r_z{azimuth, as_vec<3>(up)};
+        Eigen::AngleAxis const r_x{polar, as_vec<3>(right)};
         camera.pivot.rotation.q = r_z * r_x;
     }
 
@@ -87,9 +87,10 @@ struct Orbit
     {
         constexpr f32 dir_x{-1.0};
         constexpr f32 dir_y{-1.0};
-        polar += dir_x * delta.x() * sensitivity;
-        azimuth += dir_y * delta.y() * sensitivity;
-        azimuth = clamp(azimuth, min_azimuth, max_azimuth);
+
+        azimuth += dir_x * delta.x() * sensitivity;
+        polar += dir_y * delta.y() * sensitivity;
+        polar = clamp(polar, min_polar, max_polar);
     }
 };
 
