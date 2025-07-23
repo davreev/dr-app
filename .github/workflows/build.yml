@@ -2,84 +2,64 @@ name: build
 
 on:
   push:
-    branches: [ develop ]
+    branches: [develop]
   pull_request:
-    branches: [ develop ]
+    branches: [develop]
 
 env:
   BUILD_TYPE: Debug
 
 jobs:
-  test-ubuntu-gcc:
+  test-ubuntu:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Install build dependencies
-      run: >
-       sudo apt-get update --yes &&
-       sudo apt-get install --yes --no-install-recommends
-       libx11-dev
-       libxi-dev
-       libxcursor-dev
-       libgl1-mesa-dev
+      - name: Install build dependencies
+        run: >
+          sudo apt-get update --yes &&
+          sudo apt-get install --yes --no-install-recommends
+          libx11-dev
+          libxi-dev
+          libxcursor-dev
+          libgl1-mesa-dev
 
-    - name: Configure CMake
-      run: > 
-        cmake 
-        -B ${{github.workspace}}/build
-        -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-        -DCMAKE_CXX_COMPILER=g++
-        -DCMAKE_C_COMPILER=gcc
-        -DDR_APP_EXAMPLE=ON
+      - name: Build (gcc)
+        run: >
+          cmake 
+          -B ${{github.workspace}}/build 
+          -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
+          -DCMAKE_CXX_COMPILER=g++ 
+          -DCMAKE_C_COMPILER=gcc 
+          -DDR_APP_EXAMPLE=ON && 
+          cmake --build ${{github.workspace}}/build
 
-    - name: Build
-      run: cmake --build ${{github.workspace}}/build
+      - name: Build (clang)
+        run: >
+          cmake 
+          -B ${{github.workspace}}/build 
+          -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
+          -DCMAKE_CXX_COMPILER=clang++ 
+          -DCMAKE_C_COMPILER=clang 
+          -DDR_APP_EXAMPLE=ON && 
+          cmake --build ${{github.workspace}}/build
 
-  test-ubuntu-clang:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Install build dependencies
-      run: >
-       sudo apt-get update --yes &&
-       sudo apt-get install --yes --no-install-recommends
-       libx11-dev
-       libxi-dev
-       libxcursor-dev
-       libgl1-mesa-dev
-
-    - name: Configure CMake
-      run: >
-        cmake -B ${{github.workspace}}/build 
-        -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
-        -DCMAKE_CXX_COMPILER=clang++ 
-        -DCMAKE_C_COMPILER=clang 
-        -DDR_APP_EXAMPLE=ON
-
-    - name: Build
-      run: cmake --build ${{github.workspace}}/build
-      
   test-windows-clang:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Install build dependencies
-      run: >
-        choco install ninja
+      - name: Install build dependencies
+        run: >
+          choco install ninja
 
-    - name: Configure CMake
-      run: > 
-        cmake -B ${{github.workspace}}/build -G "Ninja" 
-        -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
-        -DCMAKE_CXX_COMPILER=clang++ 
-        -DCMAKE_C_COMPILER=clang 
-        -DDR_APP_EXAMPLE=ON
-
-    - name: Build
-      run: cmake --build ${{github.workspace}}/build
+      - name: Build (clang)
+        run: >
+          cmake -B ${{github.workspace}}/build -G "Ninja" 
+          -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
+          -DCMAKE_CXX_COMPILER=clang++ 
+          -DCMAKE_C_COMPILER=clang 
+          -DDR_APP_EXAMPLE=ON && 
+          cmake --build ${{github.workspace}}/build
