@@ -4,6 +4,7 @@
 #include <sokol_app.h>
 #include <sokol_gfx.h>
 #include <sokol_gl.h>
+#include <sokol_imgui.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -12,7 +13,11 @@ extern "C"
 
 sapp_desc default_app_desc(void);
 
+sg_desc default_gfx_desc(void);
+
 sgl_desc_t default_gl_desc(void);
+
+simgui_desc_t default_imgui_desc(void);
 
 sg_pass_action default_pass_action(void);
 

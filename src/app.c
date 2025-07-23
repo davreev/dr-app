@@ -12,6 +12,8 @@ sapp_desc default_app_desc(void)
     };
 }
 
+sg_desc default_gfx_desc(void) { return (sg_desc){0}; }
+
 sgl_desc_t default_gl_desc(void)
 {
     return (sgl_desc_t){
@@ -19,6 +21,8 @@ sgl_desc_t default_gl_desc(void)
         // ...
     };
 }
+
+simgui_desc_t default_imgui_desc(void) { return (simgui_desc_t){0}; }
 
 sg_pass_action default_pass_action(void)
 {

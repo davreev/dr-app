@@ -30,11 +30,16 @@ struct App
 
     struct Config
     {
+        struct InitContext
+        {
+            sg_desc gfx_desc;
+            sgl_desc_t gl_desc;
+            simgui_desc_t imgui_desc;
+        };
+
         struct
         {
-            void (*override_gfx)(sg_desc&);
-            void (*override_gl)(sgl_desc_t&);
-            void (*override_imgui)(simgui_desc_t&);
+            void (*override)(InitContext& ctx);
             void (*callback)(void*);
         } init;
 

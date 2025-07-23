@@ -1,10 +1,6 @@
 #include <dr/app/app.hpp>
 
-#include <cassert>
-
-#include <sokol_gl.h>
 #include <sokol_glue.h>
-#include <sokol_imgui.h>
 #include <sokol_log.h>
 #include <sokol_time.h>
 
@@ -52,41 +48,19 @@ void init()
 {
     auto const& config = state.config;
 
-    // Init sokol_gfx
-    auto gfx_desc = sg_desc{};
-    {
-        gfx_desc.environment = sglue_environment();
-        gfx_desc.logger.func = slog_func;
-        // ...
+    App::Config::InitContext ctx{default_gfx_desc(), default_gl_desc(), default_imgui_desc()};
+    ctx.gfx_desc.environment = sglue_environment();
+    ctx.gfx_desc.logger.func = slog_func;
+    ctx.gl_desc.logger.func = slog_func;
+    ctx.gl_desc.sample_count = sapp_sample_count();
+    ctx.imgui_desc.sample_count = sapp_sample_count();
 
-        if (config.init.override_gfx)
-            config.init.override_gfx(gfx_desc);
-    }
-    sg_setup(gfx_desc);
+    if (config.init.override)
+        config.init.override(ctx);
 
-    // Init sokol_gl
-    auto gl_desc = default_gl_desc();
-    {
-        gl_desc.logger.func = slog_func;
-        // ...
-
-        if (config.init.override_gl)
-            config.init.override_gl(gl_desc);
-    }
-    sgl_setup(gl_desc);
-
-    // Init sokol_imgui
-    auto imgui_desc = simgui_desc_t{};
-    {
-        imgui_desc.sample_count = sapp_sample_count();
-        // ...
-
-        if (config.init.override_imgui)
-            config.init.override_imgui(imgui_desc);
-    }
-    simgui_setup(imgui_desc);
-
-    // Init sokol_time
+    sg_setup(ctx.gfx_desc);
+    sgl_setup(ctx.gl_desc);
+    simgui_setup(ctx.imgui_desc);
     stm_setup();
 
     ImGuiStyles::set_default(ImGui::GetStyle());
