@@ -24,6 +24,7 @@ add_library(implot::implot ALIAS implot)
 
 target_include_directories(
     implot 
+    SYSTEM # Suppresses warnings from third party headers
     PUBLIC
         "${implot_SOURCE_DIR}"
 )

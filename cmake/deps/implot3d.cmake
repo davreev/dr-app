@@ -25,6 +25,7 @@ add_library(implot3d::implot3d ALIAS implot3d)
 
 target_include_directories(
     implot3d 
+    SYSTEM # Suppresses warnings from third party headers
     PUBLIC
         "${implot3d_SOURCE_DIR}"
 )
