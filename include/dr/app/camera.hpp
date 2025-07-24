@@ -37,6 +37,8 @@ struct Pan
     Vec2<f32> offset{};
     f32 sensitivity{1.0};
 
+    void set(Camera const& camera) { offset = camera.offset.head<2>(); }
+
     void apply(Camera& camera) const { camera.offset.head<2>() = offset; }
 
     void handle_drag(Vec2<f32> const& delta)
@@ -55,6 +57,8 @@ struct Zoom
     f32 min_distance{0.0};
     f32 max_distance{1000.0};
 
+    void set(Camera const& camera) { distance = camera.offset.z(); }
+
     void apply(Camera& camera) const { camera.offset.z() = distance; }
 
     void handle_scroll(f32 const delta)
@@ -72,6 +76,16 @@ struct Orbit
     f32 sensitivity{5.0};
     f32 min_polar{0.0f};
     f32 max_polar{pi<f32>};
+
+    void set(Camera const& camera)
+    {
+        Mat3<f32> const piv_rot = camera.pivot.rotation.to_matrix();
+        Vec3<f32> const rx = piv_rot.col(0);
+        Vec3<f32> const rz = piv_rot.col(2);
+
+        polar = acos_safe(rz.z());
+        azimuth = std::atan2(rx.y(), rx.x());
+    }
 
     void apply(Camera& camera) const
     {
@@ -92,52 +106,6 @@ struct Orbit
         polar += dir_y * delta.y() * sensitivity;
         polar = clamp(polar, min_polar, max_polar);
     }
-};
-
-struct EasedPan
-{
-    Pan current;
-    Pan target;
-
-    EasedPan(Pan const& pan = {}) : current{pan}, target{pan} {}
-
-    void apply(Camera& camera) const { current.apply(camera); }
-
-    void handle_drag(Vec2<f32> const& delta) { target.handle_drag(delta); }
-
-    void update(f32 const t) { current.offset += (target.offset - current.offset) * t; }
-};
-
-struct EasedZoom
-{
-    Zoom current;
-    Zoom target;
-
-    EasedZoom(Zoom const& zoom = {}) : current{zoom}, target{zoom} {}
-
-    void apply(Camera& camera) const { current.apply(camera); }
-
-    void handle_scroll(f32 const delta) { target.handle_scroll(delta); }
-
-    void update(f32 const t) { current.distance += (target.distance - current.distance) * t; };
-};
-
-struct EasedOrbit
-{
-    Orbit current;
-    Orbit target;
-
-    EasedOrbit(Orbit const& orbit = {}) : current{orbit}, target{orbit} {}
-
-    void apply(Camera& camera) const { current.apply(camera); }
-
-    void handle_drag(Vec2<f32> const& delta) { target.handle_drag(delta); }
-
-    void update(f32 const t)
-    {
-        current.polar += (target.polar - current.polar) * t;
-        current.azimuth += (target.azimuth - current.azimuth) * t;
-    };
 };
 
 /// Creates a camera from the given controls

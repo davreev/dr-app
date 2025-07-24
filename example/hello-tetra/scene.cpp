@@ -44,12 +44,15 @@ struct {
         } frustum;
 
         struct {
-            EasedOrbit orbit{{0.15f * pi<f32>, 0.35f * pi<f32>}};
-            EasedZoom zoom{{4.0f, 1.0f, 0.1f}};
-            EasedPan pan{Pan{}};
+            Orbit orbit{0.15f * pi<f32>, 0.35f * pi<f32>};
+            Zoom zoom{4.0f, 1.0f, 0.1f};
+            Pan pan{};
         } controls;
 
-        Camera camera{make_camera(controls.orbit.current, controls.zoom.current)};
+        struct {
+            Camera current;
+            Camera target;
+        } camera;
     } view;
 
 } state{};
@@ -104,7 +107,7 @@ GfxBuffer::Desc buffer_desc(sg_range const& data, sg_buffer_type const type)
     return desc;
 }
 
-void init_gfx_resources()
+void init_gfx()
 {
     auto& gfx = state.gfx;
     gfx.shader = GfxShader::make(shader_desc(vertex_shader_src, fragment_shader_src));
@@ -115,23 +118,30 @@ void init_gfx_resources()
         buffer_desc(SG_RANGE(mesh_indices), SG_BUFFERTYPE_INDEXBUFFER));
 }
 
-void open(void* /*context*/) { init_gfx_resources(); }
+void init_view()
+{
+    auto& view = state.view;
+    view.camera.current = view.camera.target = make_camera(view.controls.orbit, view.controls.zoom);
+}
+
+void open(void* /*context*/)
+{
+    init_gfx();
+    init_view();
+}
 
 void close(void* /*context*/) { state.gfx = {}; }
 
 void update(void* /*context*/)
 {
-    f32 const t = saturate(5.0 * App::delta_time_s());
     auto& view = state.view;
 
-    view.controls.orbit.update(t);
-    view.controls.orbit.apply(view.camera);
+    view.controls.orbit.apply(view.camera.target);
+    view.controls.zoom.apply(view.camera.target);
+    view.controls.pan.apply(view.camera.target);
 
-    view.controls.zoom.update(t);
-    view.controls.zoom.apply(view.camera);
-
-    view.controls.pan.update(t);
-    view.controls.pan.apply(view.camera);
+    f32 const t = saturate(5.0 * App::delta_time_s());
+    camera_transition(view.camera.current, view.camera.target, t);
 }
 
 void draw_mesh(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
@@ -206,7 +216,7 @@ void draw(void* /*context*/)
     auto const& view = state.view;
 
     Mat4<f32> const local_to_world = make_scale_translate(vec<3>(2.0f), vec<3>(-1.0f));
-    Mat4<f32> const world_to_view = view.camera.transform().inverse_to_matrix();
+    Mat4<f32> const world_to_view = view.camera.current.transform().inverse_to_matrix();
 
     Mat4<f32> const local_to_view = world_to_view * local_to_world;
     Mat4<f32> const view_to_clip = make_perspective<NdcType_OpenGl>(
@@ -227,24 +237,24 @@ void handle_event(void* /*context*/, App::Event const& event)
 
     camera_handle_mouse_event(
         event,
-        view.controls.zoom.target,
-        &view.controls.orbit.target,
-        &view.controls.pan.target,
+        view.controls.zoom,
+        &view.controls.orbit,
+        &view.controls.pan,
         screen_to_view,
         state.input.mouse_down);
 
     camera_handle_touch_event(
         event,
-        view.controls.zoom.target,
-        &view.controls.orbit.target,
-        &view.controls.pan.target,
+        view.controls.zoom,
+        &view.controls.orbit,
+        &view.controls.pan,
         screen_to_view,
         state.input.last_touch_points,
         state.input.last_num_touches);
 
     constexpr auto center_camera = []() {
-        view.controls.zoom.target.distance = 4.0f;
-        view.controls.pan.target.offset = {};
+        view.controls.zoom.distance = 4.0f;
+        view.controls.pan.offset = {};
     };
 
     switch (event.type)
