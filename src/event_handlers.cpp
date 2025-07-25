@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include <dr/math.hpp>
+
 #include <dr/app/app.hpp>
 #include <dr/app/camera.hpp>
 
@@ -15,7 +16,39 @@ bool is_mouse_over(App::Event const& event)
         && event.mouse_y < event.window_height;
 }
 
-f32 screen_to_view(f32 const fov, f32 const size) { return std::tan(fov * 0.5f) / (size * 0.5f); }
+f32 screen_to_view_scale(f32 const fov, f32 const size)
+{
+    return std::tan(fov * 0.5f) / (size * 0.5f);
+}
+
+f32 screen_to_view_scale(f32 const fov_y) { return screen_to_view_scale(fov_y, sapp_heightf()); }
+
+Mat3<f32> make_screen_to_view(f32 const fov_y, bool const flip_y)
+{
+    f32 const w = sapp_widthf();
+    f32 const h = sapp_heightf();
+    f32 const sx = screen_to_view_scale(fov_y, h);
+    f32 const sy = flip_y ? -sx : sx;
+
+    Mat3<f32> m;
+    m(0, 0) = sx;
+    m(1, 1) = sy;
+    m.col(2) << sx * w * -0.5f, sy * h * -0.5f, 1.0f;
+    return m;
+}
+
+Mat3<f32> make_view_to_screen(f32 const fov_y, bool const flip_y)
+{
+    f32 const w = sapp_widthf();
+    f32 const h = sapp_heightf();
+    f32 const s = 1.0f / screen_to_view_scale(fov_y, h);
+
+    Mat3<f32> m;
+    m(0, 0) = s;
+    m(1, 1) = flip_y ? -s : s;
+    m.col(2) << w * 0.5f, h * 0.5f, 1.0f;
+    return m;
+}
 
 void camera_handle_mouse_event(
     App::Event const& event,
@@ -138,13 +171,13 @@ void camera_handle_touch_event(
                     case 2:
                     {
                         // Handle drag pan
-                        if(pan)
+                        if (pan)
                         {
                             Vec2<f32> const d0 = screen_to_view * (p0 - prev_touch_points[0]);
                             Vec2<f32> const d1 = screen_to_view * (p1 - prev_touch_points[1]);
 
                             constexpr f32 abs_tol = 1.0e-2;
-                            if(near_equal(d0, d1, abs_tol))
+                            if (near_equal(d0, d1, abs_tol))
                                 pan->handle_drag((d0 + d1) * (0.5f * cam_offset));
                         }
 

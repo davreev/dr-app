@@ -14,8 +14,15 @@ struct Pan;
 /// True if the mouse is over the app window
 bool is_mouse_over(App::Event const& event);
 
-/// Scale factor for taking screen space displacements to view space (at z = -1).
-f32 screen_to_view(f32 fov, f32 size);
+/// Scale factor for taking screen space displacements to view space (at depth of 1).
+f32 screen_to_view_scale(f32 fov, f32 size);
+f32 screen_to_view_scale(f32 fov_y);
+
+/// Creates an affine transform that takes points from screen space to view space (at depth of 1)
+Mat3<f32> make_screen_to_view(f32 fov_y, bool flip_y = false);
+
+/// Creates an affine transform that takes points from view space (at depth of 1) to screen space
+Mat3<f32> make_view_to_screen(f32 fov_y, bool flip_y = false);
 
 /// Handles mouse events for camera control
 void camera_handle_mouse_event(
