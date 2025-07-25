@@ -41,7 +41,7 @@ struct Pan
 
     void apply(Camera& camera) const { camera.offset.head<2>() = offset; }
 
-    void handle_drag(Vec2<f32> const& delta)
+    void handle_input(Vec2<f32> const& delta)
     {
         constexpr f32 dir_x{-1.0};
         constexpr f32 dir_y{1.0};
@@ -61,7 +61,7 @@ struct Zoom
 
     void apply(Camera& camera) const { camera.offset.z() = distance; }
 
-    void handle_scroll(f32 const delta)
+    void handle_input(f32 const delta)
     {
         constexpr f32 dir{-1.0};
         distance += dir * delta * sensitivity;
@@ -97,7 +97,7 @@ struct Orbit
         camera.pivot.rotation.q = r_z * r_x;
     }
 
-    void handle_drag(Vec2<f32> const& delta)
+    void handle_input(Vec2<f32> const& delta)
     {
         constexpr f32 dir_x{-1.0};
         constexpr f32 dir_y{-1.0};

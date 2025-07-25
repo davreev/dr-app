@@ -30,7 +30,8 @@ void camera_handle_mouse_event(
     Zoom& zoom,
     Orbit* orbit,
     Pan* pan,
-    f32 screen_to_view,
+    f32 drag_scale,
+    f32 scroll_scale,
     bool mouse_down[3]);
 
 /// Handles touch events for camera control
@@ -39,7 +40,7 @@ void camera_handle_touch_event(
     Zoom& zoom,
     Orbit* orbit,
     Pan* pan,
-    f32 screen_to_view,
+    f32 drag_scale,
     Vec2<f32> prev_touch_points[2],
     i8& prev_num_touches);
 

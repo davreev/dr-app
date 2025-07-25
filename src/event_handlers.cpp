@@ -55,10 +55,12 @@ void camera_handle_mouse_event(
     Zoom& zoom,
     Orbit* const orbit,
     Pan* const pan,
-    f32 const screen_to_view,
+    f32 const drag_scale,
+    f32 const scroll_scale,
     bool mouse_down[3])
 {
     f32 const cam_offset = zoom.distance;
+    f32 const screen_norm = 1.0 / sapp_heightf();
 
     switch (event.type)
     {
@@ -100,22 +102,21 @@ void camera_handle_mouse_event(
             if (mouse_down[0] && orbit)
             {
                 Vec2<f32> const d{event.mouse_dx, event.mouse_dy};
-                orbit->handle_drag(d * screen_to_view);
+                orbit->handle_input(d * (screen_norm * drag_scale));
             }
 
             if (mouse_down[1] && pan)
             {
                 Vec2<f32> const d{event.mouse_dx, event.mouse_dy};
-                pan->handle_drag(d * (cam_offset * screen_to_view));
+                pan->handle_input(d * (cam_offset * screen_norm * drag_scale));
             }
 
             break;
         }
         case SAPP_EVENTTYPE_MOUSE_SCROLL:
         {
-            constexpr f32 scroll_scale = 0.1f; // TODO(dr): Expose as parameter
-            f32 const d = scroll_scale * sign(event.scroll_y);
-            zoom.handle_scroll(d * cam_offset);
+            f32 const d = sign(event.scroll_y);
+            zoom.handle_input(d * cam_offset * scroll_scale);
             break;
         }
         default:
@@ -130,11 +131,12 @@ void camera_handle_touch_event(
     Zoom& zoom,
     Orbit* const orbit,
     Pan* const pan,
-    f32 const screen_to_view,
+    f32 const drag_scale,
     Vec2<f32> prev_touch_points[2],
     i8& prev_num_touches)
 {
     f32 const cam_offset = zoom.distance;
+    f32 const screen_norm = 1.0 / sapp_heightf();
 
     switch (event.type)
     {
@@ -164,7 +166,7 @@ void camera_handle_touch_event(
                         if (orbit)
                         {
                             Vec2<f32> const d = p0 - prev_touch_points[0];
-                            orbit->handle_drag(d * screen_to_view);
+                            orbit->handle_input(d * (screen_norm * drag_scale));
                         }
                         break;
                     }
@@ -173,19 +175,19 @@ void camera_handle_touch_event(
                         // Handle drag pan
                         if (pan)
                         {
-                            Vec2<f32> const d0 = screen_to_view * (p0 - prev_touch_points[0]);
-                            Vec2<f32> const d1 = screen_to_view * (p1 - prev_touch_points[1]);
+                            Vec2<f32> const d0 = screen_norm * (p0 - prev_touch_points[0]);
+                            Vec2<f32> const d1 = screen_norm * (p1 - prev_touch_points[1]);
 
-                            constexpr f32 abs_tol = 1.0e-2;
-                            if (near_equal(d0, d1, abs_tol))
-                                pan->handle_drag((d0 + d1) * (0.5f * cam_offset));
+                            constexpr f32 parallel_tol = 0.01f;
+                            if (near_equal(d0, d1, parallel_tol))
+                                pan->handle_input((d0 + d1) * (0.5f * cam_offset * drag_scale));
                         }
 
                         // Handle pinch zoom
                         {
                             f32 const d0 = (prev_touch_points[0] - prev_touch_points[1]).norm();
                             f32 const d1 = (p0 - p1).norm();
-                            zoom.handle_scroll((d1 - d0) * (cam_offset * screen_to_view));
+                            zoom.handle_input((d1 - d0) * (cam_offset * screen_norm * drag_scale));
                         }
                         break;
                     }

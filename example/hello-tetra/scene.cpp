@@ -233,14 +233,14 @@ void draw(void* /*context*/)
 void handle_event(void* /*context*/, App::Event const& event)
 {
     auto& view = state.view;
-    f32 const screen_to_view = dr::screen_to_view(view.frustum.fov_y, sapp_heightf());
 
     camera_handle_mouse_event(
         event,
         view.controls.zoom,
         &view.controls.orbit,
         &view.controls.pan,
-        screen_to_view,
+        1.0f,
+        0.1f,
         state.input.mouse_down);
 
     camera_handle_touch_event(
@@ -248,7 +248,7 @@ void handle_event(void* /*context*/, App::Event const& event)
         view.controls.zoom,
         &view.controls.orbit,
         &view.controls.pan,
-        screen_to_view,
+        1.0f,
         state.input.last_touch_points,
         state.input.last_num_touches);
 
