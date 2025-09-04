@@ -11,10 +11,13 @@
 namespace dr
 {
 
-void thread_pool_start(isize num_workers);
+struct ThreadPool
+{
+    static void start(isize num_workers);
 
-void thread_pool_stop();
+    static void stop();
 
-void thread_pool_submit(TaskRef const& task);
+    static void submit(TaskRef const& task);
+};
 
 } // namespace dr

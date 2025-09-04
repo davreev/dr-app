@@ -57,7 +57,7 @@ struct App
     static Scene const& scene();
     static void set_scene(App::Scene const& scene);
 
-    static App::Config& config();
+    static Config& config();
 
     static u64 time();
     static f64 time_s();

@@ -49,13 +49,13 @@ void do_work()
 
 } // namespace
 
-void thread_pool_start(isize const num_workers)
+void ThreadPool::start(isize const num_workers)
 {
     assert(num_workers > 0);
 
     // Wrap up any in progress tasks
     if (state.is_active)
-        thread_pool_stop();
+        ThreadPool::stop();
 
     state.workers.resize(num_workers);
 
@@ -65,7 +65,7 @@ void thread_pool_start(isize const num_workers)
     state.is_active = true;
 }
 
-void thread_pool_stop()
+void ThreadPool::stop()
 {
     if (!state.is_active)
         return;
@@ -84,7 +84,7 @@ void thread_pool_stop()
     state.is_active = false;
 }
 
-void thread_pool_submit(TaskRef const& task)
+void ThreadPool::submit(TaskRef const& task)
 {
     assert(state.is_active);
     assert(task.is_valid());

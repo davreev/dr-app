@@ -9,9 +9,9 @@ UTEST(task_queue, poll)
 {
     using namespace dr;
 
-    thread_pool_start(1);
+    ThreadPool::start(1);
     auto _ = defer([]() {
-        thread_pool_stop();
+        ThreadPool::stop();
     });
 
     isize x = 2;
@@ -39,9 +39,9 @@ UTEST(task_queue, poll_barrier)
 {
     using namespace dr;
 
-    thread_pool_start(1);
+    ThreadPool::start(1);
     auto _ = defer([]() {
-        thread_pool_stop();
+        ThreadPool::stop();
     });
 
     isize x = 2;

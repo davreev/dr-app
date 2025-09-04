@@ -35,7 +35,7 @@ void TaskQueue::poll()
                 if (task->raise_event(PollEvent::BeforeSubmit))
                 {
                     task->status.store(Task::Status_Submitted);
-                    thread_pool_submit(task);
+                    ThreadPool::submit(task);
                 }
 
                 break;
