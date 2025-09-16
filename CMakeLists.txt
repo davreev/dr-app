@@ -125,6 +125,7 @@ add_library(
     dr-app STATIC
     src/app.cpp
     src/app.c
+    src/debug_draw.cpp
     src/event_handlers.cpp
     src/shim/imgui.cpp
 )
