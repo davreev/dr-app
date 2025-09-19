@@ -4,11 +4,11 @@
 #include <dr/bitwise.hpp>
 #include <dr/math.hpp>
 
-#include <dr/app/camera.hpp>
 #include <dr/app/debug_draw.hpp>
 #include <dr/app/event_handlers.hpp>
 #include <dr/app/gfx_resource.hpp>
 #include <dr/app/gfx_utils.hpp>
+#include <dr/app/orbit_camera.hpp>
 #include <dr/app/shim/imgui.hpp>
 
 #include "shader_src.hpp"
@@ -30,31 +30,7 @@ struct {
         GfxBuffer index_buffer;
     } gfx;
 
-    struct {
-        bool mouse_down[3];
-        Vec2<f32> last_touch_points[2];
-        i8 last_num_touches;
-    } input;
-
-    struct {
-        struct {
-            f32 fov_y{deg_to_rad(60.0f)};
-            f32 clip_near{0.01f};
-            f32 clip_far{100.0f};
-        } frustum;
-
-        struct {
-            Orbit orbit{0.15f * pi<f32>, 0.35f * pi<f32>};
-            Zoom zoom{4.0f, 1.0f, 0.1f};
-            Pan pan{};
-        } controls;
-
-        struct {
-            Camera current;
-            Camera target;
-        } camera;
-    } view;
-
+    OrbitCamera camera{};
 } state{};
 
 // clang-format on
@@ -118,31 +94,17 @@ void init_gfx()
         buffer_desc(SG_RANGE(mesh_indices), SG_BUFFERTYPE_INDEXBUFFER));
 }
 
-void init_view()
-{
-    auto& view = state.view;
-    view.camera.current = view.camera.target = make_camera(view.controls.orbit, view.controls.zoom);
-}
-
 void open(void* /*context*/)
 {
     init_gfx();
-    init_view();
+
+    state.camera.target.radius = 2.0f;
+    state.camera.frame_target_now();
 }
 
 void close(void* /*context*/) { state.gfx = {}; }
 
-void update(void* /*context*/)
-{
-    auto& view = state.view;
-
-    view.controls.orbit.apply(view.camera.target);
-    view.controls.zoom.apply(view.camera.target);
-    view.controls.pan.apply(view.camera.target);
-
-    f32 const t = saturate(5.0 * App::delta_time_s());
-    camera_transition(view.camera.current, view.camera.target, t);
-}
+void update(void* /*context*/) { state.camera.update(App::delta_time_s()); }
 
 void draw_mesh(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
 {
@@ -189,10 +151,10 @@ void debug_draw(
 void draw_ui()
 {
     ImGui::SetNextWindowPos({20.0f, 20.0f}, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSizeConstraints({200.0f, 0.0f}, {sapp_widthf(), sapp_heightf()});
     constexpr auto window_flags = ImGuiWindowFlags_NoResize;
 
     ImGui::Begin(scene_name, nullptr, window_flags);
-    ImGui::PushItemWidth(200.0f);
 
     if (ImGui::BeginTabBar("TabBar", ImGuiTabBarFlags_None))
     {
@@ -213,17 +175,12 @@ void draw_ui()
 
 void draw(void* /*context*/)
 {
-    auto const& view = state.view;
+    auto const& cam = state.camera;
+    Mat4<f32> const world_to_view = cam.make_world_to_view();
+    Mat4<f32> const view_to_clip = cam.make_view_to_clip(App::aspect());
 
     Mat4<f32> const local_to_world = make_scale_translate(vec<3>(2.0f), vec<3>(-1.0f));
-    Mat4<f32> const world_to_view = view.camera.current.transform().inverse_to_matrix();
-
     Mat4<f32> const local_to_view = world_to_view * local_to_world;
-    Mat4<f32> const view_to_clip = make_perspective<NdcType_OpenGl>(
-        view.frustum.fov_y,
-        App::aspect(),
-        view.frustum.clip_near,
-        view.frustum.clip_far);
 
     draw_mesh(local_to_view, view_to_clip);
     debug_draw(local_to_view, world_to_view, view_to_clip);
@@ -232,30 +189,8 @@ void draw(void* /*context*/)
 
 void handle_event(void* /*context*/, App::Event const& event)
 {
-    auto& view = state.view;
-
-    camera_handle_mouse_event(
-        event,
-        view.controls.zoom,
-        &view.controls.orbit,
-        &view.controls.pan,
-        1.0f,
-        0.1f,
-        state.input.mouse_down);
-
-    camera_handle_touch_event(
-        event,
-        view.controls.zoom,
-        &view.controls.orbit,
-        &view.controls.pan,
-        1.0f,
-        state.input.last_touch_points,
-        state.input.last_num_touches);
-
-    constexpr auto center_camera = []() {
-        view.controls.zoom.distance = 4.0f;
-        view.controls.pan.offset = {};
-    };
+    camera_handle_mouse_event(event, state.camera);
+    camera_handle_touch_event(event, state.camera);
 
     switch (event.type)
     {
@@ -265,7 +200,7 @@ void handle_event(void* /*context*/, App::Event const& event)
             {
                 case SAPP_KEYCODE_F:
                 {
-                    center_camera();
+                    state.camera.frame_target();
                     break;
                 }
                 default:

@@ -30,10 +30,11 @@ include(deps/sokol)
 
 add_library(
     dr-app-util STATIC
-    src/camera.cpp
+    src/camera_rig.cpp
     src/file_utils.cpp
     src/gfx_resource.cpp
     src/gfx_utils.cpp
+    src/orbit_camera.cpp
     src/task_queue.cpp
     src/thread_pool.cpp
 )

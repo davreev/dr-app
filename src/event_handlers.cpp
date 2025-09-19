@@ -5,7 +5,8 @@
 #include <dr/math.hpp>
 
 #include <dr/app/app.hpp>
-#include <dr/app/camera.hpp>
+#include <dr/app/camera_rig.hpp>
+#include <dr/app/orbit_camera.hpp>
 
 namespace dr
 {
@@ -55,11 +56,11 @@ void camera_handle_mouse_event(
     Zoom& zoom,
     Orbit* const orbit,
     Pan* const pan,
+    bool mouse_down[3],
     f32 const drag_scale,
-    f32 const scroll_scale,
-    bool mouse_down[3])
+    f32 const scroll_scale)
 {
-    f32 const cam_offset = zoom.distance;
+    f32 const cam_offset = zoom.distance.current;
     f32 const screen_norm = 1.0 / sapp_heightf();
 
     switch (event.type)
@@ -131,11 +132,11 @@ void camera_handle_touch_event(
     Zoom& zoom,
     Orbit* const orbit,
     Pan* const pan,
-    f32 const drag_scale,
     Vec2<f32> prev_touch_points[2],
-    i8& prev_num_touches)
+    i8& prev_num_touches,
+    f32 const drag_scale)
 {
-    f32 const cam_offset = zoom.distance;
+    f32 const cam_offset = zoom.distance.current;
     f32 const screen_norm = 1.0 / sapp_heightf();
 
     switch (event.type)
@@ -203,6 +204,34 @@ void camera_handle_touch_event(
             // ...
         }
     }
+}
+
+void camera_handle_mouse_event(
+    App::Event const& event,
+    OrbitCamera& camera,
+    f32 drag_scale,
+    f32 scroll_scale)
+{
+    camera_handle_mouse_event(
+        event,
+        camera.controls.zoom,
+        &camera.controls.orbit,
+        &camera.controls.pan,
+        camera.input.mouse_down,
+        drag_scale,
+        scroll_scale);
+}
+
+void camera_handle_touch_event(App::Event const& event, OrbitCamera& camera, f32 drag_scale)
+{
+    camera_handle_touch_event(
+        event,
+        camera.controls.zoom,
+        &camera.controls.orbit,
+        &camera.controls.pan,
+        camera.input.prev_touch_points,
+        camera.input.prev_num_touches,
+        drag_scale);
 }
 
 } // namespace dr
