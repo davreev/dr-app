@@ -46,3 +46,14 @@ FetchContent_MakeAvailable(dr-app)
 add_executable(my-app main.cpp)
 target_link_libraries(my-app PRIVATE dr::app)
 ```
+
+## Dependencies
+
+- [eigen](https://gitlab.com/libeigen/eigen) (MPL 2.0)
+- [fmt](https://github.com/fmtlib/fmt) (MIT)
+- [imgui](https://github.com/ocornut/imgui) (MIT)
+- [sokol](https://github.com/floooh/sokol) (zlib)
+- [unordered_dense](https://github.com/martinus/unordered_dense) (MIT)
+- [utest.h](https://github.com/sheredom/utest.h) (Unlicense)
+
+See corresponding module files in `cmake/deps` for version information
