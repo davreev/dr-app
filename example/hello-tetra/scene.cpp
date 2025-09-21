@@ -158,9 +158,30 @@ void draw_ui()
 
     if (ImGui::BeginTabBar("TabBar", ImGuiTabBarFlags_None))
     {
+        if (ImGui::BeginTabItem("Settings"))
+        {
+            ImGui::SeparatorText("Camera");
+            {
+                int proj = state.camera.projection;
+                ImGui::Text("Projection");
+                ImGui::RadioButton("Perspective", &proj, 0);
+                ImGui::SameLine();
+                ImGui::RadioButton("Orthographic", &proj, 1);
+                state.camera.projection = OrbitCamera::Projection(proj);
+
+                ImGui::BeginDisabled(proj == 1);
+                ImGui::SliderFloat("FOV", &state.camera.frustum.fov_y, 0.0f, pi<f32>);
+                ImGui::EndDisabled();
+
+                ImGui::Spacing();
+            }
+
+            ImGui::EndTabItem();
+        }
+
         if (ImGui::BeginTabItem("About"))
         {
-            ImGui::Text("Version %u.%u.%u", 0, 1, 0);
+            ImGui::Text("Version %u.%u.%u", 0, 2, 0);
             ImGui::TextLinkOpenURL(
                 "Source",
                 "https://github.com/davreev/dr-app/tree/master/example/hello-tetra");
@@ -177,7 +198,7 @@ void draw(void* /*context*/)
 {
     auto const& cam = state.camera;
     Mat4<f32> const world_to_view = cam.make_world_to_view();
-    Mat4<f32> const view_to_clip = cam.make_view_to_clip(App::aspect());
+    Mat4<f32> const view_to_clip = cam.make_view_to_clip<NdcType_OpenGl>(App::aspect());
 
     Mat4<f32> const local_to_world = make_scale_translate(vec<3>(2.0f), vec<3>(-1.0f));
     Mat4<f32> const local_to_view = world_to_view * local_to_world;

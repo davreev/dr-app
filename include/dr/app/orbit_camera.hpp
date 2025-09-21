@@ -1,33 +1,40 @@
 #pragma once
 
 #include <dr/app/camera_rig.hpp>
+#include <dr/app/gfx_utils.hpp>
 
 namespace dr
 {
 
 struct OrbitCamera
 {
+    enum Projection : u8
+    {
+        Projection_Perspective = 0,
+        Projection_Orthographic,
+    };
+
     CameraRig rig;
 
     struct
     {
         Vec3<f32> position{};
-        f32 radius{1.0f};
+        f32 radius{1.0};
     } target;
 
     struct
     {
-        f32 fov_y{deg_to_rad(60.0f)};
-        f32 clip_near{0.01f};
-        f32 clip_far{1000.0f};
+        f32 fov_y{deg_to_rad(60.0)};
+        f32 clip_near{0.01};
+        f32 clip_far{1.0e5};
     } frustum;
 
     struct
     {
         Orbit orbit{};
-        Zoom zoom{{1.0f, 1.0f, 0.01, 1000.0}};
+        Zoom zoom{{1.0, 1.0, 0.01, 1000.0}};
         Pan pan{};
-        f32 stiffness{10.0f};
+        f32 stiffness{10.0};
     } controls;
 
     struct
@@ -37,13 +44,18 @@ struct OrbitCamera
         bool mouse_down[3];
     } input;
 
+    Projection projection{};
+
     OrbitCamera();
 
     void update(f64 delta_time_sec);
+
     void frame_target();
     void frame_target_now();
 
     Mat4<f32> make_world_to_view() const;
+
+    template <NdcType ndc = NdcType_Default>
     Mat4<f32> make_view_to_clip(f32 aspect) const;
 };
 

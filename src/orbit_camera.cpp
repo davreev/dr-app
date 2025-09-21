@@ -1,5 +1,7 @@
 #include <dr/app/orbit_camera.hpp>
 
+#include <cassert>
+
 #include <dr/app/gfx_utils.hpp>
 
 namespace dr
@@ -43,13 +45,39 @@ void OrbitCamera::frame_target_now()
 
 Mat4<f32> OrbitCamera::make_world_to_view() const { return rig.transform().inverse_to_matrix(); }
 
+template <NdcType ndc>
 Mat4<f32> OrbitCamera::make_view_to_clip(f32 const aspect) const
 {
-    return make_perspective<NdcType_OpenGl>(
-        frustum.fov_y,
-        aspect,
-        frustum.clip_near,
-        frustum.clip_far);
+    switch (projection)
+    {
+        case Projection_Perspective:
+        {
+            return make_perspective<ndc>(
+                frustum.fov_y,
+                aspect,
+                frustum.clip_near,
+                frustum.clip_far);
+        }
+        case Projection_Orthographic:
+        {
+            // NOTE(dr): Using fov_y to establish the height of the ortho frustum keeps scale
+            // consistent when switching between projection modes
+            return make_orthographic<ndc>(
+                2.0f * std::tan(0.5f * frustum.fov_y) * controls.zoom.distance.current,
+                aspect,
+                -frustum.clip_far,
+                frustum.clip_far);
+        }
+        default:
+        {
+            assert(false);
+            return Mat4<f32>::Identity();
+        }
+    }
 }
+
+template Mat4<f32> OrbitCamera::make_view_to_clip<NdcType_Default>(f32) const;
+template Mat4<f32> OrbitCamera::make_view_to_clip<NdcType_OpenGl>(f32) const;
+template Mat4<f32> OrbitCamera::make_view_to_clip<NdcType_Vulkan>(f32) const;
 
 } // namespace dr
