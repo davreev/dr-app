@@ -2,6 +2,7 @@
 
 #include <atomic>
 
+#include <dr/allocator.hpp>
 #include <dr/basic_types.hpp>
 #include <dr/deque.hpp>
 #include <dr/dynamic_array.hpp>
@@ -12,10 +13,8 @@
 namespace dr
 {
 
-struct TaskQueue
+struct TaskQueue : AllocatorAware
 {
-    // TODO(dr): Make allocator-aware
-
     struct PollEvent
     {
         enum Type : u8
@@ -32,6 +31,14 @@ struct TaskQueue
     };
 
     using PollCallback = bool(PollEvent const& event);
+
+    TaskQueue(Allocator const alloc = {}) : queue_(alloc), pool_(alloc) {}
+
+    TaskQueue(TaskQueue&& other) noexcept = default;
+    TaskQueue& operator=(TaskQueue&& other) noexcept = default;
+
+    /// Returns the allocator used by this container
+    Allocator allocator() const { return queue_.get_allocator(); }
 
     /// Pushes a task onto the queue for deferred asynchronous execution. The calling context is
     /// responsible for keeping the task alive until completion.
@@ -77,8 +84,13 @@ struct TaskQueue
         }
     };
 
-    struct TaskPool
+    struct TaskPool : AllocatorAware
     {
+        TaskPool(Allocator const alloc = {}) : pool_(alloc), free_(alloc) {}
+
+        TaskPool(TaskPool&& other) noexcept = default;
+        TaskPool& operator=(TaskPool&& other) noexcept = default;
+
         Task* make(TaskRef const& ref, void* context, PollCallback* poll_cb);
         void release(Task* const task);
 
