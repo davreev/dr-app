@@ -1,5 +1,6 @@
 #pragma once
 
+#include <dr/allocator.hpp>
 #include <dr/hash_map.hpp>
 #include <dr/string.hpp>
 
@@ -7,9 +8,20 @@ namespace dr
 {
 
 template <typename T>
-struct AssetCache
+struct AssetCache : AllocatorAware
 {
-    // TODO(dr): Make allocator-aware
+    AssetCache(Allocator const alloc = {}) : assets_(alloc) {}
+
+    AssetCache(AssetCache const& other, Allocator const alloc = {}) : assets_(other.assets_, alloc)
+    {
+    }
+
+    AssetCache(AssetCache&& other) noexcept = default;
+    AssetCache& operator=(AssetCache const& other) = default;
+    AssetCache& operator=(AssetCache&& other) noexcept = default;
+
+    /// Returns the allocator used by this container
+    Allocator allocator() const { return assets_.get_allocator(); }
 
     /// Returns the asset at the given path if it's in the cache. Otherwise, returns a null pointer.
     T const* get(String const& path)
@@ -21,11 +33,13 @@ struct AssetCache
     /// Returns the asset at the given path. If the asset is not in the cache, it will be loaded by
     /// the given function object and cached.
     template <typename Loader>
-    T const* get(String path, Loader&& load, bool const force_load = false)
+    T const* get(String const& path, Loader&& load, bool const force_load = false)
     {
         static_assert(std::is_invocable_r_v<bool, Loader, String const&, T&>);
 
-        auto const [itr, ok] = assets_.try_emplace(std::move(path));
+        // NOTE: The container's allocator must be explicitly passed to new keys when
+        // using try_emplace
+        auto const [itr, ok] = assets_.try_emplace({path, allocator()});
 
         // Load asset on cache miss
         if (ok || force_load)
