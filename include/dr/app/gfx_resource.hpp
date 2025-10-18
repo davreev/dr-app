@@ -55,7 +55,7 @@ struct GfxResource
     bool is_init() const { return query_state() == SG_RESOURCESTATE_VALID; }
 
   private:
-    Handle handle_;
+    Handle handle_{};
 
     GfxResource(Handle const handle) : handle_{handle} {}
 

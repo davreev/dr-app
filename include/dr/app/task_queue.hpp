@@ -95,12 +95,12 @@ struct TaskQueue : AllocatorAware
         void release(Task* const task);
 
       private:
-        Deque<Task> pool_{};
-        DynamicArray<Task*> free_{};
+        Deque<Task> pool_;
+        DynamicArray<Task*> free_;
     };
 
-    Deque<Task*> queue_{};
-    TaskPool pool_{};
+    Deque<Task*> queue_;
+    TaskPool pool_;
 };
 
 } // namespace dr

@@ -61,7 +61,7 @@ struct AssetCache : AllocatorAware
     void clear() { assets_.clear(); }
 
   private:
-    StableHashMap<String, T> assets_{};
+    StableHashMap<String, T> assets_;
 };
 
 } // namespace dr
