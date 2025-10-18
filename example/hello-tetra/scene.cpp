@@ -19,6 +19,7 @@ namespace
 {
 
 constexpr char scene_name[]{"Hello Tetra"};
+constexpr NdcType ndc = NdcType::NdcType_OpenGl;
 
 // clang-format off
 
@@ -198,7 +199,7 @@ void draw(void* /*context*/)
 {
     auto const& cam = state.camera;
     Mat4<f32> const world_to_view = cam.make_world_to_view();
-    Mat4<f32> const view_to_clip = cam.make_view_to_clip<NdcType_OpenGl>(App::aspect());
+    Mat4<f32> const view_to_clip = cam.make_view_to_clip<ndc>(App::aspect());
 
     Mat4<f32> const local_to_world = make_scale_translate(vec<3>(2.0f), vec<3>(-1.0f));
     Mat4<f32> const local_to_view = world_to_view * local_to_world;

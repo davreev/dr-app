@@ -3,12 +3,24 @@
 namespace dr
 {
 
+void Pan::set(CameraRig const& rig)
+{
+    set_target(rig);
+    offset.current = offset.target;
+}
+
 void Pan::handle_input(Vec2<f32> const& delta)
 {
     constexpr f32 dir_x{-1.0};
     constexpr f32 dir_y{1.0};
     offset.target.x() += dir_x * delta.x() * sensitivity;
     offset.target.y() += dir_y * delta.y() * sensitivity;
+}
+
+void Zoom::set(CameraRig const& rig)
+{
+    set_target(rig);
+    distance.current = distance.target;
 }
 
 void Zoom::handle_input(f32 const delta)
@@ -22,12 +34,19 @@ void Zoom::handle_input(f32 const delta)
 
 void Orbit::set(CameraRig const& rig)
 {
+    set_target(rig);
+    polar.current = polar.target;
+    azimuth.current = azimuth.target;
+}
+
+void Orbit::set_target(CameraRig const& rig)
+{
     Mat3<f32> const piv_rot = rig.pivot.rotation.to_matrix();
     Vec3<f32> const rx = piv_rot.col(0);
     Vec3<f32> const rz = piv_rot.col(2);
 
-    polar.current = polar.target = acos_safe(rz.z());
-    azimuth.current = azimuth.target = std::atan2(rx.y(), rx.x());
+    polar.target = acos_safe(rz.z());
+    azimuth.target = std::atan2(rx.y(), rx.x());
 }
 
 void Orbit::apply(CameraRig& rig) const
