@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+#include <dr/math.hpp>
+
 #include <dr/app/gfx_utils.hpp>
 
 namespace dr

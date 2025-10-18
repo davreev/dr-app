@@ -1,6 +1,6 @@
 #pragma once
 
-#include <dr/app/camera_rig.hpp>
+#include <dr/app/camera_controls.hpp>
 #include <dr/app/gfx_utils.hpp>
 
 namespace dr
@@ -18,31 +18,31 @@ struct OrbitCamera
 
     struct
     {
-        Vec3<f32> position{};
+        Vec3<f32> position;
         f32 radius{1.0};
-    } target{};
+    } target;
 
     struct
     {
-        f32 fov_y{deg_to_rad(60.0)};
+        f32 fov_y{pi<f32> / 3.0f};
         f32 clip_near{0.01};
         f32 clip_far{1.0e5};
-    } frustum{};
+    } frustum;
 
     struct
     {
-        Orbit orbit{};
+        Orbit orbit;
         Zoom zoom{{1.0, 1.0, 0.01, 1000.0}};
-        Pan pan{};
+        Pan pan;
         f32 stiffness{10.0};
-    } controls{};
+    } controls;
 
     struct
     {
         Vec2<f32> prev_touch_points[2];
-        i8 prev_num_touches;
-        bool mouse_down[3];
-    } input{};
+        i8 prev_num_touches{};
+        bool mouse_down[3]{};
+    } input;
 
     Projection projection{};
 

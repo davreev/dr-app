@@ -3,6 +3,7 @@
 #include <dr/basic_types.hpp>
 #include <dr/bitwise.hpp>
 #include <dr/math.hpp>
+#include <dr/linalg_reshape.hpp>
 
 #include <dr/app/debug_draw.hpp>
 #include <dr/app/event_handlers.hpp>
