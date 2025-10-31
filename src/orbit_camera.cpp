@@ -17,7 +17,7 @@ OrbitCamera::OrbitCamera()
     rig.pivot.position = target.position;
 }
 
-OrbitCamera::OrbitCamera(CameraRig const& rig) { set_rig(rig); }
+OrbitCamera::OrbitCamera(CameraRig const& rig) { set_rig_now(rig); }
 
 void OrbitCamera::update(f64 const delta_time_sec)
 {
@@ -33,6 +33,23 @@ void OrbitCamera::update(f64 const delta_time_sec)
     controls.pan.apply(rig);
 
     rig.pivot.position += (target.position - rig.pivot.position) * t;
+}
+
+void OrbitCamera::set_rig(CameraRig const& value)
+{
+    controls.orbit.set_target(value);
+    controls.zoom.set_target(value);
+    controls.pan.set_target(value);
+    target.position = value.pivot.position;
+}
+
+void OrbitCamera::set_rig_now(CameraRig const& value)
+{
+    rig = value;
+    controls.orbit.set(value);
+    controls.zoom.set(value);
+    controls.pan.set(value);
+    target.position = value.pivot.position;
 }
 
 void OrbitCamera::frame_target()
@@ -84,22 +101,5 @@ Mat4<f32> OrbitCamera::make_view_to_clip(f32 const aspect) const
 template Mat4<f32> OrbitCamera::make_view_to_clip<NdcType_Default>(f32) const;
 template Mat4<f32> OrbitCamera::make_view_to_clip<NdcType_OpenGl>(f32) const;
 template Mat4<f32> OrbitCamera::make_view_to_clip<NdcType_Vulkan>(f32) const;
-
-void OrbitCamera::set_rig(CameraRig const& value)
-{
-    rig = value;
-    controls.orbit.set(value);
-    controls.zoom.set(value);
-    controls.pan.set(value);
-    target.position = value.pivot.position;
-}
-
-void OrbitCamera::set_rig_target(CameraRig const& value)
-{
-    controls.orbit.set_target(value);
-    controls.zoom.set_target(value);
-    controls.pan.set_target(value);
-    target.position = value.pivot.position;
-}
 
 } // namespace dr

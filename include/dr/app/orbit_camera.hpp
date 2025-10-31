@@ -52,13 +52,13 @@ struct OrbitCamera
 
     void set_rig(CameraRig const& value);
 
-    void set_rig_target(CameraRig const& value);
-
-    void update(f64 delta_time_sec);
+    void set_rig_now(CameraRig const& value);
 
     void frame_target();
 
     void frame_target_now();
+
+    void update(f64 delta_time_sec);
 
     Mat4<f32> make_world_to_view() const;
 
