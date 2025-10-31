@@ -2,56 +2,20 @@
 
 namespace dr
 {
-
-CameraRig make_camera_front(Vec3<f32> const& target, f32 const offset)
+namespace
 {
-    Mat3<f32> m;
-    m.col(0) = Vec3<f32>::UnitY();
-    m.col(1) = Vec3<f32>::UnitZ();
-    m.col(2) = Vec3<f32>::UnitX();
 
-    CameraRig cam;
-    cam.pivot.rotation.q = Quat<f32>{m};
-    cam.pivot.position = target;
-    cam.offset.z() = offset;
-    return cam;
+CameraRig make_camera_rig(
+    Rotation3<f32> const& pivot_rot,
+    Vec3<f32> const& pivot_pos,
+    f32 const offset)
+{
+    return {{pivot_rot, pivot_pos}, {0.0, 0.0, offset}};
 }
 
-CameraRig make_camera_back(Vec3<f32> const& target, f32 const offset)
-{
-    Mat3<f32> m;
-    m.col(0) = -Vec3<f32>::UnitY();
-    m.col(1) = Vec3<f32>::UnitZ();
-    m.col(2) = -Vec3<f32>::UnitX();
+} // namespace
 
-    CameraRig cam;
-    cam.pivot.rotation.q = Quat<f32>{m};
-    cam.pivot.position = target;
-    cam.offset.z() = offset;
-    return cam;
-}
-
-CameraRig make_camera_look_at(
-    Vec3<f32> const& position,
-    Vec3<f32> const& target,
-    Vec3<f32> const& up)
-{
-    Vec3<f32> const d = position - target;
-    f32 const d_norm = d.norm();
-
-    Mat3<f32> m;
-    m.col(2) = d / d_norm;
-    m.col(0) = up.cross(m.col(2)).normalized();
-    m.col(1) = m.col(2).cross(m.col(0));
-
-    CameraRig cam;
-    cam.pivot.rotation.q = Quat<f32>{m};
-    cam.pivot.position = target;
-    cam.offset.z() = d_norm;
-    return cam;
-}
-
-void camera_frame_bounds(
+void CameraRig::frame_bounds(
     CameraRig& rig,
     Vec3<f32> const& center,
     f32 const radius,
@@ -66,6 +30,82 @@ void camera_transition(CameraRig& rig, CameraRig const& target, f32 const t)
     rig.offset += (target.offset - rig.offset) * t;
     rig.pivot.position += (target.pivot.position - rig.pivot.position) * t;
     rig.pivot.rotation.q = rig.pivot.rotation.q.slerp(t, target.pivot.rotation.q);
+}
+
+CameraRig CameraRig::make_front(Vec3<f32> const& origin, f32 const offset)
+{
+    Mat3<f32> m;
+    m.col(0) = Vec3<f32>::UnitX();
+    m.col(1) = Vec3<f32>::UnitZ();
+    m.col(2) = -Vec3<f32>::UnitY();
+
+    return make_camera_rig({Quat<f32>{m}}, origin, offset);
+}
+
+CameraRig CameraRig::make_back(Vec3<f32> const& origin, f32 const offset)
+{
+    Mat3<f32> m;
+    m.col(0) = -Vec3<f32>::UnitX();
+    m.col(1) = Vec3<f32>::UnitZ();
+    m.col(2) = Vec3<f32>::UnitY();
+
+    return make_camera_rig({Quat<f32>{m}}, origin, offset);
+}
+
+CameraRig CameraRig::make_right(Vec3<f32> const& origin, f32 const offset)
+{
+    Mat3<f32> m;
+    m.col(0) = Vec3<f32>::UnitY();
+    m.col(1) = Vec3<f32>::UnitZ();
+    m.col(2) = Vec3<f32>::UnitX();
+
+    return make_camera_rig({Quat<f32>{m}}, origin, offset);
+}
+
+CameraRig CameraRig::make_left(Vec3<f32> const& origin, f32 const offset)
+{
+    Mat3<f32> m;
+    m.col(0) = -Vec3<f32>::UnitY();
+    m.col(1) = Vec3<f32>::UnitZ();
+    m.col(2) = -Vec3<f32>::UnitX();
+
+    return make_camera_rig({Quat<f32>{m}}, origin, offset);
+}
+
+CameraRig CameraRig::make_top(Vec3<f32> const& origin, f32 const offset)
+{
+    Mat3<f32> m;
+    m.col(0) = Vec3<f32>::UnitX();
+    m.col(1) = Vec3<f32>::UnitY();
+    m.col(2) = Vec3<f32>::UnitZ();
+
+    return make_camera_rig({Quat<f32>{m}}, origin, offset);
+}
+
+CameraRig CameraRig::make_bottom(Vec3<f32> const& origin, f32 const offset)
+{
+    Mat3<f32> m;
+    m.col(0) = -Vec3<f32>::UnitX();
+    m.col(1) = Vec3<f32>::UnitY();
+    m.col(2) = -Vec3<f32>::UnitZ();
+
+    return make_camera_rig({Quat<f32>{m}}, origin, offset);
+}
+
+CameraRig CameraRig::make_look_at(
+    Vec3<f32> const& position,
+    Vec3<f32> const& target,
+    Vec3<f32> const& up)
+{
+    Vec3<f32> const d = position - target;
+    f32 const d_norm = d.norm();
+
+    Mat3<f32> m;
+    m.col(2) = d / d_norm;
+    m.col(0) = up.cross(m.col(2)).normalized();
+    m.col(1) = m.col(2).cross(m.col(0));
+
+    return make_camera_rig({Quat<f32>{m}}, target, d_norm);
 }
 
 } // namespace dr
