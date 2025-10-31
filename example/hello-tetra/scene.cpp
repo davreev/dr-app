@@ -2,8 +2,8 @@
 
 #include <dr/basic_types.hpp>
 #include <dr/bitwise.hpp>
-#include <dr/math.hpp>
 #include <dr/linalg_reshape.hpp>
+#include <dr/math.hpp>
 
 #include <dr/app/debug_draw.hpp>
 #include <dr/app/event_handlers.hpp>
@@ -215,6 +215,11 @@ void handle_event(void* /*context*/, App::Event const& event)
     camera_handle_mouse_event(event, state.camera);
     camera_handle_touch_event(event, state.camera);
 
+    static CameraRig const alt_rig = CameraRig::make_look_at(
+        {5.0f, 5.0f, 5.0f},
+        {},
+        {0.0f, 0.0f, 1.0f});
+
     switch (event.type)
     {
         case SAPP_EVENTTYPE_KEY_DOWN:
@@ -223,7 +228,50 @@ void handle_event(void* /*context*/, App::Event const& event)
             {
                 case SAPP_KEYCODE_F:
                 {
-                    state.camera.frame_target();
+                    if (event.modifiers & SAPP_MODIFIER_SHIFT)
+                        state.camera.frame_target_now();
+                    else
+                        state.camera.frame_target();
+
+                    break;
+                }
+                case SAPP_KEYCODE_G:
+                {
+                    if (event.modifiers & SAPP_MODIFIER_SHIFT)
+                        state.camera.set_rig_now(alt_rig);
+                    else
+                        state.camera.set_rig(alt_rig);
+
+                    break;
+                }
+                case SAPP_KEYCODE_1:
+                {
+                    state.camera.set_rig(CameraRig::make_front({}, 5.0f));
+                    break;
+                }
+                case SAPP_KEYCODE_2:
+                {
+                    state.camera.set_rig(CameraRig::make_back({}, 5.0f));
+                    break;
+                }
+                case SAPP_KEYCODE_3:
+                {
+                    state.camera.set_rig(CameraRig::make_right({}, 5.0f));
+                    break;
+                }
+                case SAPP_KEYCODE_4:
+                {
+                    state.camera.set_rig(CameraRig::make_left({}, 5.0f));
+                    break;
+                }
+                case SAPP_KEYCODE_5:
+                {
+                    state.camera.set_rig(CameraRig::make_top({}, 5.0f));
+                    break;
+                }
+                case SAPP_KEYCODE_6:
+                {
+                    state.camera.set_rig(CameraRig::make_bottom({}, 5.0f));
                     break;
                 }
                 default:
