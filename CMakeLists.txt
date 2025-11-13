@@ -73,6 +73,11 @@ if(EMSCRIPTEN)
     target_link_options(dr-app-util PUBLIC -pthread)
 endif()
 
+option(DR_APP_UTIL_ONLY "Only generate util target" OFF)
+if(DR_APP_UTIL_ONLY)
+    return()
+endif()
+
 #
 # App target
 #
@@ -138,8 +143,6 @@ target_include_directories(
     PUBLIC
         "${CMAKE_CURRENT_LIST_DIR}/include"
 )
-
-include(deps/dr)
 
 target_link_libraries(
     dr-app
