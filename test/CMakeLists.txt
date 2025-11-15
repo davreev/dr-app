@@ -9,7 +9,7 @@ include(deps/utest)
 target_link_libraries(
     dr-app-test 
     PRIVATE
-        dr-app
+        dr-app-util
         utest::utest
 )
 

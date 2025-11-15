@@ -73,96 +73,94 @@ if(EMSCRIPTEN)
     target_link_options(dr-app-util PUBLIC -pthread)
 endif()
 
-option(DR_APP_UTIL_ONLY "Only generate util target" OFF)
-if(DR_APP_UTIL_ONLY)
-    return()
-endif()
-
 #
 # App target
 #
 
-if(APPLE AND NOT EMSCRIPTEN)
-    # NOTE: sokol_app.h implementation is compiled as Objective-C on macOS
-    add_library(
-        dr-app-sokol STATIC
-        "src/shim/sokol.mm"
-    )
-else()
-    add_library(
-        dr-app-sokol STATIC
-        "src/shim/sokol.cpp"
-    )
-endif()
+option(DR_APP_UTIL_ONLY "Enable util-only build (excludes main app target)" OFF)
+if(NOT DR_APP_UTIL_ONLY)
+    if(APPLE AND NOT EMSCRIPTEN)
+        # NOTE: sokol_app.h implementation is compiled as Objective-C on macOS
+        add_library(
+            dr-app-sokol STATIC
+            "src/shim/sokol.mm"
+        )
+    else()
+        add_library(
+            dr-app-sokol STATIC
+            "src/shim/sokol.cpp"
+        )
+    endif()
 
-target_link_libraries(
-    dr-app-sokol
-    PUBLIC
-        imgui::imgui
-        sokol::sokol
-)
-
-# NOTE: sokol_app.h requires linking to platform-specific libraries (details in header)
-if(EMSCRIPTEN)
-    # ...
-elseif(WIN32)
-    # ...
-elseif(APPLE)
     target_link_libraries(
         dr-app-sokol
-        PRIVATE
-            "-framework Cocoa"
-            "-framework QuartzCore"
-            "-framework OpenGL"
+        PUBLIC
+            imgui::imgui
+            sokol::sokol
     )
-elseif(UNIX)
+
+    # NOTE: sokol_app.h requires linking to platform-specific libraries (details in header)
+    if(EMSCRIPTEN)
+        # ...
+    elseif(WIN32)
+        # ...
+    elseif(APPLE)
+        target_link_libraries(
+            dr-app-sokol
+            PRIVATE
+                "-framework Cocoa"
+                "-framework QuartzCore"
+                "-framework OpenGL"
+        )
+    elseif(UNIX)
+        target_link_libraries(
+            dr-app-sokol
+            PRIVATE
+                X11
+                Xi
+                Xcursor
+                GL
+                dl
+                pthread
+        )
+    endif()
+
+    add_library(
+        dr-app STATIC
+        src/app.cpp
+        src/app.c
+        src/debug_draw.cpp
+        src/event_handlers.cpp
+        src/shim/imgui.cpp
+    )
+    add_library(dr::app ALIAS dr-app)
+
+    target_include_directories(
+        dr-app
+        PUBLIC
+            "${CMAKE_CURRENT_LIST_DIR}/include"
+    )
+
     target_link_libraries(
-        dr-app-sokol
-        PRIVATE
-            X11
-            Xi
-            Xcursor
-            GL
-            dl
-            pthread
+        dr-app
+        PUBLIC
+            dr-app-sokol
+            dr-app-util
+    )
+
+    target_compile_options(
+        dr-app
+        PRIVATE 
+            -Wall -Wextra -Wpedantic -Werror
     )
 endif()
-
-add_library(
-    dr-app STATIC
-    src/app.cpp
-    src/app.c
-    src/debug_draw.cpp
-    src/event_handlers.cpp
-    src/shim/imgui.cpp
-)
-add_library(dr::app ALIAS dr-app)
-
-target_include_directories(
-    dr-app
-    PUBLIC
-        "${CMAKE_CURRENT_LIST_DIR}/include"
-)
-
-target_link_libraries(
-    dr-app
-    PUBLIC
-        dr-app-sokol
-        dr-app-util
-)
-
-target_compile_options(
-    dr-app
-    PRIVATE 
-        -Wall -Wextra -Wpedantic -Werror
-)
 
 #
-# Optional targets
+# Additional optional targets
 #
 
 option(DR_APP_EXAMPLE "Generate example targets" OFF)
-if(DR_APP_EXAMPLE)
+if(DR_APP_EXAMPLE AND NOT DR_APP_UTIL_ONLY)
     add_subdirectory(example)
 endif()
 
