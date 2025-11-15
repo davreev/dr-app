@@ -25,11 +25,11 @@ void CameraRig::frame_bounds(
     rig.offset = {0.0f, 0.0f, radius / std::sin(fov_min * 0.5f)};
 }
 
-void camera_transition(CameraRig& rig, CameraRig const& target, f32 const t)
+void CameraRig::transition_to(CameraRig const& other, f32 const t)
 {
-    rig.offset += (target.offset - rig.offset) * t;
-    rig.pivot.position += (target.pivot.position - rig.pivot.position) * t;
-    rig.pivot.rotation.q = rig.pivot.rotation.q.slerp(t, target.pivot.rotation.q);
+    offset += (other.offset - offset) * t;
+    pivot.position += (other.pivot.position - pivot.position) * t;
+    pivot.rotation.q = pivot.rotation.q.slerp(t, other.pivot.rotation.q);
 }
 
 CameraRig CameraRig::make_front(Vec3<f32> const& origin, f32 const offset)
