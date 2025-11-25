@@ -6,8 +6,6 @@
 
 #include <dr/app/shim/imgui.hpp>
 
-#include "app.h"
-
 namespace dr
 {
 namespace
@@ -28,32 +26,48 @@ struct
 App::Scene default_scene()
 {
     return {
-        "Default Scene",
-        nullptr,
-        nullptr,
-        nullptr,
-        [](void* /*context*/) {
-            ImGui::BeginTooltip();
-            ImGui::Text("This is the default scene. Nothing to see here.");
-            ImGui::EndTooltip();
-        },
-        nullptr,
-        nullptr,
+        .name = "Default Scene",
+        .draw =
+            [](void* /*context*/) {
+                ImGui::BeginTooltip();
+                ImGui::Text("This is the default scene. Nothing to see here.");
+                ImGui::EndTooltip();
+            },
     };
 }
 
-App::Config default_config() { return {{}, {}, default_pass_action(), nullptr}; }
+App::Config default_config()
+{
+    return {
+        .pass_action{
+            .colors{
+                {
+                    .load_action = SG_LOADACTION_CLEAR,
+                    .clear_value{0.15f, 0.15f, 0.15f, 1.0f},
+                },
+            },
+        },
+    };
+}
 
 void init()
 {
     auto const& config = state.config;
 
-    App::Config::InitContext ctx{default_gfx_desc(), default_gl_desc(), default_imgui_desc()};
-    ctx.gfx_desc.environment = sglue_environment();
-    ctx.gfx_desc.logger.func = slog_func;
-    ctx.gl_desc.logger.func = slog_func;
-    ctx.gl_desc.sample_count = sapp_sample_count();
-    ctx.imgui_desc.sample_count = sapp_sample_count();
+    App::Config::InitContext ctx{
+        .gfx_desc{
+            .logger{.func = slog_func},
+            .environment = sglue_environment(),
+        },
+        .gl_desc{
+            .sample_count = sapp_sample_count(),
+            .face_winding = SG_FACEWINDING_CCW,
+            .logger{.func = slog_func},
+        },
+        .imgui_desc{
+            .sample_count = sapp_sample_count(),
+        },
+    };
 
     if (config.init.override)
         config.init.override(ctx);
@@ -84,17 +98,16 @@ void frame()
     // Main render pass
     {
         simgui_new_frame({
-            sapp_width(),
-            sapp_height(),
-            stm_sec(state.delta_time),
-            sapp_dpi_scale(),
+            .width = sapp_width(),
+            .height = sapp_height(),
+            .delta_time = stm_sec(state.delta_time),
+            .dpi_scale = sapp_dpi_scale(),
         });
 
-        sg_pass pass{};
-        {
-            pass.action = state.config.pass_action;
-            pass.swapchain = sglue_swapchain();
-        }
+        sg_pass const pass{
+            .action = state.config.pass_action,
+            .swapchain = sglue_swapchain(),
+        };
         sg_begin_pass(&pass);
 
         if (state.scene.draw)
@@ -138,15 +151,18 @@ void event(App::Event const* const event)
 
 sapp_desc App::desc()
 {
-    auto desc = default_app_desc();
-    {
-        desc.init_cb = init;
-        desc.frame_cb = frame;
-        desc.cleanup_cb = cleanup;
-        desc.event_cb = event;
-        desc.logger.func = slog_func;
-    }
-    return desc;
+    return {
+        .init_cb = init,
+        .frame_cb = frame,
+        .cleanup_cb = cleanup,
+        .event_cb = event,
+        .sample_count = 4,
+        .high_dpi = true,
+        .enable_clipboard = true,
+        .logger{.func = slog_func},
+        .win32_console_utf8 = true,
+        .win32_console_create = true,
+    };
 }
 
 App::Scene const& App::scene() { return state.scene; }

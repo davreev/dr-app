@@ -10,7 +10,10 @@ CameraRig make_camera_rig(
     Vec3<f32> const& pivot_pos,
     f32 const offset)
 {
-    return {{pivot_rot, pivot_pos}, {0.0, 0.0, offset}};
+    return {
+        .pivot{pivot_rot, pivot_pos},
+        .offset{0.0f, 0.0f, offset},
+    };
 }
 
 } // namespace

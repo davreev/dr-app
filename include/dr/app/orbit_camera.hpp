@@ -19,22 +19,22 @@ struct OrbitCamera
     struct
     {
         Vec3<f32> position;
-        f32 radius{1.0};
+        f32 radius{1.0f};
     } target;
 
     struct
     {
         f32 fov_y{pi<f32> / 3.0f};
-        f32 clip_near{0.01};
-        f32 clip_far{1.0e5};
+        f32 clip_near{0.01f};
+        f32 clip_far{1.0e5f};
     } frustum;
 
     struct
     {
         Orbit orbit;
-        Zoom zoom{{1.0, 1.0, 0.01, 1000.0}};
+        Zoom zoom{.distance{.current = 1.0f, .min = 0.01f, .max = 1000.0f,}};
         Pan pan;
-        f32 stiffness{10.0};
+        f32 stiffness{10.0f};
     } controls;
 
     struct

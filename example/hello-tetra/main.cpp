@@ -9,13 +9,11 @@ dr::App::Desc DR_APP_MAIN(int /*argc*/, char** /*argv*/)
     App::set_scene(scene());
 
     App::Desc desc = App::desc();
-    {
-        desc.width = 1280;
-        desc.height = 720;
-        desc.window_title = "Example: Hello Tetra";
+    desc.width = 1280;
+    desc.height = 720;
+    desc.window_title = "Example: Hello Tetra";
 #if __EMSCRIPTEN__
-        desc.html5_canvas_selector = "#hello-tetra";
+    desc.html5_canvas_selector = "#hello-tetra";
 #endif
-    }
     return desc;
 }

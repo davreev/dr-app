@@ -54,35 +54,39 @@ constexpr i16 const mesh_indices[][3]{
 
 GfxShader::Desc shader_desc(char const* vertex_src, char const* fragment_src)
 {
-    GfxShader::Desc desc{};
-    desc.vertex_func.source = vertex_src;
-    desc.fragment_func.source = fragment_src;
-    desc.uniform_blocks[0].stage = SG_SHADERSTAGE_VERTEX;
-    desc.uniform_blocks[0].size = sizeof(f32[16]);
-    desc.uniform_blocks[0].glsl_uniforms[0] = {SG_UNIFORMTYPE_MAT4, 1, "u_local_to_clip"};
-    return desc;
+    return {
+        .vertex_func{.source = vertex_src},
+        .fragment_func{.source = fragment_src},
+        .uniform_blocks{
+            {
+                .stage = SG_SHADERSTAGE_VERTEX,
+                .size = sizeof(f32[16]),
+                .glsl_uniforms{
+                    {SG_UNIFORMTYPE_MAT4, 1, "u_local_to_clip"},
+                },
+            },
+        },
+    };
 }
 
 GfxPipeline::Desc pipeline_desc(GfxShader const& shader)
 {
-    GfxPipeline::Desc desc{};
-    desc.shader = shader;
-    desc.layout.attrs[0].format = SG_VERTEXFORMAT_FLOAT3;
-    desc.layout.attrs[1].format = SG_VERTEXFORMAT_FLOAT3;
-    desc.depth.compare = SG_COMPAREFUNC_LESS;
-    desc.depth.write_enabled = true;
-    desc.index_type = SG_INDEXTYPE_UINT16;
-    desc.face_winding = SG_FACEWINDING_CCW;
-    desc.cull_mode = SG_CULLMODE_NONE;
-    return desc;
-}
-
-GfxBuffer::Desc buffer_desc(sg_range const& data, sg_buffer_type const type)
-{
-    GfxBuffer::Desc desc{};
-    desc.data = data;
-    desc.type = type;
-    return desc;
+    return {
+        .shader = shader,
+        .layout{
+            .attrs{
+                {.format = SG_VERTEXFORMAT_FLOAT3},
+                {.format = SG_VERTEXFORMAT_FLOAT3},
+            },
+        },
+        .depth{
+            .compare = SG_COMPAREFUNC_LESS,
+            .write_enabled = true,
+        },
+        .index_type = SG_INDEXTYPE_UINT16,
+        .cull_mode = SG_CULLMODE_NONE,
+        .face_winding = SG_FACEWINDING_CCW,
+    };
 }
 
 void init_gfx()
@@ -90,10 +94,14 @@ void init_gfx()
     auto& gfx = state.gfx;
     gfx.shader = GfxShader::make(shader_desc(vertex_shader_src, fragment_shader_src));
     gfx.pipeline = GfxPipeline::make(pipeline_desc(gfx.shader));
-    gfx.vertex_buffer = GfxBuffer::make(
-        buffer_desc(SG_RANGE(mesh_vertices), SG_BUFFERTYPE_VERTEXBUFFER));
-    gfx.index_buffer = GfxBuffer::make(
-        buffer_desc(SG_RANGE(mesh_indices), SG_BUFFERTYPE_INDEXBUFFER));
+    gfx.vertex_buffer = GfxBuffer::make({
+        .type = SG_BUFFERTYPE_VERTEXBUFFER,
+        .data = SG_RANGE(mesh_vertices),
+    });
+    gfx.index_buffer = GfxBuffer::make({
+        .type = SG_BUFFERTYPE_INDEXBUFFER,
+        .data = SG_RANGE(mesh_indices),
+    });
 }
 
 void open(void* /*context*/)
@@ -113,12 +121,12 @@ void draw_mesh(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
     sg_apply_pipeline(state.gfx.pipeline);
 
     // Apply bindings
-    {
-        sg_bindings bindings{};
-        bindings.vertex_buffers[0] = state.gfx.vertex_buffer;
-        bindings.index_buffer = state.gfx.index_buffer;
-        sg_apply_bindings(bindings);
-    }
+    sg_apply_bindings({
+        .vertex_buffers{
+            state.gfx.vertex_buffer,
+        },
+        .index_buffer = state.gfx.index_buffer,
+    });
 
     // Apply uniforms
     {

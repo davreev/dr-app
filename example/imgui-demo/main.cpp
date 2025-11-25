@@ -22,13 +22,11 @@ dr::App::Desc DR_APP_MAIN(int /*argc*/, char** /*argv*/)
     };
 
     App::Desc desc = App::desc();
-    {
-        desc.width = 1280;
-        desc.height = 720;
-        desc.window_title = "Example: ImGui Demo";
+    desc.width = 1280;
+    desc.height = 720;
+    desc.window_title = "Example: ImGui Demo";
 #if __EMSCRIPTEN__
-        desc.html5_canvas_selector = "#imgui-demo";
+    desc.html5_canvas_selector = "#imgui-demo";
 #endif
-    }
     return desc;
 }
