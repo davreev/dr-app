@@ -19,7 +19,7 @@ add_library(sokol::sokol ALIAS sokol)
 
 target_include_directories(
     sokol 
-    SYSTEM # Suppresses warnings from third party headers
+    SYSTEM # Suppress warnings from third party headers
     INTERFACE 
         "${sokol_SOURCE_DIR}"
         "${sokol_SOURCE_DIR}/util"

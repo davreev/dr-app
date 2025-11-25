@@ -25,7 +25,7 @@ add_library(implot3d::implot3d ALIAS implot3d)
 
 target_include_directories(
     implot3d 
-    SYSTEM # Suppresses warnings from third party headers
+    SYSTEM # Suppress warnings from third party headers
     PUBLIC
         "${implot3d_SOURCE_DIR}"
 )
@@ -37,3 +37,6 @@ target_link_libraries(
     PRIVATE
         imgui::imgui
 )
+
+# Disable warnings from third party source
+target_compile_options(implot3d PRIVATE -w)
