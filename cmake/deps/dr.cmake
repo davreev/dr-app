@@ -6,7 +6,8 @@ include(FetchContent)
 
 FetchContent_Declare(
     dr
-    URL https://github.com/davreev/dr/archive/refs/tags/0.6.0.zip
+    GIT_REPOSITORY https://github.com/davreev/dr.git
+    GIT_TAG 9676cc16de0ed5bdc698cca82e5054bf4b0c8109
 )
 
 FetchContent_MakeAvailable(dr)
