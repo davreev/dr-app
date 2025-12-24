@@ -18,7 +18,7 @@ struct AssetCache : AllocatorAware
 
     AssetCache(AssetCache&& other) noexcept = default;
     AssetCache& operator=(AssetCache const& other) = default;
-    AssetCache& operator=(AssetCache&& other) noexcept = default;
+    AssetCache& operator=(AssetCache&& other) = default;
 
     /// Returns the allocator used by this container
     Allocator allocator() const { return assets_.get_allocator(); }

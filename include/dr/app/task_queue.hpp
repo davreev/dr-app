@@ -35,7 +35,7 @@ struct TaskQueue : AllocatorAware
     TaskQueue(Allocator const alloc = {}) : queue_(alloc), pool_(alloc) {}
 
     TaskQueue(TaskQueue&& other) noexcept = default;
-    TaskQueue& operator=(TaskQueue&& other) noexcept = default;
+    TaskQueue& operator=(TaskQueue&& other) = default;
 
     /// Returns the allocator used by this container
     Allocator allocator() const { return queue_.get_allocator(); }
@@ -89,7 +89,7 @@ struct TaskQueue : AllocatorAware
         TaskPool(Allocator const alloc = {}) : pool_(alloc), free_(alloc) {}
 
         TaskPool(TaskPool&& other) noexcept = default;
-        TaskPool& operator=(TaskPool&& other) noexcept = default;
+        TaskPool& operator=(TaskPool&& other) = default;
 
         Task* make(TaskRef const& ref, void* context, PollCallback* poll_cb);
         void release(Task* const task);
