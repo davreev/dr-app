@@ -42,7 +42,7 @@ struct TaskQueue : AllocatorAware
 
     /// Pushes a task onto the queue for deferred asynchronous execution. The calling context is
     /// responsible for keeping the task alive until completion.
-    void push(TaskRef const& ref, void* context = nullptr, PollCallback* poll_cb = nullptr);
+    void push(TaskRef const& task, void* context = nullptr, PollCallback* poll_cb = nullptr);
 
     /// Inserts a barrier. Tasks queued after inserting a barrier won't start until all
     /// previously queued tasks have completed.
