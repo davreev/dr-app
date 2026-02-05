@@ -32,6 +32,7 @@ add_library(
     dr-app-util STATIC
     src/camera_controls.cpp
     src/camera_rig.cpp
+    src/draw_command.cpp
     src/file_utils.cpp
     src/gfx_resource.cpp
     src/gfx_utils.cpp
