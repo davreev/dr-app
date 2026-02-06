@@ -59,8 +59,12 @@ void submit_draw_cmds(
 
         if (cmd.material != material)
         {
-            if (cmd.material_uniform_data.size() > 0)
-                apply_uniforms(UniformBlock::Material, cmd.material_uniform_data);
+            if (cmd.uniform_slices.material != 0)
+            {
+                Span<u8 const> const data = uniform_data[cmd.uniform_slices.material];
+                if (data.size() > 0)
+                    apply_uniforms(UniformBlock::Material, data);
+            }
 
             material = cmd.material;
             bindings_dirty = true;
@@ -68,8 +72,12 @@ void submit_draw_cmds(
 
         if (cmd.geometry != geometry)
         {
-            if (cmd.geometry_uniform_data.size() > 0)
-                apply_uniforms(UniformBlock::Geometry, cmd.geometry_uniform_data);
+            if (cmd.uniform_slices.geometry != 0)
+            {
+                Span<u8 const> const data = uniform_data[cmd.uniform_slices.geometry];
+                if (data.size() > 0)
+                    apply_uniforms(UniformBlock::Geometry, data);
+            }
 
             geometry = cmd.geometry;
             bindings_dirty = true;
@@ -81,12 +89,12 @@ void submit_draw_cmds(
             sg_apply_bindings(bindings);
         }
 
-        // Slice index of 0 is treated as invalid for object uniforms
-        if (cmd.uniform_slice != 0)
+        // Slice index of 0 is treated as invalid (reserved for pass uniforms)
+        if (cmd.uniform_slices.object != 0)
         {
-            Span<u8 const> const object_uniform_data = uniform_data[cmd.uniform_slice];
-            if (object_uniform_data.size() > 0)
-                apply_uniforms(UniformBlock::Object, object_uniform_data);
+            Span<u8 const> const data = uniform_data[cmd.uniform_slices.object];
+            if (data.size() > 0)
+                apply_uniforms(UniformBlock::Object, data);
         }
 
         sg_draw(cmd.base_element, cmd.num_elements, cmd.num_instances);

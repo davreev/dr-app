@@ -15,9 +15,11 @@ struct DrawCommand
     void const* material{};
     void const* geometry{};
     void (*set_bindings)(DrawCommand const& self, GfxBindings& bindings);
-    Span<u8 const> material_uniform_data;
-    Span<u8 const> geometry_uniform_data;
-    i32 uniform_slice{};
+    struct {
+        i32 material{};
+        i32 geometry{};
+        i32 object{};
+    } uniform_slices;
     i32 base_element{};
     i32 num_elements{};
     i32 num_instances{};
