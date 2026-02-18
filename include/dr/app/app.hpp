@@ -55,7 +55,7 @@ struct App
     static Desc desc();
 
     static Scene const& scene();
-    static void set_scene(App::Scene const& scene);
+    static void set_scene(Scene const& scene);
 
     static Config& config();
 
