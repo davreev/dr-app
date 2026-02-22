@@ -9,7 +9,7 @@ project(
 # Global config
 #
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 list(
@@ -59,17 +59,6 @@ target_compile_options(
     dr-app-util
     PRIVATE 
         -Wall -Wextra -Wpedantic -Werror
-)
-
-# NOTE: Disabling these to make C++20 designated initializers actually useful
-target_compile_options(
-    dr-app-util
-    PUBLIC
-        # For Clang > 18
-        -Wno-missing-designated-field-initializers 
-        # For GCC and Clang <= 18
-        -Wno-missing-field-initializers
-        -Wno-unknown-warning-option
 )
 
 if(EMSCRIPTEN)
