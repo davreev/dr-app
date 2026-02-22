@@ -12,7 +12,7 @@ namespace dr
 namespace
 {
 
-void draw(void* /*context*/)
+void draw()
 {
     ImGui::ShowDemoWindow();
     ImPlot::ShowDemoWindow();
@@ -23,10 +23,10 @@ void draw(void* /*context*/)
 
 App::Scene scene()
 {
-    App::Scene scene{};
-    scene.name = "ImGui Demo";
-    scene.draw = draw;
-    return scene;
+    return {
+        .name = "ImGui Demo",
+        .draw = draw,
+    };
 }
 
 } // namespace dr

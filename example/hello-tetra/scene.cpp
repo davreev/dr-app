@@ -104,7 +104,7 @@ void init_gfx()
     });
 }
 
-void open(void* /*context*/)
+void open()
 {
     init_gfx();
 
@@ -112,9 +112,9 @@ void open(void* /*context*/)
     state.camera.frame_target_now();
 }
 
-void close(void* /*context*/) { state.gfx = {}; }
+void close() { state.gfx = {}; }
 
-void update(void* /*context*/) { state.camera.update(App::delta_time_s()); }
+void update() { state.camera.update(App::delta_time_s()); }
 
 void draw_mesh(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
 {
@@ -204,7 +204,7 @@ void draw_ui()
     ImGui::End();
 }
 
-void draw(void* /*context*/)
+void draw()
 {
     auto const& cam = state.camera;
     Mat4<f32> const world_to_view = cam.make_world_to_view();
@@ -218,7 +218,7 @@ void draw(void* /*context*/)
     draw_ui();
 }
 
-void handle_event(void* /*context*/, App::Event const& event)
+void handle_event(App::Event const& event)
 {
     camera_handle_mouse_event(event, state.camera);
     camera_handle_touch_event(event, state.camera);
@@ -298,6 +298,16 @@ void handle_event(void* /*context*/, App::Event const& event)
 
 } // namespace
 
-App::Scene scene() { return {scene_name, open, close, update, draw, handle_event, nullptr}; }
+App::Scene scene()
+{
+    return {
+        .name = scene_name,
+        .open = open,
+        .close = close,
+        .update = update,
+        .draw = draw,
+        .handle_event = handle_event,
+    };
+}
 
 } // namespace dr

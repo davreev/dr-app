@@ -20,12 +20,12 @@ struct App
     struct Scene
     {
         char const* name;
-        void (*open)(void*);
-        void (*close)(void*);
-        void (*update)(void*);
-        void (*draw)(void*);
-        void (*handle_event)(void*, Event const&);
-        void* context;
+        void (*open)();
+        void (*close)();
+        void (*update)();
+        void (*draw)();
+        void (*handle_event)(Event const&);
+        void* userdata;
     };
 
     struct Config
@@ -40,16 +40,16 @@ struct App
         struct
         {
             void (*override)(InitContext& ctx);
-            void (*callback)(void*);
+            void (*callback)();
         } init;
 
         struct
         {
-            void (*callback)(void*);
-        } cleanup;
+            void (*callback)();
+        } deinit;
 
         sg_pass_action pass_action;
-        void* context;
+        void* userdata;
     };
 
     static Desc desc();

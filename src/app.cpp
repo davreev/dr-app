@@ -28,7 +28,7 @@ App::Scene default_scene()
     return {
         .name = "Default Scene",
         .draw =
-            [](void* /*context*/) {
+            []() {
                 ImGui::BeginTooltip();
                 ImGui::Text("This is the default scene. Nothing to see here.");
                 ImGui::EndTooltip();
@@ -80,10 +80,10 @@ void init()
     ImGuiStyles::set_default(ImGui::GetStyle());
 
     if (config.init.callback)
-        config.init.callback(config.context);
+        config.init.callback();
 
     if (state.scene.open)
-        state.scene.open(state.scene.context);
+        state.scene.open();
 
     state.is_init = true;
 }
@@ -93,7 +93,7 @@ void frame()
     state.delta_time = stm_laptime(&state.time);
 
     if (state.scene.update)
-        state.scene.update(state.scene.context);
+        state.scene.update();
 
     // Main render pass
     {
@@ -111,7 +111,7 @@ void frame()
         sg_begin_pass(&pass);
 
         if (state.scene.draw)
-            state.scene.draw(state.scene.context);
+            state.scene.draw();
 
         simgui_render();
         sg_end_pass();
@@ -124,10 +124,10 @@ void cleanup()
     auto const& config = state.config;
 
     if (state.scene.close)
-        state.scene.close(state.scene.context);
+        state.scene.close();
 
-    if (config.cleanup.callback)
-        config.cleanup.callback(config.context);
+    if (config.deinit.callback)
+        config.deinit.callback();
 
     simgui_shutdown();
     sgl_shutdown();
@@ -143,7 +143,7 @@ void event(App::Event const* const event)
     if (!simgui_handle_event(event) || (event->type == SAPP_EVENTTYPE_TOUCHES_BEGAN))
     {
         if (state.scene.handle_event)
-            state.scene.handle_event(state.scene.context, *event);
+            state.scene.handle_event(*event);
     }
 }
 
@@ -172,10 +172,10 @@ void App::set_scene(App::Scene const& scene)
     if (state.is_init)
     {
         if (state.scene.close)
-            state.scene.close(state.scene.context);
+            state.scene.close();
 
         if (scene.open)
-            scene.open(state.scene.context);
+            scene.open();
     }
 
     state.scene = scene;

@@ -11,12 +11,12 @@ dr::App::Desc DR_APP_MAIN(int /*argc*/, char** /*argv*/)
 
     App::set_scene(scene());
 
-    App::config().init.callback = [](void* /*context*/) {
+    App::config().init.callback = []() {
         ImPlot::CreateContext();
         ImPlot3D::CreateContext();
     };
 
-    App::config().cleanup.callback = [](void* /*context*/) {
+    App::config().deinit.callback = []() {
         ImPlot::DestroyContext();
         ImPlot3D::DestroyContext();
     };
