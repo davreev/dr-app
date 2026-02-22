@@ -7,7 +7,7 @@ include(FetchContent)
 FetchContent_Declare(
     dr
     GIT_REPOSITORY https://github.com/davreev/dr.git
-    GIT_TAG 9676cc16de0ed5bdc698cca82e5054bf4b0c8109
+    GIT_TAG 6857403726f4e4a9b63b7609b769aa03277484a9
 )
 
 FetchContent_MakeAvailable(dr)
