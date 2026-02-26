@@ -4,6 +4,7 @@
 #define SOKOL_GLCORE
 #endif
 
+#define SOKOL_NO_ENTRY
 #define SOKOL_APP_IMPL
 #include <sokol_app.h>
 

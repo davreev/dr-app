@@ -5,7 +5,7 @@
 
 #include "scene.hpp"
 
-dr::App::Desc DR_APP_MAIN(int /*argc*/, char** /*argv*/)
+int main(int /*argc*/, char** /*argv*/)
 {
     using namespace dr;
 
@@ -25,8 +25,9 @@ dr::App::Desc DR_APP_MAIN(int /*argc*/, char** /*argv*/)
     desc.width = 1280;
     desc.height = 720;
     desc.window_title = "Example: ImGui Demo";
-#if __EMSCRIPTEN__
     desc.html5_canvas_selector = "#imgui-demo";
-#endif
-    return desc;
+
+    App::run(desc);
+
+    return 0;
 }

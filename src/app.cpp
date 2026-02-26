@@ -149,7 +149,7 @@ void event(App::Event const* const event)
 
 } // namespace
 
-sapp_desc App::desc()
+App::Desc App::desc()
 {
     return {
         .init_cb = init,
@@ -164,6 +164,8 @@ sapp_desc App::desc()
         .win32_console_create = true,
     };
 }
+
+void App::run(Desc const& desc) { sapp_run(desc); }
 
 App::Scene const& App::scene() { return state.scene; }
 

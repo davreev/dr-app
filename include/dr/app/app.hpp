@@ -7,8 +7,6 @@
 
 #include <dr/basic_types.hpp>
 
-#define DR_APP_MAIN sokol_main
-
 namespace dr
 {
 
@@ -53,6 +51,8 @@ struct App
     };
 
     static Desc desc();
+
+    static void run(Desc const& desc);
 
     static Scene const& scene();
     static void set_scene(Scene const& scene);
