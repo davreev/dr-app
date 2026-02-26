@@ -149,23 +149,36 @@ void event(App::Event const* const event)
 
 } // namespace
 
-App::Desc App::desc()
+App::Desc App::default_desc()
 {
     return {
-        .init_cb = init,
-        .frame_cb = frame,
-        .cleanup_cb = cleanup,
-        .event_cb = event,
         .sample_count = 4,
         .high_dpi = true,
         .enable_clipboard = true,
-        .logger{.func = slog_func},
         .win32_console_utf8 = true,
         .win32_console_create = true,
     };
 }
 
-void App::run(Desc const& desc) { sapp_run(desc); }
+void App::run(Desc desc)
+{
+    assert(desc.init_cb == nullptr);
+    desc.init_cb = init;
+
+    assert(desc.frame_cb == nullptr);
+    desc.frame_cb = frame;
+
+    assert(desc.cleanup_cb == nullptr);
+    desc.cleanup_cb = cleanup;
+
+    assert(desc.event_cb == nullptr);
+    desc.event_cb = event;
+
+    if (!desc.logger.func)
+        desc.logger = {.func = slog_func};
+
+    sapp_run(desc);
+}
 
 App::Scene const& App::scene() { return state.scene; }
 

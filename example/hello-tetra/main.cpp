@@ -8,7 +8,7 @@ int main(int /*argc*/, char** /*argv*/)
 
     App::set_scene(scene());
 
-    App::Desc desc = App::desc();
+    App::Desc desc = App::default_desc();
     desc.width = 1280;
     desc.height = 720;
     desc.window_title = "Example: Hello Tetra";

@@ -50,9 +50,9 @@ struct App
         void* userdata;
     };
 
-    static Desc desc();
+    static Desc default_desc();
 
-    static void run(Desc const& desc);
+    static void run(Desc desc);
 
     static Scene const& scene();
     static void set_scene(Scene const& scene);

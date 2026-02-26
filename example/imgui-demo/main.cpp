@@ -21,7 +21,7 @@ int main(int /*argc*/, char** /*argv*/)
         ImPlot3D::DestroyContext();
     };
 
-    App::Desc desc = App::desc();
+    App::Desc desc = App::default_desc();
     desc.width = 1280;
     desc.height = 720;
     desc.window_title = "Example: ImGui Demo";
