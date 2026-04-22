@@ -14,6 +14,7 @@
 #include <dr/app/gfx_utils.hpp>
 #include <dr/app/orbit_camera.hpp>
 #include <dr/app/shim/imgui.hpp>
+#include <dr/app/shim/tracy.hpp>
 
 #include "shader_src.hpp"
 
@@ -104,7 +105,7 @@ void init_instances()
 {
     auto& instances = state.instances;
 
-    constexpr i32 grid_size = 256;
+    constexpr i32 grid_size = 512;
     constexpr f32 grid_spacing = 2.0f;
     constexpr f32 half_extent = grid_size * grid_spacing * 0.5f;
 
@@ -123,12 +124,15 @@ void init_instances()
 
 void update_instances(f64 const time_s)
 {
+    ZoneScoped;
+
     auto& instances = state.instances;
 
     constexpr f32 offset_s = 0.06f;
     constexpr f32 cycles_per_s = 0.2f;
     constexpr f32 s_to_rad = 2.0f * pi<f32> * cycles_per_s;
 
+#pragma omp parallel for schedule(static)
     for (isize i = 0; i < size(instances); ++i)
     {
         auto& p = instances[i];
@@ -236,6 +240,8 @@ void update()
 
 void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view)
 {
+    ZoneScoped;
+
     auto& draw_ctx = state.draw_ctx;
 
     // NOTE(dr): Using immutable buffers for static mesh data and the draw context's geometry stream
@@ -286,6 +292,9 @@ void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view)
 
     // Submit draw commands
     {
+        ZoneScopedN("submit draw commands");
+        TracyGpuZone("submit draw commands");
+
         struct
         {
             f32 view_to_clip[16];
@@ -300,6 +309,8 @@ void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view)
 
 void draw_ui()
 {
+    ZoneScoped;
+
     ImGui::SetNextWindowPos({20.0f, 20.0f}, ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSizeConstraints({220.0f, 0.0f}, {sapp_widthf(), sapp_heightf()});
     constexpr auto window_flags = ImGuiWindowFlags_NoResize;
