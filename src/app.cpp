@@ -11,19 +11,177 @@ namespace dr
 namespace
 {
 
-App::Scene default_scene();
-App::Config default_config();
-
 struct
 {
-    App::Scene scene{default_scene()};
-    App::Config config{default_config()};
+    App::Desc desc{};
+    App::Scene next_scene{};
     u64 time{};
     u64 delta_time{};
-    bool is_init{};
+    bool scene_dirty{};
 } state;
 
-App::Scene default_scene()
+sg_desc gfx_desc()
+{
+    sg_desc desc{
+        .logger{.func = slog_func},
+        .environment = sglue_environment(),
+    };
+
+    // Apply overrides
+    if (state.desc.sokol_config.gfx)
+        state.desc.sokol_config.gfx(desc);
+
+    return desc;
+}
+
+sgl_desc_t gl_desc()
+{
+    sgl_desc_t desc{
+        .sample_count = sapp_sample_count(),
+        .face_winding = SG_FACEWINDING_CCW,
+        .logger{.func = slog_func},
+    };
+
+    // Apply overrides
+    if (state.desc.sokol_config.gl)
+        state.desc.sokol_config.gl(desc);
+
+    return desc;
+}
+
+simgui_desc_t imgui_desc()
+{
+    simgui_desc_t desc{
+        .sample_count = sapp_sample_count(),
+    };
+
+    // Apply overrides
+    if (state.desc.sokol_config.imgui)
+        state.desc.sokol_config.imgui(desc);
+
+    return desc;
+}
+
+void init()
+{
+    sg_setup(gfx_desc());
+    sgl_setup(gl_desc());
+    simgui_setup(imgui_desc());
+    stm_setup();
+
+    ImGuiStyles::set_default(ImGui::GetStyle());
+
+    if (state.desc.init_cb)
+        state.desc.init_cb();
+
+    if (state.desc.scene.open)
+        state.desc.scene.open();
+}
+
+void change_scene()
+{
+    if (state.desc.scene.close)
+        state.desc.scene.close();
+
+    if (state.next_scene.open)
+        state.next_scene.open();
+
+    state.desc.scene = state.next_scene;
+    state.next_scene = {};
+}
+
+void frame()
+{
+    state.delta_time = stm_laptime(&state.time);
+
+    if (state.scene_dirty)
+    {
+        change_scene();
+        state.scene_dirty = false;
+    }
+
+    if (state.desc.scene.update)
+        state.desc.scene.update();
+
+    // Main render pass
+    {
+        simgui_new_frame({
+            .width = sapp_width(),
+            .height = sapp_height(),
+            .delta_time = stm_sec(state.delta_time),
+            .dpi_scale = sapp_dpi_scale(),
+        });
+
+        sg_pass const pass{
+            .action = state.desc.pass_action,
+            .swapchain = sglue_swapchain(),
+        };
+        sg_begin_pass(&pass);
+
+        if (state.desc.scene.draw)
+            state.desc.scene.draw();
+
+        simgui_render();
+        sg_end_pass();
+        sg_commit();
+    }
+}
+
+void cleanup()
+{
+    if (state.desc.scene.close)
+        state.desc.scene.close();
+
+    if (state.desc.deinit_cb)
+        state.desc.deinit_cb();
+
+    simgui_shutdown();
+    sgl_shutdown();
+    sg_shutdown();
+}
+
+void event(App::Event const* event)
+{
+    // NOTE: Touch begin events aren't properly consumed by simgui_handle_event so they're always
+    // forwarded. Specifically, the begin event of the first UI touch *isn't* consumed and the begin
+    // event of the first non-UI touch *is* consumed.
+
+    if (!simgui_handle_event(event) || (event->type == SAPP_EVENTTYPE_TOUCHES_BEGAN))
+    {
+        if (state.desc.scene.handle_event)
+            state.desc.scene.handle_event(*event);
+    }
+}
+
+sapp_desc app_desc()
+{
+    sapp_desc desc{
+        .init_cb = init,
+        .frame_cb = frame,
+        .cleanup_cb = cleanup,
+        .event_cb = event,
+        .width = 1280,
+        .height = 720,
+        .sample_count = 4,
+        .high_dpi = true,
+        .enable_clipboard = true,
+        .logger{
+            .func = slog_func,
+        },
+        .win32_console_utf8 = true,
+        .win32_console_create = true,
+    };
+
+    // Apply overrides
+    if (state.desc.sokol_config.app)
+        state.desc.sokol_config.app(desc);
+
+    return desc;
+}
+
+} // namespace
+
+App::Scene App::default_scene()
 {
     return {
         .name = "Default Scene",
@@ -36,167 +194,35 @@ App::Scene default_scene()
     };
 }
 
-App::Config default_config()
+sg_pass_action App::default_pass_action()
 {
     return {
-        .pass_action{
-            .colors{
-                {
-                    .load_action = SG_LOADACTION_CLEAR,
-                    .clear_value{0.15f, 0.15f, 0.15f, 1.0f},
-                },
+        .colors{
+            {
+                .load_action = SG_LOADACTION_CLEAR,
+                .clear_value{0.15f, 0.15f, 0.15f, 1.0f},
             },
         },
     };
 }
 
-void init()
+void App::run(Desc const& desc)
 {
-    auto const& config = state.config;
-
-    App::Config::InitContext ctx{
-        .gfx_desc{
-            .logger{.func = slog_func},
-            .environment = sglue_environment(),
-        },
-        .gl_desc{
-            .sample_count = sapp_sample_count(),
-            .face_winding = SG_FACEWINDING_CCW,
-            .logger{.func = slog_func},
-        },
-        .imgui_desc{
-            .sample_count = sapp_sample_count(),
-        },
-    };
-
-    if (config.init.override)
-        config.init.override(ctx);
-
-    sg_setup(ctx.gfx_desc);
-    sgl_setup(ctx.gl_desc);
-    simgui_setup(ctx.imgui_desc);
-    stm_setup();
-
-    ImGuiStyles::set_default(ImGui::GetStyle());
-
-    if (config.init.callback)
-        config.init.callback();
-
-    if (state.scene.open)
-        state.scene.open();
-
-    state.is_init = true;
+    state.desc = desc;
+    sapp_run(app_desc());
 }
 
-void frame()
-{
-    state.delta_time = stm_laptime(&state.time);
-
-    if (state.scene.update)
-        state.scene.update();
-
-    // Main render pass
-    {
-        simgui_new_frame({
-            .width = sapp_width(),
-            .height = sapp_height(),
-            .delta_time = stm_sec(state.delta_time),
-            .dpi_scale = sapp_dpi_scale(),
-        });
-
-        sg_pass const pass{
-            .action = state.config.pass_action,
-            .swapchain = sglue_swapchain(),
-        };
-        sg_begin_pass(&pass);
-
-        if (state.scene.draw)
-            state.scene.draw();
-
-        simgui_render();
-        sg_end_pass();
-        sg_commit();
-    }
-}
-
-void cleanup()
-{
-    auto const& config = state.config;
-
-    if (state.scene.close)
-        state.scene.close();
-
-    if (config.deinit.callback)
-        config.deinit.callback();
-
-    simgui_shutdown();
-    sgl_shutdown();
-    sg_shutdown();
-}
-
-void event(App::Event const* const event)
-{
-    // NOTE: Touch begin events aren't properly consumed by simgui_handle_event so they're always
-    // forwarded. Specifically, the begin event of the first UI touch *isn't* consumed and the begin
-    // event of the first non-UI touch *is* consumed.
-
-    if (!simgui_handle_event(event) || (event->type == SAPP_EVENTTYPE_TOUCHES_BEGAN))
-    {
-        if (state.scene.handle_event)
-            state.scene.handle_event(*event);
-    }
-}
-
-} // namespace
-
-App::Desc App::default_desc()
-{
-    return {
-        .sample_count = 4,
-        .high_dpi = true,
-        .enable_clipboard = true,
-        .win32_console_utf8 = true,
-        .win32_console_create = true,
-    };
-}
-
-void App::run(Desc desc)
-{
-    assert(desc.init_cb == nullptr);
-    desc.init_cb = init;
-
-    assert(desc.frame_cb == nullptr);
-    desc.frame_cb = frame;
-
-    assert(desc.cleanup_cb == nullptr);
-    desc.cleanup_cb = cleanup;
-
-    assert(desc.event_cb == nullptr);
-    desc.event_cb = event;
-
-    if (!desc.logger.func)
-        desc.logger = {.func = slog_func};
-
-    sapp_run(desc);
-}
-
-App::Scene const& App::scene() { return state.scene; }
+App::Scene const& App::scene() { return state.desc.scene; }
 
 void App::set_scene(App::Scene const& scene)
 {
-    if (state.is_init)
-    {
-        if (state.scene.close)
-            state.scene.close();
-
-        if (scene.open)
-            scene.open();
-    }
-
-    state.scene = scene;
+    state.next_scene = scene;
+    state.scene_dirty = true;
 }
 
-App::Config& App::config() { return state.config; }
+i32 App::width() { return sapp_width(); }
+i32 App::height() { return sapp_height(); }
+f32 App::aspect() { return f32(width()) / height(); }
 
 u64 App::time() { return state.time; }
 f64 App::time_s() { return stm_sec(state.time); }
@@ -205,7 +231,5 @@ f64 App::time_ms() { return stm_ms(state.time); }
 u64 App::delta_time() { return state.delta_time; }
 f64 App::delta_time_s() { return stm_sec(state.delta_time); }
 f64 App::delta_time_ms() { return stm_ms(state.delta_time); }
-
-f32 App::aspect() { return sapp_widthf() / sapp_heightf(); }
 
 } // namespace dr

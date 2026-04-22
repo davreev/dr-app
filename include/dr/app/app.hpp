@@ -12,7 +12,6 @@ namespace dr
 
 struct App
 {
-    using Desc = sapp_desc;
     using Event = sapp_event;
 
     struct Scene
@@ -26,38 +25,32 @@ struct App
         void* userdata;
     };
 
-    struct Config
+    struct Desc
     {
-        struct InitContext
-        {
-            sg_desc gfx_desc;
-            sgl_desc_t gl_desc;
-            simgui_desc_t imgui_desc;
-        };
-
+        Scene scene = default_scene();
+        sg_pass_action pass_action = default_pass_action();
+        void (*init_cb)();
+        void (*deinit_cb)();
         struct
         {
-            void (*override)(InitContext& ctx);
-            void (*callback)();
-        } init;
-
-        struct
-        {
-            void (*callback)();
-        } deinit;
-
-        sg_pass_action pass_action;
-        void* userdata;
+            void (*app)(sapp_desc&);
+            void (*gfx)(sg_desc&);
+            void (*gl)(sgl_desc_t&);
+            void (*imgui)(simgui_desc_t&);
+        } sokol_config;
     };
 
-    static Desc default_desc();
+    static Scene default_scene();
+    static sg_pass_action default_pass_action();
 
-    static void run(Desc desc);
+    static void run(Desc const& desc);
 
     static Scene const& scene();
     static void set_scene(Scene const& scene);
 
-    static Config& config();
+    static i32 width();
+    static i32 height();
+    static f32 aspect();
 
     static u64 time();
     static f64 time_s();
@@ -66,8 +59,6 @@ struct App
     static u64 delta_time();
     static f64 delta_time_s();
     static f64 delta_time_ms();
-
-    static f32 aspect();
 };
 
 } // namespace dr

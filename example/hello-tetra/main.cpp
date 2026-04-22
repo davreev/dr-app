@@ -6,15 +6,16 @@ int main(int /*argc*/, char** /*argv*/)
 {
     using namespace dr;
 
-    App::set_scene(scene());
-
-    App::Desc desc = App::default_desc();
-    desc.width = 1280;
-    desc.height = 720;
-    desc.window_title = "Example: Hello Tetra";
-    desc.html5_canvas_selector = "#hello-tetra";
-
-    App::run(desc);
+    App::run({
+        .scene = scene(),
+        .sokol_config{
+            .app =
+                [](sapp_desc& desc) {
+                    desc.window_title = "Example: Hello Tetra";
+                    desc.html5_canvas_selector = "#hello-tetra";
+                },
+        },
+    });
 
     return 0;
 }
