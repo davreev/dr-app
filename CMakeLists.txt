@@ -21,8 +21,8 @@ list(
 set(FETCHCONTENT_QUIET FALSE)
 
 include(deps/dr)
-include(deps/imgui)
 include(deps/sokol)
+include(deps/tracy)
 
 #
 # Util target
@@ -54,6 +54,7 @@ target_link_libraries(
     PUBLIC
         dr::dr
         sokol::sokol
+        Tracy::TracyClient
 )
 
 target_compile_options(
@@ -93,6 +94,8 @@ if(NOT DR_APP_UTIL_ONLY)
             "src/shim/sokol.cpp"
         )
     endif()
+
+    include(deps/imgui)
 
     target_link_libraries(
         dr-app-sokol

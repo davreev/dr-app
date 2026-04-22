@@ -5,6 +5,7 @@
 #include <sokol_time.h>
 
 #include <dr/app/shim/imgui.hpp>
+#include <dr/app/shim/tracy.hpp>
 
 namespace dr
 {
@@ -71,6 +72,8 @@ void init()
 
     ImGuiStyles::set_default(ImGui::GetStyle());
 
+    TracyGpuContext;
+
     if (state.desc.init_cb)
         state.desc.init_cb();
 
@@ -92,6 +95,9 @@ void change_scene()
 
 void frame()
 {
+    ZoneScoped;
+    TracyGpuZone("frame");
+
     state.delta_time = stm_laptime(&state.time);
 
     if (state.scene_dirty)
@@ -125,6 +131,8 @@ void frame()
         sg_end_pass();
         sg_commit();
     }
+
+    TracyGpuCollect;
 }
 
 void cleanup()
