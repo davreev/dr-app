@@ -55,14 +55,12 @@ target_include_directories(
 
 include(deps/dr)
 include(deps/sokol)
-include(deps/tracy)
 
 target_link_libraries(
     dr-app-util
     PUBLIC
         dr::dr
         sokol::sokol
-        Tracy::TracyClient
 )
 
 target_compile_options(
@@ -153,11 +151,14 @@ if(NOT DR_APP_UTIL_ONLY)
             "${CMAKE_CURRENT_LIST_DIR}/include"
     )
 
+    include(deps/tracy)
+
     target_link_libraries(
         dr-app
         PUBLIC
             dr-app-sokol
             dr-app-util
+            Tracy::TracyClient
     )
 
     target_compile_options(
