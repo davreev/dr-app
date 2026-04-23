@@ -203,13 +203,13 @@ void init_gfx()
 
     auto const vertex_data = as<u8>(mesh_vertices());
     gfx.mesh.vertex_buffer = GfxBuffer::make({
-        .type = SG_BUFFERTYPE_VERTEXBUFFER,
+        .usage = {.vertex_buffer = true, .immutable = true},
         .data = {vertex_data.data(), usize(vertex_data.size())},
     });
 
     auto const index_data = as<u8>(mesh_indices());
     gfx.mesh.index_buffer = GfxBuffer::make({
-        .type = SG_BUFFERTYPE_INDEXBUFFER,
+        .usage = {.index_buffer = true, .immutable = true},
         .data = {index_data.data(), usize(index_data.size())},
     });
 }

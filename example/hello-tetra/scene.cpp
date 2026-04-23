@@ -95,11 +95,11 @@ void init_gfx()
     gfx.shader = GfxShader::make(shader_desc(vertex_shader_src, fragment_shader_src));
     gfx.pipeline = GfxPipeline::make(pipeline_desc(gfx.shader));
     gfx.vertex_buffer = GfxBuffer::make({
-        .type = SG_BUFFERTYPE_VERTEXBUFFER,
+        .usage{.vertex_buffer = true, .immutable = true},
         .data = SG_RANGE(mesh_vertices),
     });
     gfx.index_buffer = GfxBuffer::make({
-        .type = SG_BUFFERTYPE_INDEXBUFFER,
+        .usage{.index_buffer = true, .immutable = true},
         .data = SG_RANGE(mesh_indices),
     });
 }

@@ -25,7 +25,7 @@ int main(int /*argc*/, char** /*argv*/)
             .app =
                 [](sapp_desc& desc) {
                     desc.window_title = "Example: ImGui Demo";
-                    desc.html5_canvas_selector = "#imgui-demo";
+                    desc.html5.canvas_selector = "#imgui-demo";
                 },
         },
     });

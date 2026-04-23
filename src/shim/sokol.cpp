@@ -4,6 +4,10 @@
 #define SOKOL_GLCORE
 #endif
 
+// NOTE(dr): ImGui must be included before sokol_app.h on Linux builds to avoid clashes with X11
+// macros from Xlib.h
+#include <imgui.h>
+
 #define SOKOL_NO_ENTRY
 #define SOKOL_APP_IMPL
 #include <sokol_app.h>
@@ -15,7 +19,6 @@
 #include <sokol_gl.h>
 
 #define SOKOL_IMGUI_IMPL
-#include <imgui.h>
 #include <sokol_imgui.h>
 
 #define SOKOL_TIME_IMPL

@@ -1,11 +1,11 @@
 #include "scene.hpp"
 
+#include <implot.h>
+#include <implot3d.h>
+
 #include <dr/basic_types.hpp>
 
 #include <dr/app/shim/imgui.hpp>
-
-#include <implot.h>
-#include <implot3d.h>
 
 namespace dr
 {

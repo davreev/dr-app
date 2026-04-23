@@ -176,8 +176,10 @@ sapp_desc app_desc()
         .logger{
             .func = slog_func,
         },
-        .win32_console_utf8 = true,
-        .win32_console_create = true,
+        .win32{
+            .console_utf8 = true,
+            .console_create = true,
+        },
     };
 
     // Apply overrides

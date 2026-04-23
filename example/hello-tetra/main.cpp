@@ -12,7 +12,7 @@ int main(int /*argc*/, char** /*argv*/)
             .app =
                 [](sapp_desc& desc) {
                     desc.window_title = "Example: Hello Tetra";
-                    desc.html5_canvas_selector = "#hello-tetra";
+                    desc.html5.canvas_selector = "#hello-tetra";
                 },
         },
     });

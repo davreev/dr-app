@@ -84,8 +84,7 @@ void GeometryStream::VertexStage::update_device()
     {
         device.init({
             .size = host.capacity(),
-            .type = SG_BUFFERTYPE_VERTEXBUFFER,
-            .usage = SG_USAGE_STREAM,
+            .usage{.vertex_buffer = true, .stream_update = true},
         });
     }
 
@@ -101,8 +100,7 @@ void GeometryStream::IndexStage::update_device()
     {
         device.init({
             .size = host.capacity(),
-            .type = SG_BUFFERTYPE_INDEXBUFFER,
-            .usage = SG_USAGE_STREAM,
+            .usage = {.index_buffer = true, .stream_update = true},
         });
     }
 

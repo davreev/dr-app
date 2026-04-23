@@ -12,7 +12,7 @@ int main(int /*argc*/, char** /*argv*/)
             .app =
                 [](sapp_desc& desc) {
                     desc.window_title = "Example: Draw Context";
-                    desc.html5_canvas_selector = "#draw-context";
+                    desc.html5.canvas_selector = "#draw-context";
                 },
         },
     });

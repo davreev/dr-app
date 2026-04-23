@@ -6,7 +6,7 @@ include(FetchContent)
 
 FetchContent_Declare(
     implot
-    URL https://github.com/epezent/implot/archive/refs/tags/v0.16.zip
+    URL https://github.com/epezent/implot/archive/refs/tags/v1.0.zip
 )
 
 FetchContent_GetProperties(implot)

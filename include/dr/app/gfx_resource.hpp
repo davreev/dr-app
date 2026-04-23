@@ -64,12 +64,12 @@ struct GfxResource
     void destroy();
 };
 
-using GfxAttachments = GfxResource<sg_attachments, sg_attachments_desc>;
 using GfxPipeline = GfxResource<sg_pipeline, sg_pipeline_desc>;
 using GfxShader = GfxResource<sg_shader, sg_shader_desc>;
 using GfxBuffer = GfxResource<sg_buffer, sg_buffer_desc>;
 using GfxImage = GfxResource<sg_image, sg_image_desc>;
 using GfxSampler = GfxResource<sg_sampler, sg_sampler_desc>;
+using GfxView = GfxResource<sg_view, sg_view_desc>;
 
 using GfxBindings = sg_bindings;
 

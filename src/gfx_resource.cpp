@@ -4,46 +4,6 @@ namespace dr
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// GfxAttachment
-
-template <>
-GfxAttachments GfxAttachments::alloc()
-{
-    return {sg_alloc_attachments()};
-}
-
-template <>
-GfxAttachments GfxAttachments::make(Desc const& desc)
-{
-    return {sg_make_attachments(desc)};
-}
-
-template <>
-void GfxAttachments::destroy()
-{
-    if (is_valid() && sg_isvalid())
-    {
-        sg_destroy_attachments(handle_);
-        handle_ = {};
-    }
-}
-
-template <>
-void GfxAttachments::init(GfxAttachments::Desc const& desc)
-{
-    if (is_init())
-        sg_uninit_attachments(handle_);
-
-    sg_init_attachments(handle_, desc);
-}
-
-template <>
-sg_resource_state GfxAttachments::query_state() const
-{
-    return sg_query_attachments_state(handle_);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 // GfxPipeline
 
 template <>
@@ -241,6 +201,46 @@ template <>
 sg_resource_state GfxSampler::query_state() const
 {
     return sg_query_sampler_state(handle_);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// GfxView
+
+template <>
+GfxView GfxView::alloc()
+{
+    return {sg_alloc_view()};
+}
+
+template <>
+GfxView GfxView::make(Desc const& desc)
+{
+    return {sg_make_view(desc)};
+}
+
+template <>
+void GfxView::destroy()
+{
+    if (is_valid() && sg_isvalid())
+    {
+        sg_destroy_view(handle_);
+        handle_ = {};
+    }
+}
+
+template <>
+void GfxView::init(GfxView::Desc const& desc)
+{
+    if (is_init())
+        sg_uninit_view(handle_);
+
+    sg_init_view(handle_, desc);
+}
+
+template <>
+sg_resource_state GfxView::query_state() const
+{
+    return sg_query_view_state(handle_);
 }
 
 } // namespace dr
