@@ -20,9 +20,13 @@ list(
 # Show FetchContent download progress
 set(FETCHCONTENT_QUIET FALSE)
 
-include(deps/dr)
-include(deps/sokol)
-include(deps/tracy)
+# Suppress developer warnings
+if(POLICY CMP0169)
+    cmake_policy(SET CMP0169 OLD)
+endif()
+if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 OLD)
+endif()
 
 #
 # Util target
@@ -48,6 +52,10 @@ target_include_directories(
     PUBLIC
         "${CMAKE_CURRENT_LIST_DIR}/include"
 )
+
+include(deps/dr)
+include(deps/sokol)
+include(deps/tracy)
 
 target_link_libraries(
     dr-app-util
