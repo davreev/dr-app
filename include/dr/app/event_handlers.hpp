@@ -25,8 +25,8 @@ Mat3<f32> make_screen_to_view(f32 fov_y, bool flip_y = false);
 /// Creates an affine transform that takes points from view space (at depth of 1) to screen space
 Mat3<f32> make_view_to_screen(f32 fov_y, bool flip_y = false);
 
-/// Handles mouse events for camera controls
-void camera_handle_mouse_event(
+/// Handles mouse events for camera controls. Returns true if camera state was changed.
+bool camera_handle_mouse_event(
     App::Event const& event,
     Zoom& zoom,
     Orbit* orbit,
@@ -35,8 +35,8 @@ void camera_handle_mouse_event(
     f32 drag_scale = 1.0f,
     f32 scroll_scale = 0.1f);
 
-/// Handles touch events for camera controls
-void camera_handle_touch_event(
+/// Handles touch events for camera controls. Returns true if camera state was changed.
+bool camera_handle_touch_event(
     App::Event const& event,
     Zoom& zoom,
     Orbit* orbit,
@@ -45,14 +45,14 @@ void camera_handle_touch_event(
     i8& prev_num_touches,
     f32 drag_scale = 1.0f);
 
-/// Handles mouse events for camera controls
-void camera_handle_mouse_event(
+/// Handles mouse events for camera controls. Returns true if camera state was changed.
+bool camera_handle_mouse_event(
     App::Event const& event,
     OrbitCamera& camera,
     f32 drag_scale = 1.0f,
     f32 scroll_scale = 0.1f);
 
-/// Handles touch events for camera controls
-void camera_handle_touch_event(App::Event const& event, OrbitCamera& camera, f32 drag_scale = 1.0f);
+/// Handles touch events for camera controls. Returns true if camera state was changed.
+bool camera_handle_touch_event(App::Event const& event, OrbitCamera& camera, f32 drag_scale = 1.0f);
 
 } // namespace dr
