@@ -33,43 +33,29 @@ struct GeometryStream
 
     i32 push_indices_once(void const* key, Span<u8 const> const& data);
 
-    GfxBuffer::Handle vertex_buffer() const { return vertex_.device.buffer; }
+    GfxBuffer::Handle vertex_buffer() const { return vertex_stage_.device_buf; }
 
-    GfxBuffer::Handle index_buffer() const { return index_.device.buffer; }
+    GfxBuffer::Handle index_buffer() const { return index_stage_.device_buf; }
 
     void update_device_buffers();
 
     void clear();
 
   private:
-    struct DeviceBuffer
+    struct BufferStage
     {
-        GfxBuffer buffer;
-        usize capacity;
+        DynamicArray<u8> host_buf;
+        GfxBuffer device_buf;
+        usize device_size;
 
-        void init(GfxBuffer::Desc const& desc);
+        i32 append(Span<u8 const> const& bytes);
+        void update_device(sg_buffer_usage usage);
     };
 
-    struct VertexStage
-    {
-        DynamicArray<u8> host;
-        DeviceBuffer device;
-        HashMap<VertexKey, i32, VertexKey::Hash> offsets;
-
-        void update_device();
-    };
-
-    struct IndexStage
-    {
-        DynamicArray<u8> host;
-        DeviceBuffer device;
-        HashMap<void const*, i32> offsets;
-        
-        void update_device();
-    };
-
-    VertexStage vertex_;
-    IndexStage index_;
+    BufferStage vertex_stage_;
+    BufferStage index_stage_;
+    HashMap<VertexKey, i32, VertexKey::Hash> vertex_offsets_;
+    HashMap<void const*, i32> index_offsets_;
 };
 
 } // namespace dr

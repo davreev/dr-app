@@ -7,9 +7,12 @@ namespace dr
 namespace
 {
 
-void append_bytes(DynamicArray<u8>& buf, Span<u8 const> const& bytes)
+void init_device_buffer(GfxBuffer& buf, GfxBuffer::Desc const& desc)
 {
-    buf.insert(buf.end(), begin(bytes), end(bytes));
+    if (buf.is_valid())
+        buf.init(desc);
+    else
+        buf = GfxBuffer::make(desc);
 }
 
 } // namespace
@@ -24,93 +27,62 @@ usize GeometryStream::VertexKey::Hash::operator()(VertexKey const& key) const
     return hash_mix(usize(key.src), usize(key.slot));
 }
 
-i32 GeometryStream::push_vertices(Span<u8 const> const& data)
-{
-    i32 const offset = vertex_.host.size();
-    append_bytes(vertex_.host, data);
-    return offset;
-}
+i32 GeometryStream::push_vertices(Span<u8 const> const& data) { return vertex_stage_.append(data); }
 
 i32 GeometryStream::push_vertices_once(VertexKey const& key, Span<u8 const> const& data)
 {
-    auto const [it, ok] = vertex_.offsets.try_emplace(key);
+    auto const [it, ok] = vertex_offsets_.try_emplace(key);
     if (ok)
         it->second = push_vertices(data);
 
     return it->second;
 }
 
-i32 GeometryStream::push_indices(Span<u8 const> const& data)
-{
-    i32 const offset = index_.host.size();
-    append_bytes(index_.host, data);
-    return offset;
-}
+i32 GeometryStream::push_indices(Span<u8 const> const& data) { return index_stage_.append(data); }
 
 i32 GeometryStream::push_indices_once(void const* key, Span<u8 const> const& data)
 {
-    auto const [it, ok] = index_.offsets.try_emplace(key);
+    auto const [it, ok] = index_offsets_.try_emplace(key);
     if (ok)
         it->second = push_indices(data);
 
     return it->second;
 }
 
-void GeometryStream::clear()
-{
-    vertex_.host.clear();
-    vertex_.offsets.clear();
-
-    index_.host.clear();
-    index_.offsets.clear();
-}
-
-void GeometryStream::DeviceBuffer::init(GfxBuffer::Desc const& desc)
-{
-    if (buffer.is_valid())
-        buffer.init(desc);
-    else
-        buffer = GfxBuffer::make(desc);
-
-    capacity = desc.size;
-}
-
-void GeometryStream::VertexStage::update_device()
-{
-    if (host.empty())
-        return;
-
-    if (host.size() > device.capacity)
-    {
-        device.init({
-            .size = host.capacity(),
-            .usage{.vertex_buffer = true, .stream_update = true},
-        });
-    }
-
-    sg_update_buffer(device.buffer, {host.data(), host.size()});
-}
-
-void GeometryStream::IndexStage::update_device()
-{
-    if (host.empty())
-        return;
-
-    if (host.size() > device.capacity)
-    {
-        device.init({
-            .size = host.capacity(),
-            .usage = {.index_buffer = true, .stream_update = true},
-        });
-    }
-
-    sg_update_buffer(device.buffer, {host.data(), host.size()});
-}
-
 void GeometryStream::update_device_buffers()
 {
-    vertex_.update_device();
-    index_.update_device();
+    vertex_stage_.update_device({.vertex_buffer = true});
+    index_stage_.update_device({.index_buffer = true});
+}
+
+void GeometryStream::clear()
+{
+    vertex_stage_.host_buf.clear();
+    index_stage_.host_buf.clear();
+    vertex_offsets_.clear();
+    index_offsets_.clear();
+}
+
+i32 GeometryStream::BufferStage::append(Span<u8 const> const& bytes)
+{
+    i32 const offset = host_buf.size();
+    host_buf.insert(host_buf.end(), begin(bytes), end(bytes));
+    return offset;
+}
+
+void GeometryStream::BufferStage::update_device(sg_buffer_usage usage)
+{
+    if (host_buf.empty())
+        return;
+
+    if (host_buf.size() > device_size)
+    {
+        device_size = host_buf.capacity();
+        usage.stream_update = true;
+        init_device_buffer(device_buf, {.size = device_size, .usage = usage});
+    }
+
+    sg_update_buffer(device_buf, {host_buf.data(), host_buf.size()});
 }
 
 } // namespace dr
