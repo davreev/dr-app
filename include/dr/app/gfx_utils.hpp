@@ -20,7 +20,7 @@ Mat4<f32> make_affine(Mat3<f32> const& linear);
 Mat4<f32> make_affine(Mat3<f32> const& linear, Vec3<f32> const& translate);
 
 /// Creates a matrix that maps points from world space to view space. By convention, the view space
-/// is right-handed y-up meaning it points in the negative z direction.
+/// is right-handed y-up with -z in front of the camera.
 Mat4<f32> make_look_at(Vec3<f32> const& eye, Vec3<f32> const& target, Vec3<f32> const& up);
 
 enum NdcType : u8
@@ -31,14 +31,14 @@ enum NdcType : u8
 };
 
 /// Creates a perspective projection matrix which maps points from view space (Cartesian
-/// coordinates) to clip space (homogenous coordinates). This assumes a right-handed view space that
-/// looks in the negative z direction.
+/// coordinates) to clip space (homogenous coordinates). It assumes view space is right-handed y-up
+/// with -z in front of the camera.
 template <NdcType ndc = NdcType_Default>
 Mat4<f32> make_perspective(f32 fov_y, f32 aspect, f32 near, f32 far);
 
 /// Creates a projection matrix which maps points from view space (Cartesian coordinates) to clip
-/// space (homogenous coordinates). This assumes a right-handed view space that looks in the
-/// negative z direction.
+/// space (homogenous coordinates). It assumes view space is right-handed y-up with -z in front of
+/// the camera.
 template <NdcType ndc = NdcType_Default>
 Mat4<f32> make_orthographic(
     f32 const left,
@@ -49,14 +49,10 @@ Mat4<f32> make_orthographic(
     f32 const far);
 
 /// Creates a projection matrix which maps points from view space (Cartesian coordinates) to clip
-/// space (homogenous coordinates). This assumes a right-handed view space that looks in the
-/// negative z direction.
+/// space (homogenous coordinates). It assumes view space is right-handed y-up with -z in front of
+/// the camera.
 template <NdcType ndc = NdcType_Default>
-Mat4<f32> make_orthographic(
-    f32 const height,
-    f32 const aspect,
-    f32 const near,
-    f32 const far)
+Mat4<f32> make_orthographic(f32 const height, f32 const aspect, f32 const near, f32 const far)
 {
     f32 const half_h = height * 0.5f;
     f32 const half_w = half_h * aspect;
