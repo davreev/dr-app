@@ -31,7 +31,6 @@ bool camera_handle_mouse_event(
     Zoom& zoom,
     Orbit* orbit,
     Pan* pan,
-    bool mouse_down[3],
     f32 drag_scale = 1.0f,
     f32 scroll_scale = 0.1f);
 
@@ -41,8 +40,6 @@ bool camera_handle_touch_event(
     Zoom& zoom,
     Orbit* orbit,
     Pan* pan,
-    Vec2<f32> prev_touch_points[2],
-    i8& prev_num_touches,
     f32 drag_scale = 1.0f);
 
 /// Handles mouse events for camera controls. Returns true if camera state was changed.

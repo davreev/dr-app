@@ -40,6 +40,13 @@ struct App
         } sokol_config;
     };
 
+    struct Input
+    {
+        f32 prev_touch_points[SAPP_MAX_TOUCHPOINTS][2]{};
+        i32 prev_num_touches{};
+        bool mouse_down[SAPP_MAX_MOUSEBUTTONS]{};
+    };
+
     static Scene default_scene();
     static sg_pass_action default_pass_action();
 
@@ -47,6 +54,8 @@ struct App
 
     static Scene const& scene();
     static void set_scene(Scene const& scene);
+
+    static Input const& input();
 
     static i32 width();
     static i32 height();

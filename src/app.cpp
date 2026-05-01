@@ -16,6 +16,7 @@ struct
 {
     App::Desc desc{};
     App::Scene next_scene{};
+    App::Input input{};
     u64 time{};
     u64 delta_time{};
     bool scene_dirty{};
@@ -159,6 +160,49 @@ void event(App::Event const* event)
         if (state.desc.scene.handle_event)
             state.desc.scene.handle_event(*event);
     }
+
+    // Update persisted input state
+    auto& input = state.input;
+    switch (event->type)
+    {
+        case SAPP_EVENTTYPE_MOUSE_DOWN:
+        {
+            input.mouse_down[event->mouse_button] = true;
+            break;
+        }
+        case SAPP_EVENTTYPE_MOUSE_UP:
+        {
+            input.mouse_down[event->mouse_button] = false;
+            break;
+        }
+        case SAPP_EVENTTYPE_MOUSE_LEAVE:
+        {
+            for (auto& m : input.mouse_down)
+                m = false;
+
+            break;
+        }
+        case SAPP_EVENTTYPE_TOUCHES_BEGAN:
+        case SAPP_EVENTTYPE_TOUCHES_ENDED:
+        case SAPP_EVENTTYPE_TOUCHES_CANCELLED:
+        {
+            input.prev_num_touches = event->num_touches;
+        }
+        case SAPP_EVENTTYPE_TOUCHES_MOVED:
+        {
+            for (i32 i = 0; i < event->num_touches; ++i)
+            {
+                auto& p = input.prev_touch_points[i];
+                p[0] = event->touches[i].pos_x;
+                p[1] = event->touches[i].pos_y;
+            }
+
+            break;
+        }
+        default:
+        {
+        }
+    }
 }
 
 sapp_desc app_desc()
@@ -229,6 +273,8 @@ void App::set_scene(App::Scene const& scene)
     state.next_scene = scene;
     state.scene_dirty = true;
 }
+
+App::Input const& App::input() { return state.input; }
 
 i32 App::width() { return sapp_width(); }
 i32 App::height() { return sapp_height(); }

@@ -32,17 +32,10 @@ struct OrbitCamera
     struct
     {
         Orbit orbit;
-        Zoom zoom{.distance{.current = 1.0f, .min = 0.01f, .max = 1000.0f,}};
+        Zoom zoom{.distance{.current = 1.0f, .min = 0.01f, .max = 1000.0f}};
         Pan pan;
         f32 stiffness{10.0f};
     } controls;
-
-    struct
-    {
-        Vec2<f32> prev_touch_points[2];
-        i8 prev_num_touches{};
-        bool mouse_down[3]{};
-    } input;
 
     Projection projection{};
 
