@@ -187,6 +187,7 @@ void event(App::Event const* event)
         case SAPP_EVENTTYPE_TOUCHES_CANCELLED:
         {
             input.prev_num_touches = event->num_touches;
+            [[fallthrough]];
         }
         case SAPP_EVENTTYPE_TOUCHES_MOVED:
         {
