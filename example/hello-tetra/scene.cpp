@@ -19,7 +19,7 @@ namespace dr
 namespace
 {
 
-constexpr char scene_name[]{"Hello Tetra"};
+constexpr char scene_name[]{"Example: Hello Tetra"};
 constexpr NdcType ndc = NdcType::NdcType_OpenGl;
 
 // clang-format off

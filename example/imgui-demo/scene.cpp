@@ -24,7 +24,7 @@ void draw()
 App::Scene scene()
 {
     return {
-        .name = "ImGui Demo",
+        .name = "Example: ImGui Demo",
         .draw = draw,
     };
 }

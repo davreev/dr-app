@@ -212,16 +212,19 @@ void event(App::Event const* event)
 
 sapp_desc sokol_app_desc()
 {
+    auto& scene = state.desc.scene;
+    auto& window = state.desc.window;
+
     sapp_desc desc{
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
         .event_cb = event,
-        .width = state.desc.window.width,
-        .height = state.desc.window.height,
+        .width = window.width,
+        .height = window.height,
         .sample_count = 4,
         .high_dpi = true,
-        .window_title = state.desc.window.title,
+        .window_title = window.title? window.title : scene.name,
         .enable_clipboard = true,
         .logger{
             .func = slog_func,

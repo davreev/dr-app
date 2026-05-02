@@ -23,7 +23,7 @@ namespace dr
 namespace
 {
 
-constexpr char scene_name[]{"Draw Context"};
+constexpr char scene_name[]{"Example: Draw Context"};
 constexpr NdcType ndc = NdcType::NdcType_OpenGl;
 
 struct Fps
