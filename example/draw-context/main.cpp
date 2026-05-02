@@ -8,12 +8,11 @@ int main(int /*argc*/, char** /*argv*/)
 
     App::run({
         .scene = scene(),
+        .window{
+            .title = "Example: Draw Context",
+        },
         .sokol_config{
-            .app =
-                [](sapp_desc& desc) {
-                    desc.window_title = "Example: Draw Context";
-                    desc.html5.canvas_selector = "#draw-context";
-                },
+            .app = [](sapp_desc& desc) { desc.html5.canvas_selector = "#draw-context"; },
         },
     });
 

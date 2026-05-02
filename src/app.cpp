@@ -22,7 +22,7 @@ struct
     bool scene_dirty{};
 } state;
 
-sg_desc gfx_desc()
+sg_desc sokol_gfx_desc()
 {
     sg_desc desc{
         .logger{.func = slog_func},
@@ -36,7 +36,7 @@ sg_desc gfx_desc()
     return desc;
 }
 
-sgl_desc_t gl_desc()
+sgl_desc_t sokol_gl_desc()
 {
     sgl_desc_t desc{
         .sample_count = sapp_sample_count(),
@@ -51,7 +51,7 @@ sgl_desc_t gl_desc()
     return desc;
 }
 
-simgui_desc_t imgui_desc()
+simgui_desc_t sokol_imgui_desc()
 {
     simgui_desc_t desc{
         .sample_count = sapp_sample_count(),
@@ -66,9 +66,9 @@ simgui_desc_t imgui_desc()
 
 void init()
 {
-    sg_setup(gfx_desc());
-    sgl_setup(gl_desc());
-    simgui_setup(imgui_desc());
+    sg_setup(sokol_gfx_desc());
+    sgl_setup(sokol_gl_desc());
+    simgui_setup(sokol_imgui_desc());
     stm_setup();
 
     ImGuiStyles::set_default(ImGui::GetStyle());
@@ -204,19 +204,24 @@ void event(App::Event const* event)
         {
         }
     }
+
+    // Keep window size updated
+    state.desc.window.width = event->window_width;
+    state.desc.window.height = event->window_height;
 }
 
-sapp_desc app_desc()
+sapp_desc sokol_app_desc()
 {
     sapp_desc desc{
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
         .event_cb = event,
-        .width = 1280,
-        .height = 720,
+        .width = state.desc.window.width,
+        .height = state.desc.window.height,
         .sample_count = 4,
         .high_dpi = true,
+        .window_title = state.desc.window.title,
         .enable_clipboard = true,
         .logger{
             .func = slog_func,
@@ -264,7 +269,7 @@ sg_pass_action App::default_pass_action()
 void App::run(Desc const& desc)
 {
     state.desc = desc;
-    sapp_run(app_desc());
+    sapp_run(sokol_app_desc());
 }
 
 App::Scene const& App::scene() { return state.desc.scene; }
@@ -275,11 +280,15 @@ void App::set_scene(App::Scene const& scene)
     state.scene_dirty = true;
 }
 
+sg_pass_action pass_action() { return state.desc.pass_action; }
+
 App::Input const& App::input() { return state.input; }
 
-i32 App::width() { return sapp_width(); }
-i32 App::height() { return sapp_height(); }
-f32 App::aspect() { return f32(width()) / height(); }
+i32 App::framebuffer_width() { return sapp_width(); }
+i32 App::framebuffer_height() { return sapp_height(); }
+i32 App::window_width() { return state.desc.window.width; }
+i32 App::window_height() { return state.desc.window.height; }
+f32 App::aspect() { return sapp_widthf() / sapp_heightf(); }
 
 u64 App::time() { return state.time; }
 f64 App::time_s() { return stm_sec(state.time); }

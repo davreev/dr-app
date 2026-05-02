@@ -33,6 +33,12 @@ struct App
         void (*deinit_cb)();
         struct
         {
+            i32 width = 800;
+            i32 height = 600;
+            char const* title;
+        } window;
+        struct
+        {
             void (*app)(sapp_desc&);
             void (*gfx)(sg_desc&);
             void (*gl)(sgl_desc_t&);
@@ -47,18 +53,19 @@ struct App
         bool mouse_down[SAPP_MAX_MOUSEBUTTONS]{};
     };
 
-    static Scene default_scene();
-    static sg_pass_action default_pass_action();
-
     static void run(Desc const& desc);
 
     static Scene const& scene();
     static void set_scene(Scene const& scene);
 
+    sg_pass_action& pass_action();
+
     static Input const& input();
 
-    static i32 width();
-    static i32 height();
+    static i32 framebuffer_width();
+    static i32 framebuffer_height();
+    static i32 window_width();
+    static i32 window_height();
     static f32 aspect();
 
     static u64 time();
@@ -68,6 +75,10 @@ struct App
     static u64 delta_time();
     static f64 delta_time_s();
     static f64 delta_time_ms();
+
+  private:
+    static Scene default_scene();
+    static sg_pass_action default_pass_action();
 };
 
 } // namespace dr

@@ -8,12 +8,11 @@ int main(int /*argc*/, char** /*argv*/)
 
     App::run({
         .scene = scene(),
+        .window{
+            .title = "Example: Hello Tetra",
+        },
         .sokol_config{
-            .app =
-                [](sapp_desc& desc) {
-                    desc.window_title = "Example: Hello Tetra";
-                    desc.html5.canvas_selector = "#hello-tetra";
-                },
+            .app = [](sapp_desc& desc) { desc.html5.canvas_selector = "#hello-tetra"; },
         },
     });
 

@@ -21,12 +21,11 @@ int main(int /*argc*/, char** /*argv*/)
                 ImPlot3D::DestroyContext();
                 ImPlot::DestroyContext();
             },
+        .window{
+            .title = "Example: ImGui Demo",
+        },
         .sokol_config{
-            .app =
-                [](sapp_desc& desc) {
-                    desc.window_title = "Example: ImGui Demo";
-                    desc.html5.canvas_selector = "#imgui-demo";
-                },
+            .app = [](sapp_desc& desc) { desc.html5.canvas_selector = "#imgui-demo"; },
         },
     });
 
