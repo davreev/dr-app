@@ -1,5 +1,7 @@
 #include <dr/app/geometry_stream.hpp>
 
+#include <cassert>
+
 #include <dr/memory.hpp>
 
 namespace dr
@@ -29,9 +31,11 @@ usize GeometryStream::VertexKey::Hash::operator()(VertexKey const& key) const
 
 i32 GeometryStream::push_vertices(Span<u8 const> const& data) { return vertex_stage_.append(data); }
 
-i32 GeometryStream::push_vertices_once(VertexKey const& key, Span<u8 const> const& data)
+i32 GeometryStream::push_vertices_once(void const* key, u8 slot, Span<u8 const> const& data)
 {
-    auto const [it, ok] = vertex_offsets_.try_emplace(key);
+    assert(slot <= SG_MAX_VERTEXBUFFER_BINDSLOTS);
+
+    auto const [it, ok] = vertex_offsets_.try_emplace({key, slot});
     if (ok)
         it->second = push_vertices(data);
 

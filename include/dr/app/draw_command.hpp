@@ -22,7 +22,7 @@ struct DrawCommand
     void const* material{};
     void const* geometry{};
     void (*set_bindings)(DrawCommand const& self, GfxBindings& bindings);
-    i32 vertex_offsets[4]{};
+    i32 vertex_offsets[SG_MAX_VERTEXBUFFER_BINDSLOTS]{};
     i32 index_offset{};
     struct
     {

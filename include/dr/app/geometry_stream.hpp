@@ -13,21 +13,9 @@ namespace dr
 
 struct GeometryStream
 {
-    struct VertexKey
-    {
-        void const* src;
-        u8 slot;
-        bool operator==(VertexKey const& other) const;
-
-        struct Hash : HighQualityHash
-        {
-            usize operator()(VertexKey const& key) const;
-        };
-    };
-
     i32 push_vertices(Span<u8 const> const& data);
 
-    i32 push_vertices_once(VertexKey const& key, Span<u8 const> const&);
+    i32 push_vertices_once(void const* key, u8 slot, Span<u8 const> const&);
 
     i32 push_indices(Span<u8 const> const& data);
 
@@ -50,6 +38,18 @@ struct GeometryStream
 
         i32 append(Span<u8 const> const& bytes);
         void update_device(sg_buffer_usage usage);
+    };
+
+    struct VertexKey
+    {
+        void const* src;
+        u8 slot;
+        bool operator==(VertexKey const& other) const;
+
+        struct Hash : HighQualityHash
+        {
+            usize operator()(VertexKey const& key) const;
+        };
     };
 
     BufferStage vertex_stage_;
