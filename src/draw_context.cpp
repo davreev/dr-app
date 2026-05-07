@@ -31,8 +31,8 @@ void submit_draw_cmds(
     SlicedArray<u8> const& uniform_data)
 {
     GfxPipeline::Handle pipeline{};
-    void const* geometry = nullptr;
-    void const* material = nullptr;
+    void const* prev_geometry = nullptr;
+    void const* prev_material = nullptr;
 
     for (auto const& cmd : draw_cmds)
     {
@@ -44,12 +44,12 @@ void submit_draw_cmds(
             if (pass.uniform_data.size() > 0)
                 apply_uniforms(UniformBlock::Pass, pass.uniform_data);
 
-            geometry = material = nullptr;
+            prev_geometry = prev_material = nullptr;
         }
 
         bool bindings_dirty = false;
 
-        if (cmd.material != material)
+        if (cmd.material != prev_material)
         {
             if (cmd.uniform_slices.material != invalid_index<i32>)
             {
@@ -58,11 +58,11 @@ void submit_draw_cmds(
                     apply_uniforms(UniformBlock::Material, data);
             }
 
-            material = cmd.material;
+            prev_material = cmd.material;
             bindings_dirty = true;
         }
 
-        if (cmd.geometry != geometry)
+        if (cmd.geometry != prev_geometry)
         {
             if (cmd.uniform_slices.geometry != invalid_index<i32>)
             {
@@ -71,7 +71,7 @@ void submit_draw_cmds(
                     apply_uniforms(UniformBlock::Geometry, data);
             }
 
-            geometry = cmd.geometry;
+            prev_geometry = cmd.geometry;
             bindings_dirty = true;
         }
 
