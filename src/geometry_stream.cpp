@@ -6,18 +6,6 @@
 
 namespace dr
 {
-namespace
-{
-
-void init_device_buffer(GfxBuffer& buf, GfxBuffer::Desc const& desc)
-{
-    if (buf.is_valid())
-        buf.init(desc);
-    else
-        buf = GfxBuffer::make(desc);
-}
-
-} // namespace
 
 bool GeometryStream::VertexKey::operator==(VertexKey const& other) const
 {
@@ -83,7 +71,7 @@ void GeometryStream::BufferStage::update_device(sg_buffer_usage usage)
     {
         device_size = host_buf.capacity();
         usage.stream_update = true;
-        init_device_buffer(device_buf, {.size = device_size, .usage = usage});
+        device_buf.init({.size = device_size, .usage = usage});
     }
 
     sg_update_buffer(device_buf, {host_buf.data(), host_buf.size()});

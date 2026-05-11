@@ -21,7 +21,7 @@ struct DrawCommand
     GfxPipeline::Handle pipeline{};
     void const* material{};
     void const* geometry{};
-    void (*set_bindings)(DrawCommand const& self, GfxBindings& bindings);
+    void (*set_bindings)(DrawCommand const& self, sg_bindings& bindings);
     i32 vertex_offsets[SG_MAX_VERTEXBUFFER_BINDSLOTS]{};
     i32 index_offset{};
     struct

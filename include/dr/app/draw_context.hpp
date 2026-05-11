@@ -22,7 +22,7 @@ struct DrawContext
 
     struct PassInfo
     {
-        GfxBindings bindings;
+        sg_bindings bindings;
         Span<u8 const> uniform_data;
     };
 

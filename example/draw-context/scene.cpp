@@ -272,7 +272,7 @@ void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view)
             .pipeline = state.gfx.pipeline,
             .geometry = &geom,
             .set_bindings =
-                [](DrawCommand const& cmd, GfxBindings& bindings) {
+                [](DrawCommand const& cmd, sg_bindings& bindings) {
                     auto geom = static_cast<Geometry const*>(cmd.geometry);
                     bindings.vertex_buffers[0] = geom->vertex;
                     bindings.vertex_buffers[1] = geom->stream->vertex_buffer();

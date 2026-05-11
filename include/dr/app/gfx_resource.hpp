@@ -5,11 +5,14 @@
 namespace dr
 {
 
-template <typename Handle_, typename Desc_>
+template <typename T, typename Enable = void>
+struct Traits;
+
+template <typename Handle_>
 struct GfxResource
 {
     using Handle = Handle_;
-    using Desc = Desc_;
+    using Desc = typename Traits<Handle>::Desc;
 
     /// Allocates a new resource without initializing it
     static GfxResource alloc();
@@ -18,13 +21,9 @@ struct GfxResource
     static GfxResource make(Desc const& desc);
 
     GfxResource() = default;
+    GfxResource(GfxResource&& other) noexcept : handle_{other.handle_} { other.handle_ = {}; }
 
-    GfxResource(GfxResource<Handle, Desc>&& other) noexcept : handle_{other.handle_}
-    {
-        other.handle_ = {};
-    }
-
-    GfxResource<Handle, Desc>& operator=(GfxResource<Handle, Desc>&& other) noexcept
+    GfxResource& operator=(GfxResource&& other) noexcept
     {
         if (this != &other)
         {
@@ -44,8 +43,8 @@ struct GfxResource
     /// Returns the resource's unique handle
     Handle handle() const { return handle_; }
 
-    /// Initializes the resource. If the resource has already been initialized, this will
-    /// reinitialize it.
+    /// Initializes the resource. If the resource doesn't have a valid handle, this will allocate
+    /// one. If the resource has already been initialized, this will deinitialize it first.
     void init(Desc const& desc);
 
     /// True if the resource has a valid handle
@@ -64,13 +63,47 @@ struct GfxResource
     void destroy();
 };
 
-using GfxPipeline = GfxResource<sg_pipeline, sg_pipeline_desc>;
-using GfxShader = GfxResource<sg_shader, sg_shader_desc>;
-using GfxBuffer = GfxResource<sg_buffer, sg_buffer_desc>;
-using GfxImage = GfxResource<sg_image, sg_image_desc>;
-using GfxSampler = GfxResource<sg_sampler, sg_sampler_desc>;
-using GfxView = GfxResource<sg_view, sg_view_desc>;
+using GfxPipeline = GfxResource<sg_pipeline>;
+using GfxShader = GfxResource<sg_shader>;
+using GfxBuffer = GfxResource<sg_buffer>;
+using GfxImage = GfxResource<sg_image>;
+using GfxSampler = GfxResource<sg_sampler>;
+using GfxView = GfxResource<sg_view>;
 
-using GfxBindings = sg_bindings;
+template <>
+struct Traits<sg_pipeline>
+{
+    using Desc = sg_pipeline_desc;
+};
+
+template <>
+struct Traits<sg_shader>
+{
+    using Desc = sg_shader_desc;
+};
+
+template <>
+struct Traits<sg_buffer>
+{
+    using Desc = sg_buffer_desc;
+};
+
+template <>
+struct Traits<sg_image>
+{
+    using Desc = sg_image_desc;
+};
+
+template <>
+struct Traits<sg_sampler>
+{
+    using Desc = sg_sampler_desc;
+};
+
+template <>
+struct Traits<sg_view>
+{
+    using Desc = sg_view_desc;
+};
 
 } // namespace dr
