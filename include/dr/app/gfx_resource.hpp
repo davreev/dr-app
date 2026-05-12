@@ -2,11 +2,10 @@
 
 #include <sokol_gfx.h>
 
+#include <dr/traits.hpp>
+
 namespace dr
 {
-
-template <typename T, typename Enable = void>
-struct Traits;
 
 template <typename Handle_>
 struct GfxResource
