@@ -14,8 +14,8 @@ namespace dr
 
 bool is_mouse_over(App::Event const& event)
 {
-    return event.mouse_x >= 0 && event.mouse_x < event.window_width && event.mouse_y >= 0
-        && event.mouse_y < event.window_height;
+    return event.mouse_x >= 0 && event.mouse_x < event.framebuffer_width && event.mouse_y >= 0
+        && event.mouse_y < event.framebuffer_height;
 }
 
 f32 screen_to_view_scale(f32 const fov, f32 const size)
