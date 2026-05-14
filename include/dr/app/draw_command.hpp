@@ -18,12 +18,13 @@ enum struct UniformBlock : u8
 
 struct DrawCommand
 {
+    static constexpr u8 num_vertex_slots = SG_MAX_VERTEXBUFFER_BINDSLOTS;
+
     GfxPipeline::Handle pipeline{};
     void const* material{};
     void const* geometry{};
     void (*set_bindings)(DrawCommand const& self, sg_bindings& bindings);
-    i32 vertex_offsets[SG_MAX_VERTEXBUFFER_BINDSLOTS]{};
-    i32 index_offset{};
+    i32 vertex_offsets[num_vertex_slots]{};
     struct
     {
         i32 material{invalid_index<i32>};

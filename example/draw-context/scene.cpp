@@ -280,7 +280,7 @@ void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view)
                     bindings.index_buffer = geom->index;
                 },
             .vertex_offsets{
-                draw_ctx.geometry.push_vertices_once(&geom, 0, as<u8>(as_span(state.instances))),
+                draw_ctx.geometry.push_vertices_once<0>(&geom, as<u8>(as_span(state.instances))),
             },
             .uniform_slices{
                 .object = draw_ctx.push_uniforms(as_bytes(obj_uniforms)),

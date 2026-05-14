@@ -13,9 +13,16 @@ namespace dr
 
 struct GeometryStream
 {
+    static constexpr u8 num_vertex_slots = SG_MAX_VERTEXBUFFER_BINDSLOTS;
+
     i32 push_vertices(Span<u8 const> const& data);
 
-    i32 push_vertices_once(void const* key, u8 slot, Span<u8 const> const&);
+    template <u8 slot>
+    i32 push_vertices_once(void const* key, Span<u8 const> const& data)
+    {
+        static_assert(slot < num_vertex_slots);
+        return push_vertices_once({key, slot}, data);
+    }
 
     i32 push_indices(Span<u8 const> const& data);
 
@@ -56,6 +63,8 @@ struct GeometryStream
     BufferStage index_stage_;
     HashMap<VertexKey, i32, VertexKey::Hash> vertex_offsets_;
     HashMap<void const*, i32> index_offsets_;
+
+    i32 push_vertices_once(VertexKey const& key, Span<u8 const> const& data);
 };
 
 } // namespace dr

@@ -25,6 +25,17 @@ void apply_uniforms(UniformBlock const block, Span<u8 const> const data)
     sg_apply_uniforms(int(block), {data.data(), usize(data.size())});
 }
 
+bool has_vertex_offsets(DrawCommand const& cmd)
+{
+    for (auto v : cmd.vertex_offsets)
+    {
+        if (v > 0)
+            return true;
+    }
+
+    return false;
+}
+
 void submit_draw_cmds(
     DrawContext::PassInfo const& pass,
     Span<DrawCommand const> const& draw_cmds,
@@ -73,6 +84,14 @@ void submit_draw_cmds(
 
             prev_geometry = cmd.geometry;
             bindings_dirty = true;
+        }
+
+        // Force rebind if the current cmd is using vertex offsets. Clearing prev ensures the next
+        // cmd rebinds if it has the same source geometry.
+        if (has_vertex_offsets(cmd))
+        {
+            bindings_dirty = true;
+            prev_geometry = {};
         }
 
         if (bindings_dirty)
