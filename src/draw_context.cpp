@@ -132,13 +132,15 @@ i32 DrawContext::push_uniforms_once(void const* key, Span<u8 const> const& data)
 
 void DrawContext::submit_draw_cmds(PassInfo const& pass)
 {
-    geometry.update_device_buffers();
+    streams.vertex.update_device_buffer();
+    streams.index.update_device_buffer();
 
     order_draw_cmds(as_span(draw_cmds));
     dr::submit_draw_cmds(pass, as_span(draw_cmds), uniform_data_);
 
     draw_cmds.clear();
-    geometry.clear();
+    streams.vertex.clear();
+    streams.index.clear();
     uniform_data_.clear();
     slices_.clear();
 }

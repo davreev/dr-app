@@ -244,20 +244,20 @@ void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view)
 
     auto& draw_ctx = state.draw_ctx;
 
-    // NOTE(dr): Using immutable buffers for static mesh data and the draw context's geometry stream
+    // NOTE(dr): Using immutable buffers for static mesh data and the draw context's vertex stream
     // for dynamic instance data
 
     struct Geometry
     {
         GfxBuffer::Handle vertex;
         GfxBuffer::Handle index;
-        GeometryStream* stream;
+        VertexStream* stream;
     };
 
     Geometry const geom{
         .vertex = state.gfx.mesh.vertex_buffer,
         .index = state.gfx.mesh.index_buffer,
-        .stream = &draw_ctx.geometry,
+        .stream = &draw_ctx.streams.vertex,
     };
 
     // Create draw commands
@@ -275,12 +275,12 @@ void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view)
                 [](DrawCommand const& cmd, sg_bindings& bindings) {
                     auto geom = static_cast<Geometry const*>(cmd.geometry);
                     bindings.vertex_buffers[0] = geom->vertex;
-                    bindings.vertex_buffers[1] = geom->stream->vertex_buffer();
+                    bindings.vertex_buffers[1] = geom->stream->device_buffer();
                     bindings.vertex_buffer_offsets[1] = cmd.vertex_offsets[0];
                     bindings.index_buffer = geom->index;
                 },
             .vertex_offsets{
-                draw_ctx.geometry.push_vertices_once<0>(&geom, as<u8>(as_span(state.instances))),
+                draw_ctx.streams.vertex.push_once<0>(&geom, as<u8>(as_span(state.instances))),
             },
             .uniform_slices{
                 .object = draw_ctx.push_uniforms(as_bytes(obj_uniforms)),

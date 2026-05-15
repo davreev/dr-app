@@ -15,7 +15,11 @@ namespace dr
 struct DrawContext
 {
     DynamicArray<DrawCommand> draw_cmds;
-    GeometryStream geometry;
+    struct
+    {
+        VertexStream vertex;
+        IndexStream<i32> index;
+    } streams;
 
     i32 push_uniforms(Span<u8 const> const& data);
     i32 push_uniforms_once(void const* key, Span<u8 const> const& data);
