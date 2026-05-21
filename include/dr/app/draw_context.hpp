@@ -6,7 +6,7 @@
 #include <dr/span.hpp>
 
 #include <dr/app/draw_command.hpp>
-#include <dr/app/geometry_stream.hpp>
+#include <dr/app/draw_streams.hpp>
 #include <dr/app/gfx_resource.hpp>
 
 namespace dr
@@ -15,14 +15,9 @@ namespace dr
 struct DrawContext
 {
     DynamicArray<DrawCommand> draw_cmds;
-    struct
-    {
-        VertexStream vertex;
-        IndexStream<i32> index;
-    } streams;
-
-    i32 push_uniforms(Span<u8 const> const& data);
-    i32 push_uniforms_once(void const* key, Span<u8 const> const& data);
+    VertexStream vertex_stream;
+    IndexStream<i32> index_stream;
+    UniformStream uniform_stream;
 
     struct PassInfo
     {
@@ -31,10 +26,6 @@ struct DrawContext
     };
 
     void submit_draw_cmds(PassInfo const& pass = {});
-
-  private:
-    SlicedArray<u8> uniform_data_;
-    HashMap<void const*, i32> slices_;
 };
 
 } // namespace dr

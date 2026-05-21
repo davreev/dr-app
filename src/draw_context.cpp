@@ -36,11 +36,15 @@ bool has_vertex_offsets(DrawCommand const& cmd)
     return false;
 }
 
-void submit_draw_cmds(
-    DrawContext::PassInfo const& pass,
-    Span<DrawCommand const> const& draw_cmds,
-    SlicedArray<u8> const& uniform_data)
+} // namespace
+
+void DrawContext::submit_draw_cmds(PassInfo const& pass)
 {
+    vertex_stream.update_device_buffer();
+    index_stream.update_device_buffer();
+
+    order_draw_cmds(as_span(draw_cmds));
+
     GfxPipeline::Handle pipeline{};
     void const* prev_geometry = nullptr;
     void const* prev_material = nullptr;
@@ -64,7 +68,7 @@ void submit_draw_cmds(
         {
             if (cmd.uniform_slices.material != invalid_index<i32>)
             {
-                Span<u8 const> const data = uniform_data[cmd.uniform_slices.material];
+                Span<u8 const> const data = uniform_stream[cmd.uniform_slices.material];
                 if (data.size() > 0)
                     apply_uniforms(UniformBlock::Material, data);
             }
@@ -77,7 +81,7 @@ void submit_draw_cmds(
         {
             if (cmd.uniform_slices.geometry != invalid_index<i32>)
             {
-                Span<u8 const> const data = uniform_data[cmd.uniform_slices.geometry];
+                Span<u8 const> const data = uniform_stream[cmd.uniform_slices.geometry];
                 if (data.size() > 0)
                     apply_uniforms(UniformBlock::Geometry, data);
             }
@@ -86,8 +90,9 @@ void submit_draw_cmds(
             bindings_dirty = true;
         }
 
-        // Force rebind if the current cmd is using vertex offsets. Clearing prev ensures the next
-        // cmd rebinds if it has the same source geometry.
+        // NOTE(dr): Force rebind if the current draw cmd uses vertex offsets. Clearing prev geom
+        // ensures the next draw cmd rebinds if it has the same source geometry but doesn't use
+        // dynamic offsets.
         if (has_vertex_offsets(cmd))
         {
             bindings_dirty = true;
@@ -103,46 +108,18 @@ void submit_draw_cmds(
 
         if (cmd.uniform_slices.object != invalid_index<i32>)
         {
-            Span<u8 const> const data = uniform_data[cmd.uniform_slices.object];
+            Span<u8 const> const data = uniform_stream[cmd.uniform_slices.object];
             if (data.size() > 0)
                 apply_uniforms(UniformBlock::Object, data);
         }
 
         sg_draw(cmd.base_element, cmd.num_elements, cmd.num_instances);
     }
-}
-
-} // namespace
-
-i32 DrawContext::push_uniforms(Span<u8 const> const& data)
-{
-    i32 const slice = uniform_data_.num_slices();
-    uniform_data_.push_back(data);
-    return slice;
-}
-
-i32 DrawContext::push_uniforms_once(void const* key, Span<u8 const> const& data)
-{
-    auto const [it, ok] = slices_.try_emplace(key);
-    if (ok)
-        it->second = push_uniforms(data);
-
-    return it->second;
-}
-
-void DrawContext::submit_draw_cmds(PassInfo const& pass)
-{
-    streams.vertex.update_device_buffer();
-    streams.index.update_device_buffer();
-
-    order_draw_cmds(as_span(draw_cmds));
-    dr::submit_draw_cmds(pass, as_span(draw_cmds), uniform_data_);
 
     draw_cmds.clear();
-    streams.vertex.clear();
-    streams.index.clear();
-    uniform_data_.clear();
-    slices_.clear();
+    vertex_stream.clear();
+    index_stream.clear();
+    uniform_stream.clear();
 }
 
 } // namespace dr

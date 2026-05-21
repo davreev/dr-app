@@ -37,8 +37,8 @@ add_library(
     src/camera_controls.cpp
     src/camera_rig.cpp
     src/draw_context.cpp
+    src/draw_streams.cpp
     src/file_utils.cpp
-    src/geometry_stream.cpp
     src/gfx_resource.cpp
     src/gfx_utils.cpp
     src/orbit_camera.cpp

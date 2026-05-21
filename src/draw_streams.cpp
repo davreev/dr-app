@@ -1,4 +1,4 @@
-#include <dr/app/geometry_stream.hpp>
+#include <dr/app/draw_streams.hpp>
 
 #include <cassert>
 
@@ -91,5 +91,27 @@ template struct IndexStream<u16>;
 template struct IndexStream<u32>;
 template struct IndexStream<i16>;
 template struct IndexStream<i32>;
+
+i32 UniformStream::push(Span<u8 const> const& bytes)
+{
+    i32 const slice = stage_.num_slices();
+    stage_.push_back(bytes);
+    return slice;
+}
+
+i32 UniformStream::push_once(void const* key, Span<u8 const> const& bytes)
+{
+    auto const [it, ok] = slices_.try_emplace(key);
+    if (ok)
+        it->second = push(bytes);
+
+    return it->second;
+}
+
+void UniformStream::clear()
+{
+    stage_.clear();
+    slices_.clear();
+}
 
 } // namespace dr

@@ -4,6 +4,7 @@
 #include <dr/dynamic_array.hpp>
 #include <dr/hash.hpp>
 #include <dr/hash_map.hpp>
+#include <dr/sliced_array.hpp>
 #include <dr/span.hpp>
 
 #include <dr/app/gfx_resource.hpp>
@@ -15,7 +16,7 @@ struct BufferStage
 {
     DynamicArray<u8> host_buf;
     GfxBuffer device_buf;
-    usize device_size;
+    usize device_size{};
 
     i32 append(Span<u8 const> const& bytes);
     void update_device(sg_buffer_usage usage);
@@ -75,6 +76,21 @@ struct IndexStream
   private:
     BufferStage stage_;
     HashMap<void const*, i32> offsets_;
+};
+
+struct UniformStream
+{
+    i32 push(Span<u8 const> const& bytes);
+
+    i32 push_once(void const* key, Span<u8 const> const& bytes);
+
+    Span<u8 const> operator[](i32 const slice) const { return stage_[slice]; }
+
+    void clear();
+
+  private:
+    SlicedArray<u8> stage_;
+    HashMap<void const*, i32> slices_;
 };
 
 } // namespace dr

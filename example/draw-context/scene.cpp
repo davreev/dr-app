@@ -257,7 +257,7 @@ void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view)
     Geometry const geom{
         .vertex = state.gfx.mesh.vertex_buffer,
         .index = state.gfx.mesh.index_buffer,
-        .stream = &draw_ctx.streams.vertex,
+        .stream = &draw_ctx.vertex_stream,
     };
 
     // Create draw commands
@@ -280,10 +280,10 @@ void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view)
                     bindings.index_buffer = geom->index;
                 },
             .vertex_offsets{
-                draw_ctx.streams.vertex.push_once<0>(&geom, as<u8>(as_span(state.instances))),
+                draw_ctx.vertex_stream.push_once<0>(&geom, as<u8>(as_span(state.instances))),
             },
             .uniform_slices{
-                .object = draw_ctx.push_uniforms(as_bytes(obj_uniforms)),
+                .object = draw_ctx.uniform_stream.push(as_bytes(obj_uniforms)),
             },
             .num_elements = 3 * i32(mesh_indices().size()),
             .num_instances = i32(state.instances.size()),
