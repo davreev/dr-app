@@ -152,7 +152,7 @@ bool camera_handle_touch_event(
                     f32 const d1 = (p0 - p1).norm();
                     f32 const diff = screen_norm * (d1 - d0);
 
-                    if (diff > action_tol)
+                    if (abs(diff) > action_tol)
                     {
                         zoom.handle_input(diff * (cam_offset * drag_scale));
                         return true;
