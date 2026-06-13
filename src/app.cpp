@@ -283,7 +283,7 @@ void App::set_scene(App::Scene const& scene)
     state.scene_dirty = true;
 }
 
-sg_pass_action pass_action() { return state.desc.pass_action; }
+sg_pass_action& App::pass_action() { return state.desc.pass_action; }
 
 App::Input const& App::input() { return state.input; }
 
