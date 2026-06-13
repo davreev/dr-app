@@ -18,14 +18,10 @@ CameraRig make_camera_rig(
 
 } // namespace
 
-void CameraRig::frame_bounds(
-    CameraRig& rig,
-    Vec3<f32> const& center,
-    f32 const radius,
-    f32 const fov_min)
+void CameraRig::frame_bounds(Vec3<f32> const& center, f32 const radius, f32 const fov_min)
 {
-    rig.pivot.position = center;
-    rig.offset = {0.0f, 0.0f, radius / std::sin(fov_min * 0.5f)};
+    pivot.position = center;
+    offset = {0.0f, 0.0f, radius / std::sin(fov_min * 0.5f)};
 }
 
 void CameraRig::transition_to(CameraRig const& other, f32 const t)

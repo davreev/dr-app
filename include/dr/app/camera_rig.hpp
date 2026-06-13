@@ -25,7 +25,7 @@ struct CameraRig
     Rigid3<f32> transform() const { return {pivot.rotation, position()}; }
 
     /// Translates the camera rig to fit a given bounding sphere in view
-    void frame_bounds(CameraRig& rig, Vec3<f32> const& center, f32 radius, f32 fov_min);
+    void frame_bounds(Vec3<f32> const& center, f32 radius, f32 fov_min);
 
     /// Transitions the camera rig to another
     void transition_to(CameraRig const& other, f32 const t);
