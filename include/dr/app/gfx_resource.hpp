@@ -50,14 +50,19 @@ struct GfxResource
     bool is_valid() const { return handle_.id != SG_INVALID_ID; }
 
     /// True if the resource has been initialized
-    bool is_init() const { return query_state() == SG_RESOURCESTATE_VALID; }
+    bool is_init() const
+    {
+        auto const rs = status();
+        return rs == SG_RESOURCESTATE_VALID || rs == SG_RESOURCESTATE_FAILED;
+    }
+
+    /// Returns the current status of the resource
+    sg_resource_state status() const;
 
   private:
     Handle handle_{};
 
     GfxResource(Handle const handle) : handle_{handle} {}
-
-    sg_resource_state query_state() const;
 
     void destroy();
 };

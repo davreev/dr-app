@@ -104,7 +104,7 @@ void GfxResource<Handle>::init(Desc const& desc)
 }
 
 template <typename Handle>
-sg_resource_state GfxResource<Handle>::query_state() const
+sg_resource_state GfxResource<Handle>::status() const
 {
     return sg_query_resource_state<Handle>(handle_);
 }
