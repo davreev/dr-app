@@ -58,7 +58,7 @@ struct App
     static Scene const& scene();
     static void set_scene(Scene const& scene);
 
-    sg_pass_action& pass_action();
+    static sg_pass_action& pass_action();
 
     static Input const& input();
 
