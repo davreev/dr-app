@@ -105,6 +105,10 @@ bool camera_handle_touch_event(
 {
     if (event.type == SAPP_EVENTTYPE_TOUCHES_MOVED)
     {
+        // Ignore current gesture if number of touches changed
+        if (event.num_touches != App::input().prev_num_touches)
+            return false;
+
         f32 const cam_offset = zoom.distance.current;
         f32 const screen_norm = 1.0 / sapp_heightf();
 
