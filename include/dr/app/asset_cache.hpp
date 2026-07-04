@@ -1,7 +1,8 @@
 #pragma once
 
+#include <unordered_map>
+
 #include <dr/allocator.hpp>
-#include <dr/hash_map.hpp>
 #include <dr/string.hpp>
 
 namespace dr
@@ -24,7 +25,7 @@ struct AssetCache : AllocatorAware
     Allocator allocator() const { return assets_.get_allocator(); }
 
     /// Returns the asset at the given path if it's in the cache. Otherwise, returns a null pointer.
-    T const* get(String const& path)
+    T const* get(String const& path) const
     {
         auto itr = assets_.find(path);
         return (itr == assets_.end()) ? nullptr : &itr->second;
@@ -37,9 +38,7 @@ struct AssetCache : AllocatorAware
     {
         static_assert(std::is_invocable_r_v<bool, Loader, String const&, T&>);
 
-        // NOTE: The container's allocator must be explicitly passed to new keys when
-        // using try_emplace
-        auto const [itr, ok] = assets_.try_emplace({path, allocator()});
+        auto const [itr, ok] = assets_.try_emplace(path);
 
         // Load asset on cache miss
         if (ok || force_load)
@@ -61,7 +60,8 @@ struct AssetCache : AllocatorAware
     void clear() { assets_.clear(); }
 
   private:
-    StableHashMap<String, T> assets_;
+    using HashMap = std::pmr::unordered_map<String, T>;
+    HashMap assets_;
 };
 
 } // namespace dr
