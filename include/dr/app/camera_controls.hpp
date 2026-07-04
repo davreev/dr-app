@@ -28,7 +28,7 @@ struct Zoom
     {
         f32 current{1.0};
         f32 target{current};
-        f32 min{};
+        f32 min{1.0e-5};
         f32 max{1.0e5};
     } distance;
     f32 sensitivity{1.0};
