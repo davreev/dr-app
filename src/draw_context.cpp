@@ -38,10 +38,27 @@ bool has_vertex_offsets(DrawCommand const& cmd)
 
 } // namespace
 
+void DrawContext::begin_frame()
+{
+    draw_cmds.clear();
+    vertex_stream.reset();
+    index_stream.reset();
+    uniform_stream.reset();
+}
+
 void DrawContext::submit_draw_cmds(PassInfo const& pass)
 {
-    vertex_stream.update_device_buffer();
-    index_stream.update_device_buffer();
+    // NOTE(dr): If either transfer fails, the pass is skipped for a frame since any draw command
+    // making use of streams refers to data that wasn't uploaded. We recover on the next frame after
+    // stream device buffers have been resized.
+    bool transfer_ok = true;
+    transfer_ok &= vertex_stream.transfer();
+    transfer_ok &= index_stream.transfer();
+    if (!transfer_ok)
+    {
+        draw_cmds.clear();
+        return;
+    }
 
     order_draw_cmds(as_span(draw_cmds));
 
@@ -117,9 +134,6 @@ void DrawContext::submit_draw_cmds(PassInfo const& pass)
     }
 
     draw_cmds.clear();
-    vertex_stream.clear();
-    index_stream.clear();
-    uniform_stream.clear();
 }
 
 } // namespace dr

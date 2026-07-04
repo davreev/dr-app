@@ -16,10 +16,21 @@ struct BufferStage
 {
     DynamicArray<u8> host_buf;
     GfxBuffer device_buf;
+    usize host_offset{};
     usize device_size{};
 
-    i32 append(Span<u8 const> const& bytes);
-    void update_device(sg_buffer_usage usage);
+    /// Appends a chunk of bytes to the host buffer, returning the offset to the beginning of the
+    /// chunk. This corresponds with the offset of the data in the device buffer once transferred.
+    i32 push(Span<u8 const> const& bytes);
+
+    /// Transfers pushed data from host buffer to device buffer. This can be called repeatedly
+    /// within the same frame to upload data in batches over multiple render passes. Returns false
+    /// if the device buffer isn't large enough; it's automatically resized on the *first* transfer
+    /// each frame to match the capacity of the host buffer.
+    bool transfer(sg_buffer_usage usage);
+
+    /// Clears the host buffer. Typically called once per frame, before pushing any data.
+    void reset();
 };
 
 struct VertexStream
@@ -35,11 +46,11 @@ struct VertexStream
         return push_vertices_once({key, slot}, bytes);
     }
 
+    bool transfer();
+
+    void reset();
+
     GfxBuffer::Handle device_buffer() const { return stage_.device_buf; }
-
-    void update_device_buffer();
-
-    void clear();
 
   private:
     struct Key
@@ -67,11 +78,11 @@ struct IndexStream
 
     i32 push_once(void const* key, Span<Index const> const& indices);
 
+    bool transfer();
+
+    void reset();
+
     GfxBuffer::Handle device_buffer() const { return stage_.device_buf; }
-
-    void update_device_buffer();
-
-    void clear();
 
   private:
     BufferStage stage_;
@@ -84,9 +95,9 @@ struct UniformStream
 
     i32 push_once(void const* key, Span<u8 const> const& bytes);
 
-    Span<u8 const> operator[](i32 const slice) const { return stage_[slice]; }
+    void reset();
 
-    void clear();
+    Span<u8 const> operator[](i32 const slice) const { return stage_[slice]; }
 
   private:
     SlicedArray<u8> stage_;

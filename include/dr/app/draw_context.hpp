@@ -25,6 +25,8 @@ struct DrawContext
         Span<u8 const> uniform_data;
     };
 
+    void begin_frame();
+
     void submit_draw_cmds(PassInfo const& pass = {});
 };
 
