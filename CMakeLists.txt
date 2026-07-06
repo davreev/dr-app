@@ -103,6 +103,16 @@ if(NOT DR_APP_UTIL_ONLY)
 
     include(deps/imgui)
 
+    # Dedicated target for custom ImGui config
+    add_library(imgui-config INTERFACE)
+    target_compile_definitions(
+        imgui-config
+        INTERFACE
+            IMGUI_USER_CONFIG="dr/app/shim/imgui_config.hpp"
+    )
+    target_link_libraries(imgui-config INTERFACE dr-app-util)
+    target_link_libraries(imgui PUBLIC imgui-config)
+
     target_link_libraries(
         dr-app-sokol
         PUBLIC
