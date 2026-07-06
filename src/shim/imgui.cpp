@@ -72,9 +72,11 @@ void ImGuiColors::set_low_contrast_dark(ImVec4* const colors)
 
     colors[ImGuiCol_Tab] = {0.3f, 0.3f, 0.3f, 1.0f};
     colors[ImGuiCol_TabHovered] = {0.4f, 0.4f, 0.4f, 1.0f};
-    colors[ImGuiCol_TabActive] = {0.4f, 0.4f, 0.4f, 1.0f};
-    colors[ImGuiCol_TabUnfocused] = {0.3f, 0.3f, 0.3f, 1.0f};
-    colors[ImGuiCol_TabUnfocusedActive] = {0.4f, 0.4f, 0.4f, 1.0f};
+    colors[ImGuiCol_TabSelected] = {0.4f, 0.4f, 0.4f, 1.0f};
+    colors[ImGuiCol_TabSelectedOverline] = {0.5f, 0.5f, 0.5f, 1.0f};
+    colors[ImGuiCol_TabDimmed] = {0.3f, 0.3f, 0.3f, 1.0f};
+    colors[ImGuiCol_TabDimmedSelected] = {0.4f, 0.4f, 0.4f, 1.0f};
+    colors[ImGuiCol_TabDimmedSelectedOverline] = {0.4f, 0.4f, 0.4f, 1.0f};
 
     colors[ImGuiCol_PlotLines] = {1.0f, 1.0f, 1.0f, 0.3f};
     colors[ImGuiCol_PlotLinesHovered] = {1.0f, 1.0f, 1.0f, 0.7f};
@@ -83,10 +85,11 @@ void ImGuiColors::set_low_contrast_dark(ImVec4* const colors)
     colors[ImGuiCol_PlotHistogramHovered] = {1.0f, 1.0f, 1.0f, 0.7f};
 
     colors[ImGuiCol_TextSelectedBg] = {0.4f, 0.4f, 0.4f, 1.0f};
+    colors[ImGuiCol_TextLink] = {1.0f, 1.0f, 1.0f, 0.9f};
 
     colors[ImGuiCol_DragDropTarget] = {0.4f, 0.4f, 0.4f, 1.0f};
 
-    colors[ImGuiCol_NavHighlight] = {1.0f, 1.0f, 1.0f, 0.7f};
+    colors[ImGuiCol_NavCursor] = {1.0f, 1.0f, 1.0f, 0.7f};
     colors[ImGuiCol_NavWindowingHighlight] = {1.0f, 1.0f, 1.0f, 0.7f};
     colors[ImGuiCol_NavWindowingDimBg] = {0.15f, 0.15f, 0.15f, 0.3f};
 
@@ -143,10 +146,12 @@ void ImGuiColors::set_low_contrast_mid(ImVec4* const colors)
 
     colors[ImGuiCol_Tab] = {0.65f, 0.65f, 0.65f, 1.0f};
     colors[ImGuiCol_TabHovered] = {0.575, 0.575, 0.575, 1.0f};
-    colors[ImGuiCol_TabActive] = {0.575, 0.575, 0.575, 1.0f};
+    colors[ImGuiCol_TabSelected] = {0.575, 0.575, 0.575, 1.0f};
+    colors[ImGuiCol_TabSelectedOverline] = {0.45f, 0.45f, 0.45f, 1.0f};
 
-    colors[ImGuiCol_TabUnfocused] = {0.65f, 0.65f, 0.65f, 1.0f};
-    colors[ImGuiCol_TabUnfocusedActive] = {0.575, 0.575, 0.575, 1.0f};
+    colors[ImGuiCol_TabDimmed] = {0.65f, 0.65f, 0.65f, 1.0f};
+    colors[ImGuiCol_TabDimmedSelected] = {0.575, 0.575, 0.575, 1.0f};
+    colors[ImGuiCol_TabDimmedSelectedOverline] = {0.5f, 0.5f, 0.5f, 1.0f};
 
     colors[ImGuiCol_PlotLines] = {0.15f, 0.15f, 0.15f, 0.3f};
     colors[ImGuiCol_PlotLinesHovered] = {0.15f, 0.15f, 0.15f, 0.7f};
@@ -158,7 +163,7 @@ void ImGuiColors::set_low_contrast_mid(ImVec4* const colors)
 
     colors[ImGuiCol_DragDropTarget] = {0.575, 0.575, 0.575, 1.0f};
 
-    colors[ImGuiCol_NavHighlight] = {0.15f, 0.15f, 0.15f, 0.7f};
+    colors[ImGuiCol_NavCursor] = {0.15f, 0.15f, 0.15f, 0.7f};
     colors[ImGuiCol_NavWindowingHighlight] = {0.15f, 0.15f, 0.15f, 0.7f};
     colors[ImGuiCol_NavWindowingDimBg] = {0.85f, 0.85f, 0.85f, 0.3f};
 
@@ -215,10 +220,12 @@ void ImGuiColors::set_low_contrast_light(ImVec4* const colors)
 
     colors[ImGuiCol_Tab] = {0.75f, 0.75f, 0.75f, 1.0f};
     colors[ImGuiCol_TabHovered] = {0.65f, 0.65f, 0.65f, 1.0f};
-    colors[ImGuiCol_TabActive] = {0.65f, 0.65f, 0.65f, 1.0f};
+    colors[ImGuiCol_TabSelected] = {0.65f, 0.65f, 0.65f, 1.0f};
+    colors[ImGuiCol_TabSelectedOverline] = {0.55f, 0.55f, 0.55f, 1.0f};
 
-    colors[ImGuiCol_TabUnfocused] = {0.75f, 0.75f, 0.75f, 1.0f};
-    colors[ImGuiCol_TabUnfocusedActive] = {0.65f, 0.65f, 0.65f, 1.0f};
+    colors[ImGuiCol_TabDimmed] = {0.75f, 0.75f, 0.75f, 1.0f};
+    colors[ImGuiCol_TabDimmedSelected] = {0.65f, 0.65f, 0.65f, 1.0f};
+    colors[ImGuiCol_TabDimmedSelectedOverline] = {0.6f, 0.6f, 0.6f, 1.0f};
 
     colors[ImGuiCol_PlotLines] = {0.15f, 0.15f, 0.15f, 0.3f};
     colors[ImGuiCol_PlotLinesHovered] = {0.15f, 0.15f, 0.15f, 0.7f};
@@ -230,7 +237,7 @@ void ImGuiColors::set_low_contrast_light(ImVec4* const colors)
 
     colors[ImGuiCol_DragDropTarget] = {0.65f, 0.65f, 0.65f, 1.0f};
 
-    colors[ImGuiCol_NavHighlight] = {0.15f, 0.15f, 0.15f, 0.7f};
+    colors[ImGuiCol_NavCursor] = {0.15f, 0.15f, 0.15f, 0.7f};
     colors[ImGuiCol_NavWindowingHighlight] = {0.15f, 0.15f, 0.15f, 0.7f};
     colors[ImGuiCol_NavWindowingDimBg] = {0.9f, 0.9f, 0.9f, 0.3f};
 
