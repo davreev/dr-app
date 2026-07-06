@@ -12,6 +12,9 @@ FetchContent_Declare(
 option(DR_APP_TRACY "Enable Tracy profiler" OFF)
 
 if(DR_APP_TRACY)
+    if(EMSCRIPTEN)
+        message(FATAL_ERROR "Tracy is not supported in Emscripten builds")
+    endif()
     FetchContent_MakeAvailable(tracy)
     target_compile_options(TracyClient PRIVATE -w)
 else()
