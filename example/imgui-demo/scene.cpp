@@ -12,11 +12,13 @@ namespace dr
 namespace
 {
 
-void draw()
+void update()
 {
+    App::begin_swapchain_pass();
     ImGui::ShowDemoWindow();
     ImPlot::ShowDemoWindow();
     ImPlot3D::ShowDemoWindow();
+    App::end_swapchain_pass();
 }
 
 } // namespace
@@ -25,7 +27,7 @@ App::Scene scene()
 {
     return {
         .name = "Example: ImGui Demo",
-        .draw = draw,
+        .update = update,
     };
 }
 

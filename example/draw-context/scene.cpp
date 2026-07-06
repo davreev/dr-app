@@ -231,13 +231,6 @@ void close()
     state.draw_ctx = {};
 }
 
-void update()
-{
-    update_instances(App::time_s());
-    state.camera.update(App::delta_time_s());
-    state.fps.update();
-}
-
 void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view)
 {
     ZoneScoped;
@@ -362,9 +355,23 @@ void draw_ui()
 
 void draw()
 {
+    App::begin_swapchain_pass();
+
+    state.draw_ctx.begin_frame();
+
     auto const& cam = state.camera;
     draw_scene(cam.make_view_to_clip<ndc>(App::aspect()), cam.make_world_to_view());
     draw_ui();
+
+    App::end_swapchain_pass();
+}
+
+void update()
+{
+    update_instances(App::time_s());
+    state.camera.update(App::delta_time_s());
+    state.fps.update();
+    draw();
 }
 
 void handle_event(App::Event const& event)
@@ -424,7 +431,6 @@ App::Scene scene()
         .open = open,
         .close = close,
         .update = update,
-        .draw = draw,
         .handle_event = handle_event,
     };
 }

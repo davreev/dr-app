@@ -107,31 +107,17 @@ void frame()
         state.scene_dirty = false;
     }
 
+    simgui_new_frame({
+        .width = sapp_width(),
+        .height = sapp_height(),
+        .delta_time = stm_sec(state.delta_time),
+        .dpi_scale = sapp_dpi_scale(),
+    });
+
     if (state.desc.scene.update)
         state.desc.scene.update();
 
-    // Main render pass
-    {
-        simgui_new_frame({
-            .width = sapp_width(),
-            .height = sapp_height(),
-            .delta_time = stm_sec(state.delta_time),
-            .dpi_scale = sapp_dpi_scale(),
-        });
-
-        sg_pass const pass{
-            .action = state.desc.pass_action,
-            .swapchain = sglue_swapchain(),
-        };
-        sg_begin_pass(&pass);
-
-        if (state.desc.scene.draw)
-            state.desc.scene.draw();
-
-        simgui_render();
-        sg_end_pass();
-        sg_commit();
-    }
+    sg_commit();
 
     TracyGpuCollect;
 }
@@ -224,7 +210,7 @@ sapp_desc sokol_app_desc()
         .height = window.height,
         .sample_count = 4,
         .high_dpi = true,
-        .window_title = window.title? window.title : scene.name,
+        .window_title = window.title ? window.title : scene.name,
         .enable_clipboard = true,
         .logger{
             .func = slog_func,
@@ -242,22 +228,7 @@ sapp_desc sokol_app_desc()
     return desc;
 }
 
-} // namespace
-
-App::Scene App::default_scene()
-{
-    return {
-        .name = "Default Scene",
-        .draw =
-            []() {
-                ImGui::BeginTooltip();
-                ImGui::Text("This is the default scene. Nothing to see here.");
-                ImGui::EndTooltip();
-            },
-    };
-}
-
-sg_pass_action App::default_pass_action()
+sg_pass_action default_pass_action()
 {
     return {
         .colors{
@@ -269,6 +240,25 @@ sg_pass_action App::default_pass_action()
     };
 }
 
+} // namespace
+
+void App::begin_swapchain_pass(sg_pass_action const& action)
+{
+    sg_pass const pass{
+        .action = action,
+        .swapchain = sglue_swapchain(),
+    };
+    sg_begin_pass(&pass);
+}
+
+void App::begin_swapchain_pass() { begin_swapchain_pass(default_pass_action()); }
+
+void App::end_swapchain_pass()
+{
+    simgui_render();
+    sg_end_pass();
+}
+
 void App::run(Desc const& desc)
 {
     state.desc = desc;
@@ -277,13 +267,26 @@ void App::run(Desc const& desc)
 
 App::Scene const& App::scene() { return state.desc.scene; }
 
+App::Scene App::default_scene()
+{
+    return {
+        .name = "Default Scene",
+        .update =
+            []() {
+                App::begin_swapchain_pass();
+                ImGui::BeginTooltip();
+                ImGui::Text("This is the default scene. Nothing to see here.");
+                ImGui::EndTooltip();
+                App::end_swapchain_pass();
+            },
+    };
+}
+
 void App::set_scene(App::Scene const& scene)
 {
     state.next_scene = scene;
     state.scene_dirty = true;
 }
-
-sg_pass_action& App::pass_action() { return state.desc.pass_action; }
 
 App::Input const& App::input() { return state.input; }
 

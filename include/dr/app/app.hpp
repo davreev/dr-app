@@ -20,15 +20,13 @@ struct App
         void (*open)();
         void (*close)();
         void (*update)();
-        void (*draw)();
         void (*handle_event)(Event const&);
         void* userdata;
     };
 
     struct Desc
     {
-        Scene scene = default_scene();
-        sg_pass_action pass_action = default_pass_action();
+        Scene scene = App::default_scene();
         void (*init_cb)();
         void (*deinit_cb)();
         struct
@@ -57,8 +55,11 @@ struct App
 
     static Scene const& scene();
     static void set_scene(Scene const& scene);
+    static Scene default_scene();
 
-    static sg_pass_action& pass_action();
+    static void begin_swapchain_pass(sg_pass_action const& action);
+    static void begin_swapchain_pass();
+    static void end_swapchain_pass();
 
     static Input const& input();
 
@@ -75,10 +76,6 @@ struct App
     static u64 delta_time();
     static f64 delta_time_s();
     static f64 delta_time_ms();
-
-  private:
-    static Scene default_scene();
-    static sg_pass_action default_pass_action();
 };
 
 } // namespace dr

@@ -114,8 +114,6 @@ void open()
 
 void close() { state.gfx = {}; }
 
-void update() { state.camera.update(App::delta_time_s()); }
-
 void draw_mesh(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
 {
     sg_apply_pipeline(state.gfx.pipeline);
@@ -206,6 +204,8 @@ void draw_ui()
 
 void draw()
 {
+    App::begin_swapchain_pass();
+
     auto const& cam = state.camera;
     Mat4<f32> const world_to_view = cam.make_world_to_view();
     Mat4<f32> const view_to_clip = cam.make_view_to_clip<ndc>(App::aspect());
@@ -216,6 +216,14 @@ void draw()
     draw_mesh(local_to_view, view_to_clip);
     debug_draw(local_to_view, world_to_view, view_to_clip);
     draw_ui();
+
+    App::end_swapchain_pass();
+}
+
+void update()
+{
+    state.camera.update(App::delta_time_s());
+    draw();
 }
 
 void handle_event(App::Event const& event)
@@ -305,7 +313,6 @@ App::Scene scene()
         .open = open,
         .close = close,
         .update = update,
-        .draw = draw,
         .handle_event = handle_event,
     };
 }
