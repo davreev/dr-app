@@ -16,8 +16,9 @@ usize aligned_size(usize const size, usize const align)
 
 } // namespace
 
-i32 StreamBuffer::push(Span<u8 const> const& bytes)
+i32 StreamBuffer::push(Span<u8 const> const& bytes, usize const align)
 {
+    host_buffer.resize(aligned_size(host_buffer.size(), align));
     i32 const offset = host_buffer.size();
     host_buffer.insert(host_buffer.end(), begin(bytes), end(bytes));
     return offset;
@@ -35,8 +36,8 @@ bool StreamBuffer::transfer(sg_buffer_usage usage)
 
     // NOTE(dr): A resize recreates the device buffer, discarding anything already appended this
     // frame, so it's only safe to do before the frame's first transfer (host_offset == 0). Sizing
-    // to the host buffer's capacity predicts this frame's needs from the previous frame's
-    // high-water mark.
+    // to the host buffer's capacity predicts this frame's needs based on the high-water mark from
+    // the previous frame.
     if (host_offset == 0 && host_buffer.capacity() > device_size)
     {
         // First transfer; resize the device buffer
@@ -80,7 +81,7 @@ usize VertexStream::Key::Hash::operator()(Key const& key) const
     return hash_mix(usize(key.src), usize(key.slot));
 }
 
-i32 VertexStream::push(Span<u8 const> const& bytes) { return buffer_.push(bytes); }
+i32 VertexStream::push(Span<u8 const> const& bytes) { return buffer_.push(bytes, 4); }
 
 i32 VertexStream::push_vertices_once(Key const& key, Span<u8 const> const& bytes)
 {
@@ -99,39 +100,24 @@ void VertexStream::reset()
     offsets_.clear();
 }
 
-template <typename Index>
-i32 IndexStream<Index>::push(Span<Index const> const& indices)
-{
-    return buffer_.push(as<u8>(indices)) / sizeof(Index);
-}
+i32 IndexStream::push(Span<u8 const> const& bytes) { return buffer_.push(bytes, 4); }
 
-template <typename Index>
-i32 IndexStream<Index>::push_once(void const* key, Span<Index const> const& indices)
+i32 IndexStream::push_once(void const* key, Span<u8 const> const& bytes)
 {
     auto const [it, ok] = offsets_.try_emplace(key);
     if (ok)
-        it->second = push(indices);
+        it->second = push(bytes);
 
     return it->second;
 }
 
-template <typename Index>
-bool IndexStream<Index>::transfer()
-{
-    return buffer_.transfer({.index_buffer = true});
-}
+bool IndexStream::transfer() { return buffer_.transfer({.index_buffer = true}); }
 
-template <typename Index>
-void IndexStream<Index>::reset()
+void IndexStream::reset()
 {
     buffer_.reset();
     offsets_.clear();
 }
-
-template struct IndexStream<u16>;
-template struct IndexStream<u32>;
-template struct IndexStream<i16>;
-template struct IndexStream<i32>;
 
 i32 UniformStream::push(Span<u8 const> const& bytes)
 {

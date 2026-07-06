@@ -24,16 +24,23 @@ struct DrawCommand
     void const* material{};
     void const* geometry{};
     void (*set_bindings)(DrawCommand const& self, sg_bindings& bindings);
-    i32 vertex_offsets[num_vertex_slots]{};
+    struct
+    {
+        i32 vertex[num_vertex_slots]{};
+        i32 index{};
+    } buffer_offsets;
     struct
     {
         i32 material{invalid_index<i32>};
         i32 geometry{invalid_index<i32>};
         i32 object{invalid_index<i32>};
     } uniform_slices;
-    i32 base_element{};
-    i32 num_elements{};
-    i32 num_instances{1};
+    struct
+    {
+        i32 first_element{};
+        i32 num_elements{};
+        i32 num_instances{1};
+    } args;
 };
 
 } // namespace dr

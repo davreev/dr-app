@@ -25,15 +25,15 @@ void apply_uniforms(UniformBlock const block, Span<u8 const> const data)
     sg_apply_uniforms(int(block), {data.data(), usize(data.size())});
 }
 
-bool has_vertex_offsets(DrawCommand const& cmd)
+bool has_buffer_offsets(DrawCommand const& cmd)
 {
-    for (auto v : cmd.vertex_offsets)
+    for (u8 i = 0; i < cmd.num_vertex_slots; ++i)
     {
-        if (v > 0)
+        if (cmd.buffer_offsets.vertex[i] > 0)
             return true;
     }
 
-    return false;
+    return cmd.buffer_offsets.index > 0;
 }
 
 } // namespace
@@ -107,10 +107,9 @@ void DrawContext::submit_draw_cmds(PassInfo const& pass)
             bindings_dirty = true;
         }
 
-        // NOTE(dr): Force rebind if the current draw cmd uses vertex offsets. Clearing prev geom
-        // ensures the next draw cmd rebinds if it has the same source geometry but doesn't use
-        // dynamic offsets.
-        if (has_vertex_offsets(cmd))
+        // NOTE(dr): Force rebind if the current command uses buffer offsets. Clearing prev_geometry
+        // ensures we rebind on the next command even if it has the same source geometry.
+        if (has_buffer_offsets(cmd))
         {
             bindings_dirty = true;
             prev_geometry = {};
@@ -130,7 +129,8 @@ void DrawContext::submit_draw_cmds(PassInfo const& pass)
                 apply_uniforms(UniformBlock::Object, data);
         }
 
-        sg_draw(cmd.base_element, cmd.num_elements, cmd.num_instances);
+        auto const& args = cmd.args;
+        sg_draw(args.first_element, args.num_elements, args.num_instances);
     }
 
     draw_cmds.clear();

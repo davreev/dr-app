@@ -21,7 +21,7 @@ struct StreamBuffer
 
     /// Appends a chunk of bytes to the host buffer, returning the offset to the beginning of the
     /// chunk. This corresponds with the offset of the data in the device buffer once transferred.
-    i32 push(Span<u8 const> const& bytes);
+    i32 push(Span<u8 const> const& bytes, usize align);
 
     /// Transfers pushed data from host buffer to device buffer. This can be called repeatedly
     /// within the same frame to upload data in batches over multiple render passes. Returns false
@@ -71,12 +71,11 @@ struct VertexStream
     i32 push_vertices_once(Key const& key, Span<u8 const> const& bytes);
 };
 
-template <typename Index>
 struct IndexStream
 {
-    i32 push(Span<Index const> const& indices);
+    i32 push(Span<u8 const> const& bytes);
 
-    i32 push_once(void const* key, Span<Index const> const& indices);
+    i32 push_once(void const* key, Span<u8 const> const& bytes);
 
     bool transfer();
 
