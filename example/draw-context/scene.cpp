@@ -269,7 +269,6 @@ void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view)
                     auto geom = static_cast<Geometry const*>(cmd.geometry);
                     bindings.vertex_buffers[0] = geom->vertex;
                     bindings.vertex_buffers[1] = geom->stream->device_buffer();
-                    bindings.vertex_buffer_offsets[1] = cmd.vertex_offsets[0];
                     bindings.index_buffer = geom->index;
                 },
             .buffer_offsets{

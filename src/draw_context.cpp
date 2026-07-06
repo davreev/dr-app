@@ -36,6 +36,14 @@ bool has_buffer_offsets(DrawCommand const& cmd)
     return cmd.buffer_offsets.index > 0;
 }
 
+void set_buffer_offsets(DrawCommand const& cmd, sg_bindings& bindings)
+{
+    for (u8 i = 0; i < cmd.num_vertex_slots; ++i)
+        bindings.vertex_buffer_offsets[i] = cmd.buffer_offsets.vertex[i];
+
+    bindings.index_buffer_offset = cmd.buffer_offsets.index;
+}
+
 } // namespace
 
 void DrawContext::begin_frame()
@@ -118,6 +126,7 @@ void DrawContext::submit_draw_cmds(PassInfo const& pass)
         if (bindings_dirty)
         {
             auto bindings = pass.bindings;
+            set_buffer_offsets(cmd, bindings);
             cmd.set_bindings(cmd, bindings);
             sg_apply_bindings(bindings);
         }
