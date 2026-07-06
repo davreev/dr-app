@@ -12,10 +12,10 @@
 namespace dr
 {
 
-struct BufferStage
+struct StreamBuffer
 {
-    DynamicArray<u8> host_buf;
-    GfxBuffer device_buf;
+    DynamicArray<u8> host_buffer;
+    GfxBuffer device_buffer;
     usize host_offset{};
     usize device_size{};
 
@@ -50,7 +50,7 @@ struct VertexStream
 
     void reset();
 
-    GfxBuffer::Handle device_buffer() const { return stage_.device_buf; }
+    GfxBuffer::Handle device_buffer() const { return buffer_.device_buffer; }
 
   private:
     struct Key
@@ -65,7 +65,7 @@ struct VertexStream
         };
     };
 
-    BufferStage stage_;
+    StreamBuffer buffer_;
     HashMap<Key, i32, Key::Hash> offsets_;
 
     i32 push_vertices_once(Key const& key, Span<u8 const> const& bytes);
@@ -82,10 +82,10 @@ struct IndexStream
 
     void reset();
 
-    GfxBuffer::Handle device_buffer() const { return stage_.device_buf; }
+    GfxBuffer::Handle device_buffer() const { return buffer_.device_buffer; }
 
   private:
-    BufferStage stage_;
+    StreamBuffer buffer_;
     HashMap<void const*, i32> offsets_;
 };
 
@@ -97,10 +97,10 @@ struct UniformStream
 
     void reset();
 
-    Span<u8 const> operator[](i32 const slice) const { return stage_[slice]; }
+    Span<u8 const> operator[](i32 const slice) const { return buffer_[slice]; }
 
   private:
-    SlicedArray<u8> stage_;
+    SlicedArray<u8> buffer_;
     HashMap<void const*, i32> slices_;
 };
 
