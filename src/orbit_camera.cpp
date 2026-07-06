@@ -54,7 +54,7 @@ void OrbitCamera::set_rig_now(CameraRig const& value)
 
 void OrbitCamera::frame_target()
 {
-    controls.zoom.distance.target = target.radius / std::sin(frustum.fov_y * 0.5);
+    controls.zoom.distance.target = target.radius / std::sin(frustum.fov_y * 0.5f);
     controls.pan.offset.target = {};
 }
 
