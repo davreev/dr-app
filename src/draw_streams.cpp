@@ -55,6 +55,7 @@ bool StreamBuffer::transfer(sg_buffer_usage usage)
     // Upload any data was pushed since the last transfer
     if (host_buffer.size() > host_offset)
     {
+        [[maybe_unused]]
         i32 const offset = sg_append_buffer(
             device_buffer,
             {host_buffer.data() + host_offset, host_buffer.size() - host_offset});
