@@ -4,7 +4,7 @@
 
 // Inlined as part of the ImVec2 class declaration
 #define IM_VEC2_CLASS_EXTRA                                                                        \
-    ImVec2(dr::Vec2<float> const& f)                                                                 \
+    ImVec2(dr::Vec2<float> const& f)                                                               \
     {                                                                                              \
         x = f.x();                                                                                 \
         y = f.y();                                                                                 \
@@ -13,7 +13,7 @@
 
 // Inlined as part of the ImVec4 class declaration
 #define IM_VEC4_CLASS_EXTRA                                                                        \
-    ImVec4(dr::Vec4<float> const& f)                                                                 \
+    ImVec4(dr::Vec4<float> const& f)                                                               \
     {                                                                                              \
         x = f.x();                                                                                 \
         y = f.y();                                                                                 \
