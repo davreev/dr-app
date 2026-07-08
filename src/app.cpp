@@ -107,13 +107,6 @@ void frame()
         state.scene_dirty = false;
     }
 
-    simgui_new_frame({
-        .width = sapp_width(),
-        .height = sapp_height(),
-        .delta_time = stm_sec(state.delta_time),
-        .dpi_scale = sapp_dpi_scale(),
-    });
-
     if (state.desc.scene.update)
         state.desc.scene.update();
 
@@ -249,6 +242,13 @@ void App::begin_swapchain_pass(sg_pass_action const& action)
         .swapchain = sglue_swapchain(),
     };
     sg_begin_pass(&pass);
+
+    simgui_new_frame({
+        .width = sapp_width(),
+        .height = sapp_height(),
+        .delta_time = stm_sec(state.delta_time),
+        .dpi_scale = sapp_dpi_scale(),
+    });
 }
 
 void App::begin_swapchain_pass() { begin_swapchain_pass(default_pass_action()); }
