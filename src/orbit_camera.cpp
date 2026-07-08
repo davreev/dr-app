@@ -63,6 +63,7 @@ void OrbitCamera::frame_target_now()
     frame_target();
     controls.zoom.distance.current = controls.zoom.distance.target;
     controls.pan.offset.current = controls.pan.offset.target;
+    rig.pivot.position = target.position;
 }
 
 Mat4<f32> OrbitCamera::make_world_to_view() const { return rig.transform().inverse_to_matrix(); }
