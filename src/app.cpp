@@ -130,13 +130,48 @@ void cleanup()
 
 void event(App::Event const* event)
 {
-    // NOTE: Touch begin events aren't properly consumed by simgui_handle_event so they're always
-    // forwarded. Specifically, the begin event of the first UI touch *isn't* consumed and the begin
-    // event of the first non-UI touch *is* consumed.
+    // NOTE(dr): simgui_handle_event returns true if ImGui wants to capture mouse *or* keyboard,
+    // making it too coarse to drive event forwarding on its own. Instead we always feed the event
+    // to ImGui and then decide per-event-type whether to forward it to the scene, consulting the
+    // appropriate WantCapture flag for that event category.
+    simgui_handle_event(event);
 
-    if (!simgui_handle_event(event) || (event->type == SAPP_EVENTTYPE_TOUCHES_BEGAN))
+    // NOTE(dr): Touch events are routed into ImGui as mouse input (see simgui_add_touch_*), so
+    // they're gated by WantCaptureMouse alongside the mouse events.
+    constexpr auto is_mouse_event = [](sapp_event_type const t) {
+        switch (t)
+        {
+            case SAPP_EVENTTYPE_MOUSE_DOWN:
+            case SAPP_EVENTTYPE_MOUSE_UP:
+            case SAPP_EVENTTYPE_MOUSE_SCROLL:
+            case SAPP_EVENTTYPE_MOUSE_MOVE:
+            case SAPP_EVENTTYPE_MOUSE_ENTER:
+            case SAPP_EVENTTYPE_MOUSE_LEAVE:
+            case SAPP_EVENTTYPE_TOUCHES_BEGAN:
+            case SAPP_EVENTTYPE_TOUCHES_MOVED:
+            case SAPP_EVENTTYPE_TOUCHES_ENDED:
+            case SAPP_EVENTTYPE_TOUCHES_CANCELLED: return true;
+            default: return false;
+        }
+    };
+
+    constexpr auto is_key_event = [](sapp_event_type const t) {
+        switch (t)
+        {
+            case SAPP_EVENTTYPE_KEY_DOWN:
+            case SAPP_EVENTTYPE_KEY_UP:
+            case SAPP_EVENTTYPE_CHAR: return true;
+            default: return false;
+        }
+    };
+
+    if (state.desc.scene.handle_event)
     {
-        if (state.desc.scene.handle_event)
+        auto const& io = ImGui::GetIO();
+        bool const fwd_event = !(io.WantCaptureMouse && is_mouse_event(event->type))
+            && !(io.WantCaptureKeyboard && is_key_event(event->type));
+
+        if (fwd_event)
             state.desc.scene.handle_event(*event);
     }
 
