@@ -44,13 +44,6 @@ struct App
         } sokol_config;
     };
 
-    struct Input
-    {
-        f32 prev_touch_points[SAPP_MAX_TOUCHPOINTS][2]{};
-        i32 prev_num_touches{};
-        bool mouse_down[SAPP_MAX_MOUSEBUTTONS]{};
-    };
-
     static void run(Desc const& desc);
 
     static Scene const& scene();
@@ -60,6 +53,13 @@ struct App
     static void begin_swapchain_pass(sg_pass_action const& action);
     static void begin_swapchain_pass();
     static void end_swapchain_pass();
+
+    struct Input
+    {
+        f32 prev_touch_points[SAPP_MAX_TOUCHPOINTS][2]{};
+        i32 prev_num_touches{};
+        bool mouse_down[SAPP_MAX_MOUSEBUTTONS]{};
+    };
 
     static Input const& input();
 
@@ -76,6 +76,24 @@ struct App
     static u64 delta_time();
     static f64 delta_time_s();
     static f64 delta_time_ms();
+
+    struct Profiler
+    {
+        static constexpr usize frame_interval = 60;
+        usize frame_count{};
+        usize start_time{};
+        usize elapsed_time{};
+
+        void start();
+        void update();
+
+        usize frame_duration() const;
+        f64 frame_duration_s() const;
+        f64 frame_duration_ms() const;
+        f64 fps() const;
+    };
+
+    static Profiler& profiler();
 };
 
 } // namespace dr

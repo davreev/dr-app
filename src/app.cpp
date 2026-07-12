@@ -17,6 +17,7 @@ struct
     App::Desc desc{};
     App::Scene next_scene{};
     App::Input input{};
+    App::Profiler profiler{};
     u64 time{};
     u64 delta_time{};
     bool scene_dirty{};
@@ -80,6 +81,8 @@ void init()
 
     if (state.desc.scene.open)
         state.desc.scene.open();
+
+    state.profiler.start();
 }
 
 void change_scene()
@@ -100,6 +103,7 @@ void frame()
     TracyGpuZone("frame");
 
     state.delta_time = stm_laptime(&state.time);
+    state.profiler.update();
 
     if (state.scene_dirty)
     {
@@ -150,8 +154,10 @@ void event(App::Event const* event)
             case SAPP_EVENTTYPE_TOUCHES_BEGAN:
             case SAPP_EVENTTYPE_TOUCHES_MOVED:
             case SAPP_EVENTTYPE_TOUCHES_ENDED:
-            case SAPP_EVENTTYPE_TOUCHES_CANCELLED: return true;
-            default: return false;
+            case SAPP_EVENTTYPE_TOUCHES_CANCELLED:
+                return true;
+            default:
+                return false;
         }
     };
 
@@ -160,8 +166,10 @@ void event(App::Event const* event)
         {
             case SAPP_EVENTTYPE_KEY_DOWN:
             case SAPP_EVENTTYPE_KEY_UP:
-            case SAPP_EVENTTYPE_CHAR: return true;
-            default: return false;
+            case SAPP_EVENTTYPE_CHAR:
+                return true;
+            default:
+                return false;
         }
     };
 
@@ -338,5 +346,29 @@ f64 App::time_ms() { return stm_ms(state.time); }
 u64 App::delta_time() { return state.delta_time; }
 f64 App::delta_time_s() { return stm_sec(state.delta_time); }
 f64 App::delta_time_ms() { return stm_ms(state.delta_time); }
+
+App::Profiler& App::profiler() { return state.profiler; }
+
+/*
+    App::Profiler impl
+*/
+
+void App::Profiler::start() { start_time = stm_now(); }
+
+void App::Profiler::update()
+{
+    if (++frame_count == frame_interval)
+    {
+        usize const curr_time = stm_now();
+        elapsed_time = curr_time - start_time;
+        start_time = curr_time;
+        frame_count = 0;
+    }
+}
+
+u64 App::Profiler::frame_duration() const { return elapsed_time / frame_interval; }
+f64 App::Profiler::frame_duration_s() const { return stm_sec(elapsed_time) / frame_interval; }
+f64 App::Profiler::frame_duration_ms() const { return stm_ms(elapsed_time) / frame_interval; }
+f64 App::Profiler::fps() const { return frame_interval / stm_sec(elapsed_time); }
 
 } // namespace dr

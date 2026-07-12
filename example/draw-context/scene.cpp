@@ -26,36 +26,6 @@ namespace
 constexpr char scene_name[]{"Example: Draw Context"};
 constexpr NdcType ndc = NdcType::NdcType_OpenGl;
 
-struct Fps
-{
-    Fps() = default;
-
-    void start() { prev_time_ = stm_now(); }
-
-    f64 current() const { return current_; }
-
-    void update()
-    {
-        constexpr usize interval = 1000000000;
-        ++frame_count_;
-
-        usize const time = stm_now();
-        usize const elapsed = time - prev_time_;
-
-        if (elapsed > interval)
-        {
-            current_ = frame_count_ / stm_sec(elapsed);
-            frame_count_ = 0;
-            prev_time_ = time;
-        }
-    }
-
-  private:
-    usize prev_time_{};
-    usize frame_count_{};
-    f64 current_{};
-};
-
 // clang-format off
 
 struct {
@@ -71,7 +41,6 @@ struct {
     DynamicArray<Vec3<f32>> instances;
     DrawContext draw_ctx;
     OrbitCamera camera;
-    Fps fps;
 } state{};
 
 // clang-format on
@@ -221,8 +190,6 @@ void open()
 
     state.camera.target.radius = 20.0f;
     state.camera.frame_target_now();
-
-    state.fps.start();
 }
 
 void close()
@@ -322,7 +289,7 @@ void draw_ui()
             {
                 int const num_instances = size(state.instances);
                 ImGui::Text("Instance count: %d", num_instances);
-                ImGui::Text("FPS: %.3f", state.fps.current());
+                ImGui::Text("FPS: %.3f", App::profiler().fps());
             }
 
             ImGui::SeparatorText("Camera");
@@ -374,7 +341,6 @@ void update()
 {
     update_instances(App::time_s());
     state.camera.update(App::delta_time_s());
-    state.fps.update();
     draw();
 }
 
