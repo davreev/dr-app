@@ -79,15 +79,15 @@ struct App
 
     struct Profiler
     {
-        static constexpr usize frame_interval = 60;
-        usize frame_count{};
-        usize start_time{};
-        usize elapsed_time{};
+        static constexpr u64 frame_interval = 60;
+        u64 frame_count{};
+        u64 start_time{};
+        u64 elapsed_time{};
 
         void start();
         void update();
 
-        usize frame_duration() const;
+        u64 frame_duration() const;
         f64 frame_duration_s() const;
         f64 frame_duration_ms() const;
         f64 fps() const;

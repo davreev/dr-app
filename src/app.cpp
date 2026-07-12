@@ -359,7 +359,7 @@ void App::Profiler::update()
 {
     if (++frame_count == frame_interval)
     {
-        usize const curr_time = stm_now();
+        u64 const curr_time = stm_now();
         elapsed_time = curr_time - start_time;
         start_time = curr_time;
         frame_count = 0;
