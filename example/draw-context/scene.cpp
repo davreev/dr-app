@@ -289,7 +289,7 @@ void draw_ui()
             {
                 int const num_instances = size(state.instances);
                 ImGui::Text("Instance count: %d", num_instances);
-                ImGui::Text("FPS: %.3f", App::profiler().fps());
+                ImGui::Text("FPS: %.2f", App::profiler().fps());
             }
 
             ImGui::SeparatorText("Camera");
