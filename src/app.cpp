@@ -244,7 +244,7 @@ sapp_desc sokol_app_desc()
         .event_cb = event,
         .width = window.width,
         .height = window.height,
-        .sample_count = 4,
+        .sample_count = 8,
         .high_dpi = true,
         .window_title = window.title ? window.title : scene.name,
         .enable_clipboard = true,

@@ -317,8 +317,6 @@ void draw_ui()
 {
     ZoneScoped;
 
-    App::begin_ui();
-
     ImGui::SetNextWindowPos({20.0f, 20.0f}, ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSizeConstraints({280.0f, 0.0f}, {sapp_widthf(), sapp_heightf()});
     constexpr auto window_flags = ImGuiWindowFlags_NoResize;
@@ -351,8 +349,6 @@ void draw_ui()
     }
 
     ImGui::End();
-
-    App::end_ui();
 }
 
 void draw_label(char const* const text, Vec3<f32> const& world_pos, Mat4<f32> const& world_to_clip)
@@ -391,11 +387,12 @@ void draw()
     auto const& cam = state.camera;
     Mat4<f32> const view_to_clip = cam.make_view_to_clip(App::aspect());
     Mat4<f32> const world_to_view = cam.make_world_to_view();
-
     draw_scene(view_to_clip, world_to_view);
+
+    App::begin_ui();
     draw_ui();
     draw_labels(view_to_clip * world_to_view);
-    sgl_draw();
+    App::end_ui();
 
     App::end_swapchain_pass();
 }

@@ -5,7 +5,7 @@
 #include <dr/linalg_reshape.hpp>
 #include <dr/math.hpp>
 
-#include <dr/app/debug_draw.hpp>
+#include <dr/app/debug_renderer.hpp>
 #include <dr/app/event_handlers.hpp>
 #include <dr/app/gfx_resource.hpp>
 #include <dr/app/gfx_utils.hpp>
@@ -31,6 +31,7 @@ struct {
         GfxBuffer index_buffer;
     } gfx;
 
+    DebugRenderer renderer{};
     OrbitCamera camera{};
 } state{};
 
@@ -139,20 +140,35 @@ void draw_mesh(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
     sg_draw(0, 12, 1);
 }
 
-void debug_draw(
-    Mat4<f32> const& local_to_view,
-    Mat4<f32> const& world_to_view,
-    Mat4<f32> const& view_to_clip)
+Affine3<f32> to_affine(Mat4<f32> const& m)
 {
-    sgl_defaults();
+    return {
+        .linear = m.topLeftCorner<3, 3>(),
+        .translation = m.topRightCorner<3, 1>(),
+    };
+}
 
-    sgl_matrix_mode_projection();
-    sgl_load_matrix(view_to_clip.data());
-
-    debug_draw_axes(world_to_view, 0.25f);
-    debug_draw_unit_cube_edges(local_to_view);
-
-    sgl_draw();
+void draw_debug(Mat4<f32> const& local_to_world, Mat4<f32> const& world_to_clip)
+{
+    auto& dbr = state.renderer;
+    dbr.begin_frame();
+    dbr.draw_frame({.scale = 0.2}, {.width = 3.0});
+    dbr.draw_box(
+        {
+            .transform = to_affine(local_to_world),
+        },
+        {
+            .color = {1.0, 1.0, 1.0, 0.1},
+            .width = 2.0,
+            .pass = DebugRenderer::Pass::Overlay,
+        });
+    dbr.submit({
+        .world_to_clip = world_to_clip,
+        .viewport{
+            .size = {sapp_widthf(), sapp_heightf()},
+            .dpi_scale = sapp_dpi_scale(),
+        },
+    });
 }
 
 void draw_ui()
@@ -207,8 +223,6 @@ void draw_ui()
 
 void draw()
 {
-    App::begin_swapchain_pass();
-
     auto const& cam = state.camera;
     Mat4<f32> const world_to_view = cam.make_world_to_view();
     Mat4<f32> const view_to_clip = cam.make_view_to_clip(App::aspect());
@@ -216,8 +230,16 @@ void draw()
     Mat4<f32> const local_to_world = make_scale_translate(vec<3>(2.0f), vec<3>(-1.0f));
     Mat4<f32> const local_to_view = world_to_view * local_to_world;
 
+    App::begin_swapchain_pass();
     draw_mesh(local_to_view, view_to_clip);
-    debug_draw(local_to_view, world_to_view, view_to_clip);
+    App::end_swapchain_pass();
+
+    App::begin_swapchain_pass({
+        .colors{
+            {.load_action = SG_LOADACTION_LOAD},
+        },
+    });
+    draw_debug(local_to_world, view_to_clip * world_to_view);
     draw_ui();
 
     App::end_swapchain_pass();

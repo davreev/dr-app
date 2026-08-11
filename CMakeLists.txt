@@ -36,6 +36,7 @@ add_library(
     dr-app-util STATIC
     src/camera_controls.cpp
     src/camera_rig.cpp
+    src/debug_renderer.cpp
     src/draw_context.cpp
     src/draw_streams.cpp
     src/file_utils.cpp
@@ -159,7 +160,6 @@ if(NOT DR_APP_UTIL_ONLY)
     add_library(
         dr-app STATIC
         src/app.cpp
-        src/debug_draw.cpp
         src/event_handlers.cpp
         src/shim/imgui.cpp
     )
