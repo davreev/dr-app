@@ -20,7 +20,7 @@ struct StreamBuffer
     usize device_size{};
 
     /// Appends a chunk of bytes to the host buffer, returning the offset to the beginning of the
-    /// chunk. This corresponds with the offset of the data in the device buffer once transferred.
+    /// chunk. This will match the offset of chunk in the device buffer once transferred.
     i32 push(Span<u8 const> const& bytes, usize align);
 
     /// Transfers pushed data from host buffer to device buffer. This can be called repeatedly
@@ -50,7 +50,7 @@ struct VertexStream
 
     void reset();
 
-    GfxBuffer::Handle device_buffer() const { return buffer_.device_buffer; }
+    GfxBuffer::Handle device_buffer() const;
 
   private:
     struct Key
@@ -81,7 +81,7 @@ struct IndexStream
 
     void reset();
 
-    GfxBuffer::Handle device_buffer() const { return buffer_.device_buffer; }
+    GfxBuffer::Handle device_buffer() const;
 
   private:
     StreamBuffer buffer_;

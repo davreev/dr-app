@@ -101,6 +101,14 @@ void VertexStream::reset()
     offsets_.clear();
 }
 
+GfxBuffer::Handle VertexStream::device_buffer() const
+{
+    if (!buffer_.device_buffer.is_valid())
+        buffer_.device_buffer.alloc();
+
+    return buffer_.device_buffer;
+}
+
 i32 IndexStream::push(Span<u8 const> const& bytes) { return buffer_.push(bytes, 4); }
 
 i32 IndexStream::push_once(void const* key, Span<u8 const> const& bytes)
@@ -118,6 +126,14 @@ void IndexStream::reset()
 {
     buffer_.reset();
     offsets_.clear();
+}
+
+GfxBuffer::Handle IndexStream::device_buffer() const
+{
+    if (!buffer_.device_buffer.is_valid())
+        buffer_.device_buffer.alloc();
+
+    return buffer_.device_buffer;
 }
 
 i32 UniformStream::push(Span<u8 const> const& bytes)
