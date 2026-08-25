@@ -54,6 +54,9 @@ struct App
     static void begin_swapchain_pass();
     static void end_swapchain_pass();
 
+    static void begin_ui();
+    static void end_ui();
+
     struct Input
     {
         f32 prev_touch_points[SAPP_MAX_TOUCHPOINTS][2]{};

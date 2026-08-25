@@ -285,7 +285,14 @@ void App::begin_swapchain_pass(sg_pass_action const& action)
         .swapchain = sglue_swapchain(),
     };
     sg_begin_pass(&pass);
+}
 
+void App::begin_swapchain_pass() { begin_swapchain_pass(default_pass_action()); }
+
+void App::end_swapchain_pass() { sg_end_pass(); }
+
+void App::begin_ui()
+{
     simgui_new_frame({
         .width = sapp_width(),
         .height = sapp_height(),
@@ -294,13 +301,7 @@ void App::begin_swapchain_pass(sg_pass_action const& action)
     });
 }
 
-void App::begin_swapchain_pass() { begin_swapchain_pass(default_pass_action()); }
-
-void App::end_swapchain_pass()
-{
-    simgui_render();
-    sg_end_pass();
-}
+void App::end_ui() { simgui_render(); }
 
 void App::run(Desc const& desc)
 {

@@ -283,7 +283,7 @@ void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view)
 
     /*
         NOTE(dr): Each pass emits a single draw command using either a static buffer or a stream for
-        vertex and index dara. For streamed data, byte offsets are stored on the draw command so
+        vertex and index data. For streamed data, byte offsets are stored on the draw command so
         that the stream buffers can be bound correctly during submission.
     */
 
@@ -317,6 +317,8 @@ void draw_ui()
 {
     ZoneScoped;
 
+    App::begin_ui();
+
     ImGui::SetNextWindowPos({20.0f, 20.0f}, ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSizeConstraints({280.0f, 0.0f}, {sapp_widthf(), sapp_heightf()});
     constexpr auto window_flags = ImGuiWindowFlags_NoResize;
@@ -349,6 +351,8 @@ void draw_ui()
     }
 
     ImGui::End();
+
+    App::end_ui();
 }
 
 void draw_label(char const* const text, Vec3<f32> const& world_pos, Mat4<f32> const& world_to_clip)

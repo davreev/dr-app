@@ -15,9 +15,11 @@ namespace
 void update()
 {
     App::begin_swapchain_pass();
+    App::begin_ui();
     ImGui::ShowDemoWindow();
     ImPlot::ShowDemoWindow();
     ImPlot3D::ShowDemoWindow();
+    App::end_ui();
     App::end_swapchain_pass();
 }
 

@@ -274,6 +274,8 @@ void draw_ui()
 {
     ZoneScoped;
 
+    App::begin_ui();
+
     ImGui::SetNextWindowPos({20.0f, 20.0f}, ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSizeConstraints({220.0f, 0.0f}, {sapp_widthf(), sapp_heightf()});
     constexpr auto window_flags = ImGuiWindowFlags_NoResize;
@@ -321,6 +323,8 @@ void draw_ui()
     }
 
     ImGui::End();
+
+    App::end_ui();
 }
 
 void draw()
