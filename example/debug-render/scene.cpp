@@ -159,7 +159,7 @@ void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view, f
             constexpr f32 step_x = 5.0;
             constexpr f32 step_y = 5.0;
 
-            constexpr i32 count_x = 7;
+            constexpr isize count_x = 7;
             constexpr f32 offset_x = -0.5f * step_x * (count_x - 1);
 
             Vec3<f32> const p = {step_x * x + offset_x, step_y * y, 0.0};

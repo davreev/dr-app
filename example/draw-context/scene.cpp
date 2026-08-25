@@ -191,11 +191,7 @@ void open()
     state.camera.frame_target_now();
 }
 
-void close()
-{
-    state.gfx = {};
-    state.draw_ctx = {};
-}
+void close() { state = {}; }
 
 void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view)
 {
