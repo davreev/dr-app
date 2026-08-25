@@ -9,11 +9,12 @@
 #include <dr/memory.hpp>
 #include <dr/span.hpp>
 
-#include <dr/app/draw_context.hpp>
+#include <dr/app/draw_streams.hpp>
 #include <dr/app/event_handlers.hpp>
 #include <dr/app/gfx_resource.hpp>
 #include <dr/app/gfx_utils.hpp>
 #include <dr/app/orbit_camera.hpp>
+
 #include <dr/app/shim/imgui.hpp>
 #include <dr/app/shim/tracy.hpp>
 
@@ -37,7 +38,7 @@ struct RenderMesh
 
     GfxBuffer vertices;
     GfxBuffer indices;
-    i32 index_count;
+    Index index_count;
 };
 
 struct
@@ -48,12 +49,10 @@ struct
         GfxPipeline pipeline;
     } gfx;
     RenderMesh mesh;
-    struct
-    {
-        DynamicArray<RenderMesh::Vertex> vertices;
-        DynamicArray<RenderMesh::Index> indices;
-    } scratch;
-    DrawContext draw_ctx;
+    DynamicArray<RenderMesh::Vertex> vertices;
+    DynamicArray<RenderMesh::Index> indices;
+    VertexStream vertex_stream;
+    IndexStream index_stream;
     OrbitCamera camera;
 } state{};
 
@@ -66,8 +65,8 @@ struct Disc
         DynamicArray<RenderMesh::Index>& indices,
         f64 t)
     {
-        constexpr f64 loop_dur = 4.0f;
-        t = fract(t / loop_dur);
+        constexpr f64 cycles_per_sec = 0.25f;
+        t = fract(cycles_per_sec * t);
 
         {
             constexpr f32 radius = 1.5;
@@ -165,11 +164,10 @@ void init_gfx()
 
 void init_mesh()
 {
-    auto& [verts, indices] = state.scratch;
-    Shape::init(verts, indices);
+    Shape::init(state.vertices, state.indices);
 
-    auto vertex_data = as<u8>(as_span(verts));
-    auto index_data = as<u8>(as_span(indices));
+    auto vertex_data = as<u8>(as_span(state.vertices));
+    auto index_data = as<u8>(as_span(state.indices));
 
     state.mesh = {
         .vertices = GfxBuffer::make({
@@ -180,7 +178,7 @@ void init_mesh()
             .usage = {.index_buffer = true, .immutable = true},
             .data = {index_data.data(), usize(index_data.size())},
         }),
-        .index_count = i32(indices.size()),
+        .index_count = i32(state.indices.size()),
     };
 }
 
@@ -196,121 +194,105 @@ void open()
 
 void close() { state = {}; }
 
-i32 draw_ctx_push_object(Mat4<f32> const& local_to_view)
+void draw_label(char const* const text, Vec3<f32> const& world_pos, Mat4<f32> const& world_to_clip)
 {
-    struct
-    {
-        f32 local_to_view[16];
-    } u;
-    as_mat<4, 4>(u.local_to_view) = local_to_view;
-    return state.draw_ctx.uniform_stream.push(as_bytes(u));
+    Vec4<f32> const p_clip = world_to_clip * world_pos.homogeneous();
+
+    // Check if behind the camera
+    if (p_clip.w() <= 0.0f)
+        return;
+
+    Vec2<f32> const display = ImGui::GetIO().DisplaySize;
+    Vec2<f32> const p_screen{
+        (p_clip.x() / p_clip.w() * 0.5f + 0.5f) * display.x(),
+        (1.0f - (p_clip.y() / p_clip.w() * 0.5f + 0.5f)) * display.y(), // Assumes NDC is y-up
+    };
+
+    Vec2<f32> const size = ImGui::CalcTextSize(text);
+    Vec2<f32> const min = p_screen - 0.5f * size;
+    ImGui::GetForegroundDrawList()->AddText(min, IM_COL32(255, 255, 255, 255), text);
 }
 
-void draw_ctx_submit_pass(Mat4<f32> const& view_to_clip)
-{
-    struct
-    {
-        f32 view_to_clip[16];
-    } u;
-    as_mat<4, 4>(u.view_to_clip) = view_to_clip;
-    state.draw_ctx.submit_draw_cmds({.uniform_data = as_bytes(u)});
-}
-
-Vec3<f32> pass_position(i32 const i)
-{
-    constexpr f32 step_x = 6.0f;
-    return {-9.0f + step_x * f32(i), 0.0f, 0.0f};
-}
-
-void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view)
+void draw_scene()
 {
     ZoneScoped;
 
-    auto& draw_ctx = state.draw_ctx;
-    auto& mesh = state.mesh;
-    auto& scratch = state.scratch;
+    auto const& cam = state.camera;
+    Mat4<f32> const view_to_clip = cam.make_view_to_clip(App::aspect());
+    Mat4<f32> const world_to_view = cam.make_world_to_view();
+    Mat4<f32> const world_to_clip = view_to_clip * world_to_view;
 
-    // Draw context streams accumulate across passes and reset here
-    draw_ctx.begin_frame();
-
-    struct GeometrySrc
+    struct
     {
-        GfxBuffer::Handle vertices;
-        VertexStream* vertex_stream;
-        GfxBuffer::Handle indices;
-        IndexStream* index_stream;
-    };
+        isize x = 0;
+        isize y = 0;
 
-    auto draw_pass = [&](GeometrySrc const& geom, Vec3<f32> const& pos) {
-        DrawCommand cmd{
-            .pipeline = state.gfx.pipeline,
-            .geometry = &geom,
-            .set_bindings =
-                [](DrawCommand const& cmd, sg_bindings& bindings) {
-                    auto const* geom = static_cast<GeometrySrc const*>(cmd.geometry);
-                    bindings.vertex_buffers[0] = geom->vertex_stream //
-                        ? geom->vertex_stream->device_buffer()
-                        : geom->vertices;
-                    bindings.index_buffer = geom->index_stream //
-                        ? geom->index_stream->device_buffer()
-                        : geom->indices;
-                },
-            .uniform_slices{.object = draw_ctx_push_object(world_to_view * make_translate(pos))},
+        Vec3<f32> next_pos()
+        {
+            constexpr f32 step_x = 5.0;
+            constexpr f32 step_y = 5.0;
+
+            constexpr isize count_x = 4;
+            constexpr f32 offset_x = -0.5f * step_x * (count_x - 1);
+
+            Vec3<f32> const p = {step_x * x + offset_x, step_y * y, 0.0};
+            if (++x >= count_x)
+            {
+                ++y;
+                x = 0;
+            }
+            return p;
         };
+    } layout;
 
-        if (geom.vertex_stream)
-        {
-            cmd.buffer_offsets.vertex[0] = draw_ctx.vertex_stream.push_once<0>(
-                &mesh.vertices,
-                as<u8>(as_span(scratch.vertices)));
-        }
+    auto& mesh = state.mesh;
+    auto& vs = state.vertex_stream;
+    auto& is = state.index_stream;
 
-        if (geom.index_stream)
-        {
-            cmd.buffer_offsets.index = draw_ctx.index_stream.push_once(
-                &mesh.indices,
-                as<u8>(as_span(scratch.indices)));
-            cmd.args.num_elements = i32(scratch.indices.size());
-        }
-        else
-        {
-            cmd.args.num_elements = mesh.index_count;
-        }
+    sg_apply_pipeline(state.gfx.pipeline);
 
-        draw_ctx.draw_cmds.push_back(cmd);
-        draw_ctx_submit_pass(view_to_clip);
+    // Set pass uniforms
+    struct
+    {
+        f32 view_to_clip[16]{};
+    } pass_uniforms;
+    as_mat<4, 4>(pass_uniforms.view_to_clip) = view_to_clip;
+    sg_apply_uniforms(0, {&pass_uniforms, sizeof(pass_uniforms)});
+
+    auto draw_shape = [&](char const* label, bool stream_verts, bool stream_indices) {
+        Vec3<f32> const pos = layout.next_pos();
+        Mat4<f32> const local_to_view = world_to_view * make_translate(pos);
+
+        // Set object uniforms
+        struct
+        {
+            f32 local_to_view[16]{};
+        } obj_uniforms;
+        as_mat<4, 4>(obj_uniforms.local_to_view) = local_to_view;
+        sg_apply_uniforms(3, {&obj_uniforms, sizeof(obj_uniforms)});
+
+        // Bind buffers
+        sg_apply_bindings(
+            sg_bindings{
+                .vertex_buffers{
+                    stream_verts ? vs.device_buffer() : mesh.vertices.handle(),
+                },
+                .index_buffer = stream_indices ? is.device_buffer() : mesh.indices.handle(),
+            });
+
+        // Draw mesh
+        i32 const num_indices = stream_indices ? i32(state.indices.size()) : mesh.index_count;
+        sg_draw(0, num_indices, 1);
+
+        // Draw label
+        Vec3<f32> const label_offset{0.0f, 2.5f, 0.0f};
+        draw_label(label, pos + label_offset, world_to_clip);
     };
 
-    /*
-        NOTE(dr): Each pass emits a single draw command using either a static buffer or a stream for
-        vertex and index data. For streamed data, byte offsets are stored on the draw command so
-        that the stream buffers can be bound correctly during submission.
-    */
-
-    draw_pass(
-        {
-            .vertices = mesh.vertices,
-            .indices = mesh.indices,
-        },
-        pass_position(0));
-    draw_pass(
-        {
-            .vertex_stream = &draw_ctx.vertex_stream,
-            .indices = mesh.indices,
-        },
-        pass_position(1));
-    draw_pass(
-        {
-            .vertices = mesh.vertices,
-            .index_stream = &draw_ctx.index_stream,
-        },
-        pass_position(2));
-    draw_pass(
-        {
-            .vertex_stream = &draw_ctx.vertex_stream,
-            .index_stream = &draw_ctx.index_stream,
-        },
-        pass_position(3));
+    draw_shape("A", false, false);
+    draw_shape("B", true, false);
+    draw_shape("C", false, true);
+    draw_shape("D", true, true);
 }
 
 void draw_ui()
@@ -351,62 +333,44 @@ void draw_ui()
     ImGui::End();
 }
 
-void draw_label(char const* const text, Vec3<f32> const& world_pos, Mat4<f32> const& world_to_clip)
-{
-    Vec4<f32> const p_clip = world_to_clip * world_pos.homogeneous();
-
-    // Check if behind the camera
-    if (p_clip.w() <= 0.0f)
-        return;
-
-    Vec2<f32> const display = ImGui::GetIO().DisplaySize;
-    Vec2<f32> const p_screen{
-        (p_clip.x() / p_clip.w() * 0.5f + 0.5f) * display.x(),
-        (1.0f - (p_clip.y() / p_clip.w() * 0.5f + 0.5f))
-            * display.y(), // NDC is y-up, screen is y-down
-    };
-
-    Vec2<f32> const size = ImGui::CalcTextSize(text);
-    Vec2<f32> const min = p_screen - 0.5f * size;
-    ImGui::GetForegroundDrawList()->AddText(min, IM_COL32(255, 255, 255, 255), text);
-}
-
-void draw_labels(Mat4<f32> const& world_to_clip)
-{
-    constexpr i32 pass_count = 4;
-    static constexpr char const* labels[pass_count]{"A", "B", "C", "D"};
-    Vec3<f32> const offset{0.0f, 2.5f, 0.0f};
-    for (i32 i = 0; i < pass_count; ++i)
-        draw_label(labels[i], pass_position(i) + offset, world_to_clip);
-}
-
 void draw()
 {
     App::begin_swapchain_pass();
-
-    auto const& cam = state.camera;
-    Mat4<f32> const view_to_clip = cam.make_view_to_clip(App::aspect());
-    Mat4<f32> const world_to_view = cam.make_world_to_view();
-    draw_scene(view_to_clip, world_to_view);
-
     App::begin_ui();
-    draw_ui();
-    draw_labels(view_to_clip * world_to_view);
-    App::end_ui();
 
+    draw_scene();
+    draw_ui();
+
+    App::end_ui();
     App::end_swapchain_pass();
 }
 
 void update_mesh(f64 const t)
 {
-    auto& [verts, indices] = state.scratch;
-    Shape::update(verts, indices, t);
+    Shape::update(state.vertices, state.indices, t);
+    state.vertex_stream.push(as<u8>(as_span(state.vertices)));
+    state.index_stream.push(as<u8>(as_span(state.indices)));
 }
 
 void update()
 {
+    auto& vs = state.vertex_stream;
+    auto& is = state.index_stream;
+
+    // Streams are typically reset once per frame
+    state.vertex_stream.reset();
+    state.index_stream.reset();
+
     state.camera.update(App::delta_time_s());
     update_mesh(App::time_s());
+
+    // Push additional data to streams here
+    // ...
+
+    vs.transfer();
+    is.transfer();
+
+    // Issue draw calls using streamed data
     draw();
 }
 
