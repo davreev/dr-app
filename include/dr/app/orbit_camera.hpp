@@ -1,7 +1,7 @@
 #pragma once
 
 #include <dr/app/camera_controls.hpp>
-#include <dr/app/gfx_utils.hpp>
+#include <dr/app/config.hpp>
 
 namespace dr
 {
@@ -55,7 +55,7 @@ struct OrbitCamera
 
     Mat4<f32> make_world_to_view() const;
 
-    template <NdcType ndc = NdcType_Default>
+    template <NdcType ndc = default_ndc>
     Mat4<f32> make_view_to_clip(f32 aspect) const;
 };
 

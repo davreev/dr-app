@@ -24,7 +24,6 @@ namespace
 {
 
 constexpr char scene_name[]{"Example: Draw Context"};
-constexpr NdcType ndc = NdcType::NdcType_OpenGl;
 
 // clang-format off
 
@@ -331,7 +330,7 @@ void draw()
     state.draw_ctx.begin_frame();
 
     auto const& cam = state.camera;
-    draw_scene(cam.make_view_to_clip<ndc>(App::aspect()), cam.make_world_to_view());
+    draw_scene(cam.make_view_to_clip(App::aspect()), cam.make_world_to_view());
     draw_ui();
 
     App::end_swapchain_pass();

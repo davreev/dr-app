@@ -2,6 +2,8 @@
 
 #include <dr/math_types.hpp>
 
+#include <dr/app/config.hpp>
+
 namespace dr
 {
 
@@ -23,23 +25,16 @@ Mat4<f32> make_affine(Mat3<f32> const& linear, Vec3<f32> const& translate);
 /// is right-handed y-up with -z in front of the camera.
 Mat4<f32> make_look_at(Vec3<f32> const& eye, Vec3<f32> const& target, Vec3<f32> const& up);
 
-enum NdcType : u8
-{
-    NdcType_Default = 0, // z in [0, 1], y up
-    NdcType_OpenGl, // z in [-1, 1], y up
-    NdcType_Vulkan // z in [0, 1], y down
-};
-
 /// Creates a perspective projection matrix which maps points from view space (Cartesian
 /// coordinates) to clip space (homogenous coordinates). It assumes view space is right-handed y-up
 /// with -z in front of the camera.
-template <NdcType ndc = NdcType_Default>
+template <NdcType ndc = default_ndc>
 Mat4<f32> make_perspective(f32 fov_y, f32 aspect, f32 near, f32 far);
 
 /// Creates a projection matrix which maps points from view space (Cartesian coordinates) to clip
 /// space (homogenous coordinates). It assumes view space is right-handed y-up with -z in front of
 /// the camera.
-template <NdcType ndc = NdcType_Default>
+template <NdcType ndc = default_ndc>
 Mat4<f32> make_orthographic(
     f32 const left,
     f32 const right,
@@ -51,7 +46,7 @@ Mat4<f32> make_orthographic(
 /// Creates a projection matrix which maps points from view space (Cartesian coordinates) to clip
 /// space (homogenous coordinates). It assumes view space is right-handed y-up with -z in front of
 /// the camera.
-template <NdcType ndc = NdcType_Default>
+template <NdcType ndc = default_ndc>
 Mat4<f32> make_orthographic(f32 const height, f32 const aspect, f32 const near, f32 const far)
 {
     f32 const half_h = height * 0.5f;

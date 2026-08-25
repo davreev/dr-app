@@ -25,7 +25,6 @@ namespace
 {
 
 constexpr char scene_name[]{"Example: Draw Streams"};
-constexpr NdcType ndc = NdcType::NdcType_OpenGl;
 
 struct RenderMesh
 {
@@ -386,7 +385,7 @@ void draw()
     App::begin_swapchain_pass();
 
     auto const& cam = state.camera;
-    Mat4<f32> const view_to_clip = cam.make_view_to_clip<ndc>(App::aspect());
+    Mat4<f32> const view_to_clip = cam.make_view_to_clip(App::aspect());
     Mat4<f32> const world_to_view = cam.make_world_to_view();
 
     draw_scene(view_to_clip, world_to_view);

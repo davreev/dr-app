@@ -1,9 +1,3 @@
-#ifdef __EMSCRIPTEN__
-#define SOKOL_GLES3
-#else
-#define SOKOL_GLCORE
-#endif
-
 // NOTE(dr): ImGui must be included before sokol_app.h on Linux builds to avoid clashes with X11
 // macros from Xlib.h
 #include <imgui.h>

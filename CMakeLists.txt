@@ -69,6 +69,16 @@ target_compile_options(
         -Wall -Wextra -Wpedantic -Werror
 )
 
+if(NOT DEFINED DR_APP_SOKOL_BACKEND)
+    if(EMSCRIPTEN)
+        set(DR_APP_SOKOL_BACKEND SOKOL_GLES3)
+    else()
+        set(DR_APP_SOKOL_BACKEND SOKOL_GLCORE)
+    endif()
+endif()
+
+target_compile_definitions(dr-app-util PUBLIC ${DR_APP_SOKOL_BACKEND})
+
 if(EMSCRIPTEN)
     # Emscripten compiler options
     target_link_options(
