@@ -87,14 +87,14 @@ struct DebugRenderer
         u8 flags[4] = {};
     };
 
-    /// Call once per frame before drawing any geometry
+    /// Call once per frame before drawing any geometry.
     void begin_frame();
-
-    /// Clears accumulated geometry. Can be called mutliple times within a single frame.
-    void clear();
 
     /// Submits draw calls for accumulated geometry. Must be called within an active render pass.
     void submit(View const& view);
+
+    /// Clears accumulated geometry. Can be called mutliple times within a single frame.
+    void clear();
 
     /*
         Draw commands

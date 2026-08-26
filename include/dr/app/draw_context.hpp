@@ -24,9 +24,11 @@ struct DrawContext
         Span<u8 const> uniform_data;
     };
 
+    /// Call once per frame before adding any draw commands.
     void begin_frame();
 
-    void submit_draw_cmds(PassInfo const& pass = {});
+    /// Submits accumulated draw commands. Must be called within an active render pass.
+    void submit(PassInfo const& pass = {});
 };
 
 } // namespace dr

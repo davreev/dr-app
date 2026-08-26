@@ -260,7 +260,7 @@ void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view)
         } pass_uniforms;
         as_mat<4, 4>(pass_uniforms.view_to_clip) = view_to_clip;
 
-        draw_ctx.submit_draw_cmds({
+        draw_ctx.submit({
             .uniform_data = as_bytes(pass_uniforms),
         });
     }

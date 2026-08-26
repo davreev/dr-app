@@ -54,7 +54,7 @@ void DrawContext::begin_frame()
     uniform_stream.reset();
 }
 
-void DrawContext::submit_draw_cmds(PassInfo const& pass)
+void DrawContext::submit(PassInfo const& pass)
 {
     // NOTE(dr): If either transfer fails, the pass is skipped for a frame since any draw command
     // making use of streams refers to data that wasn't uploaded. We recover on the next frame after
@@ -141,8 +141,6 @@ void DrawContext::submit_draw_cmds(PassInfo const& pass)
         auto const& args = cmd.args;
         sg_draw(args.first_element, args.num_elements, args.num_instances);
     }
-
-    draw_cmds.clear();
 }
 
 } // namespace dr
