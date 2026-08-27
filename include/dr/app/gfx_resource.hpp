@@ -14,9 +14,11 @@ struct GfxResource
     using Desc = typename Traits<Handle>::Desc;
 
     /// Allocates a new resource without initializing it
+    [[nodiscard]]
     static GfxResource alloc();
 
     /// Allocates and initializes a new resource
+    [[nodiscard]]
     static GfxResource make(Desc const& desc);
 
     GfxResource() = default;

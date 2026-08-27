@@ -101,10 +101,10 @@ void VertexStream::reset()
     offsets_.clear();
 }
 
-GfxBuffer::Handle VertexStream::device_buffer() const
+GfxBuffer::Handle VertexStream::device_buffer()
 {
     if (!buffer_.device_buffer.is_valid())
-        buffer_.device_buffer.alloc();
+        buffer_.device_buffer = GfxBuffer::alloc();
 
     return buffer_.device_buffer;
 }
@@ -128,10 +128,10 @@ void IndexStream::reset()
     offsets_.clear();
 }
 
-GfxBuffer::Handle IndexStream::device_buffer() const
+GfxBuffer::Handle IndexStream::device_buffer()
 {
     if (!buffer_.device_buffer.is_valid())
-        buffer_.device_buffer.alloc();
+        buffer_.device_buffer = GfxBuffer::alloc();
 
     return buffer_.device_buffer;
 }

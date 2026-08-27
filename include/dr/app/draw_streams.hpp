@@ -50,7 +50,7 @@ struct VertexStream
 
     void reset();
 
-    GfxBuffer::Handle device_buffer() const;
+    GfxBuffer::Handle device_buffer();
 
   private:
     struct Key
@@ -81,7 +81,7 @@ struct IndexStream
 
     void reset();
 
-    GfxBuffer::Handle device_buffer() const;
+    GfxBuffer::Handle device_buffer();
 
   private:
     StreamBuffer buffer_;
