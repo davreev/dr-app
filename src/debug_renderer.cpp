@@ -266,6 +266,7 @@ PointInstance make_point(Vec3<f32> const& position, PointStyle const& style)
 
 void DebugRenderer::begin_frame()
 {
+    init_resources_once();
     clear();
     stream_.reset();
 }
@@ -281,8 +282,6 @@ void DebugRenderer::clear()
 
 void DebugRenderer::submit(View const& view)
 {
-    init_resources_once();
-
     struct
     {
         GfxPipeline::Handle pipeline;
