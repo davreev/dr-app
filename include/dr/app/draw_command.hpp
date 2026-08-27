@@ -23,12 +23,12 @@ struct DrawCommand
     GfxPipeline::Handle pipeline{};
     void const* material{};
     void const* geometry{};
-    void (*set_bindings)(DrawCommand const& self, sg_bindings& bindings);
     struct
     {
-        i32 vertex[num_vertex_slots]{};
-        i32 index{};
-    } buffer_offsets;
+        void (*assign)(DrawCommand const& self, sg_bindings& bindings);
+        i32 vertex_offsets[num_vertex_slots]{};
+        i32 index_offset{};
+    } bindings;
     struct
     {
         i32 material{invalid_index<i32>};

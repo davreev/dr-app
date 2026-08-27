@@ -226,15 +226,15 @@ void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view)
         draw_ctx.draw_cmds.push_back({
             .pipeline = state.gfx.pipeline,
             .geometry = &geom,
-            .set_bindings =
-                [](DrawCommand const& cmd, sg_bindings& bindings) {
-                    auto geom = static_cast<Geometry const*>(cmd.geometry);
-                    bindings.vertex_buffers[0] = geom->vertex;
-                    bindings.vertex_buffers[1] = geom->stream->device_buffer();
-                    bindings.index_buffer = geom->index;
-                },
-            .buffer_offsets{
-                .vertex{
+            .bindings{
+                .assign =
+                    [](DrawCommand const& cmd, sg_bindings& bindings) {
+                        auto geom = static_cast<Geometry const*>(cmd.geometry);
+                        bindings.vertex_buffers[0] = geom->vertex;
+                        bindings.vertex_buffers[1] = geom->stream->device_buffer();
+                        bindings.index_buffer = geom->index;
+                    },
+                .vertex_offsets{
                     0,
                     draw_ctx.vertex_stream.push_once<0>(&geom, as<u8>(as_span(state.instances))),
                 },

@@ -25,23 +25,23 @@ void apply_uniforms(UniformBlock const block, Span<u8 const> const data)
     sg_apply_uniforms(int(block), {data.data(), usize(data.size())});
 }
 
-bool has_buffer_offsets(DrawCommand const& cmd)
+bool has_binding_offsets(DrawCommand const& cmd)
 {
     for (u8 i = 0; i < cmd.num_vertex_slots; ++i)
     {
-        if (cmd.buffer_offsets.vertex[i] > 0)
+        if (cmd.bindings.vertex_offsets[i] > 0)
             return true;
     }
 
-    return cmd.buffer_offsets.index > 0;
+    return cmd.bindings.index_offset > 0;
 }
 
-void set_buffer_offsets(DrawCommand const& cmd, sg_bindings& bindings)
+void set_binding_offsets(DrawCommand const& cmd, sg_bindings& bindings)
 {
     for (u8 i = 0; i < cmd.num_vertex_slots; ++i)
-        bindings.vertex_buffer_offsets[i] = cmd.buffer_offsets.vertex[i];
+        bindings.vertex_buffer_offsets[i] = cmd.bindings.vertex_offsets[i];
 
-    bindings.index_buffer_offset = cmd.buffer_offsets.index;
+    bindings.index_buffer_offset = cmd.bindings.index_offset;
 }
 
 } // namespace
@@ -117,7 +117,7 @@ void DrawContext::submit(PassInfo const& pass)
 
         // NOTE(dr): Force rebind if the current command uses buffer offsets. Clearing prev_geometry
         // ensures we rebind on the next command even if it has the same source geometry.
-        if (has_buffer_offsets(cmd))
+        if (has_binding_offsets(cmd))
         {
             bindings_dirty = true;
             prev_geometry = {};
@@ -126,8 +126,8 @@ void DrawContext::submit(PassInfo const& pass)
         if (bindings_dirty)
         {
             auto bindings = pass.bindings;
-            set_buffer_offsets(cmd, bindings);
-            cmd.set_bindings(cmd, bindings);
+            set_binding_offsets(cmd, bindings);
+            cmd.bindings.assign(cmd, bindings);
             sg_apply_bindings(bindings);
         }
 
