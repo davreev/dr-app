@@ -278,18 +278,15 @@ sg_pass_action default_pass_action()
 
 } // namespace
 
-void App::begin_swapchain_pass(sg_pass_action const& action)
+sg_pass App::swapchain_pass(sg_pass_action const& action)
 {
-    sg_pass const pass{
+    return {
         .action = action,
         .swapchain = sglue_swapchain(),
     };
-    sg_begin_pass(&pass);
 }
 
-void App::begin_swapchain_pass() { begin_swapchain_pass(default_pass_action()); }
-
-void App::end_swapchain_pass() { sg_end_pass(); }
+sg_pass App::swapchain_pass() { return swapchain_pass(default_pass_action()); }
 
 void App::begin_ui()
 {
@@ -317,11 +314,13 @@ App::Scene App::default_scene()
         .name = "Default Scene",
         .update =
             []() {
-                App::begin_swapchain_pass();
+                sg_begin_pass(App::swapchain_pass());
+                App::begin_ui();
                 ImGui::BeginTooltip();
                 ImGui::Text("This is the default scene. Nothing to see here.");
                 ImGui::EndTooltip();
-                App::end_swapchain_pass();
+                App::end_ui();
+                sg_end_pass();
             },
     };
 }

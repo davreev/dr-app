@@ -1,4 +1,5 @@
 #include "scene.hpp"
+#include "dr/app/app.hpp"
 
 #include <implot.h>
 #include <implot3d.h>
@@ -12,15 +13,22 @@ namespace dr
 namespace
 {
 
-void update()
+void draw_ui()
 {
-    App::begin_swapchain_pass();
     App::begin_ui();
+
     ImGui::ShowDemoWindow();
     ImPlot::ShowDemoWindow();
     ImPlot3D::ShowDemoWindow();
+
     App::end_ui();
-    App::end_swapchain_pass();
+}
+
+void update()
+{
+    sg_begin_pass(App::swapchain_pass());
+    draw_ui();
+    sg_end_pass();
 }
 
 } // namespace

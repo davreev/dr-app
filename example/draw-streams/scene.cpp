@@ -335,14 +335,14 @@ void draw_ui()
 
 void draw()
 {
-    App::begin_swapchain_pass();
+    sg_begin_pass(App::swapchain_pass());
     App::begin_ui();
 
     draw_scene();
     draw_ui();
 
     App::end_ui();
-    App::end_swapchain_pass();
+    sg_end_pass();
 }
 
 void update_mesh(f64 const t)

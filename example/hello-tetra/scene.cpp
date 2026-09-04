@@ -230,19 +230,20 @@ void draw()
     Mat4<f32> const local_to_world = make_scale_translate(vec<3>(2.0f), vec<3>(-1.0f));
     Mat4<f32> const local_to_view = world_to_view * local_to_world;
 
-    App::begin_swapchain_pass();
+    sg_begin_pass(App::swapchain_pass());
     draw_mesh(local_to_view, view_to_clip);
-    App::end_swapchain_pass();
+    sg_end_pass();
 
-    App::begin_swapchain_pass({
+    constexpr sg_pass_action load_col{
         .colors{
             {.load_action = SG_LOADACTION_LOAD},
         },
-    });
+    };
+
+    sg_begin_pass(App::swapchain_pass(load_col));
     draw_debug(local_to_world, view_to_clip * world_to_view);
     draw_ui();
-
-    App::end_swapchain_pass();
+    sg_end_pass();
 }
 
 void update()

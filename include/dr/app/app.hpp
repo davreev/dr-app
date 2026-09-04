@@ -50,9 +50,8 @@ struct App
     static void set_scene(Scene const& scene);
     static Scene default_scene();
 
-    static void begin_swapchain_pass(sg_pass_action const& action);
-    static void begin_swapchain_pass();
-    static void end_swapchain_pass();
+    static sg_pass swapchain_pass(sg_pass_action const& action);
+    static sg_pass swapchain_pass();
 
     static void begin_ui();
     static void end_ui();

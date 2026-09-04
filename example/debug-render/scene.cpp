@@ -578,7 +578,7 @@ void draw_ui()
 
 void draw()
 {
-    App::begin_swapchain_pass();
+    sg_begin_pass(App::swapchain_pass());
 
     auto const& cam = state.camera;
     Mat4<f32> const view_to_clip = cam.make_view_to_clip(App::aspect());
@@ -587,7 +587,7 @@ void draw()
     draw_scene(view_to_clip, world_to_view, App::time_s());
     draw_ui();
 
-    App::end_swapchain_pass();
+    sg_end_pass();
 }
 
 void update()

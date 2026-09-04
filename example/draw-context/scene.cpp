@@ -325,7 +325,7 @@ void draw_ui()
 
 void draw()
 {
-    App::begin_swapchain_pass();
+    sg_begin_pass(App::swapchain_pass());
 
     state.draw_ctx.begin_frame();
 
@@ -333,7 +333,7 @@ void draw()
     draw_scene(cam.make_view_to_clip(App::aspect()), cam.make_world_to_view());
     draw_ui();
 
-    App::end_swapchain_pass();
+    sg_end_pass();
 }
 
 void update()
