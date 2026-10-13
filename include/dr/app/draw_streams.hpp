@@ -1,6 +1,6 @@
 #pragma once
 
-#include <dr/basic_types.hpp>
+#include <dr/num_types.hpp>
 #include <dr/dynamic_array.hpp>
 #include <dr/hash.hpp>
 #include <dr/hash_map.hpp>

@@ -1,6 +1,6 @@
 #include "scene.hpp"
 
-#include <dr/basic_types.hpp>
+#include <dr/num_types.hpp>
 #include <dr/bitwise.hpp>
 #include <dr/linalg_reshape.hpp>
 #include <dr/math.hpp>

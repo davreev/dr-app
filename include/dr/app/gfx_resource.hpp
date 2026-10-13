@@ -2,16 +2,17 @@
 
 #include <sokol_gfx.h>
 
-#include <dr/traits.hpp>
-
 namespace dr
 {
+
+template <typename T>
+struct GfxTraits;
 
 template <typename Handle_>
 struct GfxResource
 {
     using Handle = Handle_;
-    using Desc = typename Traits<Handle>::Desc;
+    using Desc = typename GfxTraits<Handle>::Desc;
 
     /// Allocates a new resource without initializing it
     [[nodiscard]]
@@ -77,37 +78,37 @@ using GfxSampler = GfxResource<sg_sampler>;
 using GfxView = GfxResource<sg_view>;
 
 template <>
-struct Traits<sg_pipeline>
+struct GfxTraits<sg_pipeline>
 {
     using Desc = sg_pipeline_desc;
 };
 
 template <>
-struct Traits<sg_shader>
+struct GfxTraits<sg_shader>
 {
     using Desc = sg_shader_desc;
 };
 
 template <>
-struct Traits<sg_buffer>
+struct GfxTraits<sg_buffer>
 {
     using Desc = sg_buffer_desc;
 };
 
 template <>
-struct Traits<sg_image>
+struct GfxTraits<sg_image>
 {
     using Desc = sg_image_desc;
 };
 
 template <>
-struct Traits<sg_sampler>
+struct GfxTraits<sg_sampler>
 {
     using Desc = sg_sampler_desc;
 };
 
 template <>
-struct Traits<sg_view>
+struct GfxTraits<sg_view>
 {
     using Desc = sg_view_desc;
 };

@@ -4,7 +4,7 @@
     Simple global thread pool for doing work off the main thread
 */
 
-#include <dr/basic_types.hpp>
+#include <dr/num_types.hpp>
 
 #include <dr/app/task_ref.hpp>
 

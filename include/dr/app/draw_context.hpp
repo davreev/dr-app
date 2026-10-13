@@ -2,7 +2,7 @@
 
 #include <sokol_gfx.h>
 
-#include <dr/basic_types.hpp>
+#include <dr/num_types.hpp>
 #include <dr/span.hpp>
 
 #include <dr/app/draw_command.hpp>

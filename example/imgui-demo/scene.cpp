@@ -1,10 +1,9 @@
 #include "scene.hpp"
-#include "dr/app/app.hpp"
 
 #include <implot.h>
 #include <implot3d.h>
 
-#include <dr/basic_types.hpp>
+#include <dr/num_types.hpp>
 
 #include <dr/app/shim/imgui.hpp>
 

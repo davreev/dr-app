@@ -5,7 +5,7 @@
 #include <sokol_gl.h>
 #include <sokol_imgui.h>
 
-#include <dr/basic_types.hpp>
+#include <dr/num_types.hpp>
 
 namespace dr
 {

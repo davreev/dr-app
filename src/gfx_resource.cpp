@@ -9,10 +9,10 @@ template <typename Handle>
 Handle sg_alloc_resource();
 
 template <typename Handle>
-Handle sg_make_resource(typename Traits<Handle>::Desc const& desc);
+Handle sg_make_resource(typename GfxTraits<Handle>::Desc const& desc);
 
 template <typename Handle>
-void sg_init_resource(Handle handle, typename Traits<Handle>::Desc const& desc);
+void sg_init_resource(Handle handle, typename GfxTraits<Handle>::Desc const& desc);
 
 template <typename Handle>
 void sg_uninit_resource(Handle handle);
@@ -30,12 +30,12 @@ sg_resource_state sg_query_resource_state(Handle handle);
         return sg_alloc_##name_();                                                                 \
     }                                                                                              \
     template <>                                                                                    \
-    sg_##name_ sg_make_resource<sg_##name_>(Traits<sg_##name_>::Desc const& desc)                  \
+    sg_##name_ sg_make_resource<sg_##name_>(GfxTraits<sg_##name_>::Desc const& desc)                  \
     {                                                                                              \
         return sg_make_##name_(desc);                                                              \
     }                                                                                              \
     template <>                                                                                    \
-    void sg_init_resource<sg_##name_>(sg_##name_ h, Traits<sg_##name_>::Desc const& desc)          \
+    void sg_init_resource<sg_##name_>(sg_##name_ h, GfxTraits<sg_##name_>::Desc const& desc)          \
     {                                                                                              \
         sg_init_##name_(h, desc);                                                                  \
     }                                                                                              \

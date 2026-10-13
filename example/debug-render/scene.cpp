@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-#include <dr/basic_types.hpp>
+#include <dr/num_types.hpp>
 #include <dr/dynamic_array.hpp>
 #include <dr/linalg_reshape.hpp>
 #include <dr/math.hpp>
