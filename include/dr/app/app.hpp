@@ -81,10 +81,13 @@ struct App
 
     struct Profiler
     {
-        static constexpr u64 frame_interval = 60;
-        u64 frame_count{};
         u64 start_time{};
-        u64 elapsed_time{};
+        u64 frame_count{};
+        struct
+        {
+            u64 elapsed_time{};
+            u64 frame_count{};
+        } sample;
 
         void start();
         void update();

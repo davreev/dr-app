@@ -357,18 +357,35 @@ void App::Profiler::start() { start_time = stm_now(); }
 
 void App::Profiler::update()
 {
-    if (++frame_count == frame_interval)
+    static constexpr u64 seconds_to_ticks = 1000000000;
+    static constexpr u64 interval = 2 * seconds_to_ticks;
+
+    ++frame_count;
+
+    u64 const curr_time = stm_now();
+    u64 const elapsed_time = curr_time - start_time;
+
+    if (elapsed_time > interval)
     {
-        u64 const curr_time = stm_now();
-        elapsed_time = curr_time - start_time;
+        sample.elapsed_time = elapsed_time;
+        sample.frame_count = frame_count;
         start_time = curr_time;
         frame_count = 0;
     }
 }
 
-u64 App::Profiler::frame_duration() const { return elapsed_time / frame_interval; }
-f64 App::Profiler::frame_duration_s() const { return stm_sec(elapsed_time) / frame_interval; }
-f64 App::Profiler::frame_duration_ms() const { return stm_ms(elapsed_time) / frame_interval; }
-f64 App::Profiler::fps() const { return frame_interval / stm_sec(elapsed_time); }
+u64 App::Profiler::frame_duration() const
+{
+    return sample.frame_count ? sample.elapsed_time / sample.frame_count : 0;
+}
+
+f64 App::Profiler::frame_duration_s() const { return stm_sec(frame_duration()); }
+
+f64 App::Profiler::frame_duration_ms() const { return stm_ms(frame_duration()); }
+
+f64 App::Profiler::fps() const
+{
+    return sample.elapsed_time ? sample.frame_count / stm_sec(sample.elapsed_time) : 0;
+}
 
 } // namespace dr
