@@ -58,8 +58,7 @@ struct App
 
     struct Input
     {
-        f32 prev_touch_points[SAPP_MAX_TOUCHPOINTS][2]{};
-        i32 prev_num_touches{};
+        Event last_event{};
         bool mouse_down[SAPP_MAX_MOUSEBUTTONS]{};
     };
 

@@ -204,32 +204,12 @@ void event(App::Event const* event)
 
             break;
         }
-        case SAPP_EVENTTYPE_TOUCHES_BEGAN:
-        case SAPP_EVENTTYPE_TOUCHES_ENDED:
-        case SAPP_EVENTTYPE_TOUCHES_CANCELLED:
-        {
-            input.prev_num_touches = event->num_touches;
-            [[fallthrough]];
-        }
-        case SAPP_EVENTTYPE_TOUCHES_MOVED:
-        {
-            for (i32 i = 0; i < event->num_touches; ++i)
-            {
-                auto& p = input.prev_touch_points[i];
-                p[0] = event->touches[i].pos_x;
-                p[1] = event->touches[i].pos_y;
-            }
-
-            break;
-        }
         default:
         {
         }
     }
 
-    // Keep window size updated
-    state.desc.window.width = event->window_width;
-    state.desc.window.height = event->window_height;
+    input.last_event = *event;
 }
 
 sapp_desc sokol_app_desc()
@@ -335,8 +315,8 @@ App::Input const& App::input() { return state.input; }
 
 i32 App::framebuffer_width() { return sapp_width(); }
 i32 App::framebuffer_height() { return sapp_height(); }
-i32 App::window_width() { return state.desc.window.width; }
-i32 App::window_height() { return state.desc.window.height; }
+i32 App::window_width() { return state.input.last_event.window_width; }
+i32 App::window_height() { return state.input.last_event.window_height; }
 f32 App::aspect() { return sapp_widthf() / sapp_heightf(); }
 
 u64 App::time() { return state.time; }

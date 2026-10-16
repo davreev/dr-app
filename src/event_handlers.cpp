@@ -105,20 +105,22 @@ bool camera_handle_touch_event(
 {
     if (event.type == SAPP_EVENTTYPE_TOUCHES_MOVED)
     {
+        App::Event const& last_event = App::input().last_event;
+
         // Ignore current gesture if number of touches changed
-        if (event.num_touches != App::input().prev_num_touches)
+        if (event.num_touches != last_event.num_touches)
             return false;
 
         f32 const cam_offset = zoom.distance.current;
         f32 const screen_norm = 1.0 / sapp_heightf();
 
         auto& touches = event.touches;
-        Vec2<f32> const p0{touches[0].pos_x, touches[0].pos_y};
-        Vec2<f32> const p1{touches[1].pos_x, touches[1].pos_y};
+        Vec2<f32> const p00{touches[0].pos_x, touches[0].pos_y};
+        Vec2<f32> const p01{touches[1].pos_x, touches[1].pos_y};
 
-        auto prev_touch_pts = App::input().prev_touch_points;
-        Vec2<f32> const pp0 = as_vec(prev_touch_pts[0]);
-        Vec2<f32> const pp1 = as_vec(prev_touch_pts[1]);
+        auto& last_touches = last_event.touches;
+        Vec2<f32> const p10{last_touches[0].pos_x, last_touches[0].pos_y};
+        Vec2<f32> const p11{last_touches[1].pos_x, last_touches[1].pos_y};
 
         switch (event.num_touches)
         {
@@ -126,7 +128,7 @@ bool camera_handle_touch_event(
             {
                 if (orbit)
                 {
-                    Vec2<f32> const d = p0 - pp0;
+                    Vec2<f32> const d = p00 - p10;
                     orbit->handle_input(d * (screen_norm * drag_scale));
                     return true;
                 }
@@ -140,8 +142,8 @@ bool camera_handle_touch_event(
                 // Handle drag pan
                 if (pan)
                 {
-                    Vec2<f32> const d0 = screen_norm * (p0 - pp0);
-                    Vec2<f32> const d1 = screen_norm * (p1 - pp1);
+                    Vec2<f32> const d0 = screen_norm * (p00 - p10);
+                    Vec2<f32> const d1 = screen_norm * (p01 - p11);
 
                     if (near_equal(d0, d1, action_tol))
                     {
@@ -152,8 +154,8 @@ bool camera_handle_touch_event(
 
                 // Handle pinch zoom
                 {
-                    f32 const d0 = (pp0 - pp1).norm();
-                    f32 const d1 = (p0 - p1).norm();
+                    f32 const d0 = (p10 - p11).norm();
+                    f32 const d1 = (p00 - p01).norm();
                     f32 const diff = screen_norm * (d1 - d0);
 
                     if (abs(diff) > action_tol)
