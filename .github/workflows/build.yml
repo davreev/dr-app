@@ -24,31 +24,34 @@ jobs:
           libxi-dev
           libxcursor-dev
           libgl1-mesa-dev
+          libomp-dev
 
       - name: Build (gcc)
         run: >
           cmake 
-          -B ${{github.workspace}}/build 
+          -B ${{github.workspace}}/build-gcc
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
           -DCMAKE_CXX_COMPILER=g++ 
           -DCMAKE_C_COMPILER=gcc 
           -DDR_APP_EXAMPLE=ON 
           -DDR_APP_TEST=ON && 
-          cmake --build ${{github.workspace}}/build
+          cmake --build ${{github.workspace}}/build-gcc
 
       - name: Build (clang)
         run: >
           cmake 
-          -B ${{github.workspace}}/build 
+          -B ${{github.workspace}}/build-clang
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
           -DCMAKE_CXX_COMPILER=clang++ 
           -DCMAKE_C_COMPILER=clang 
           -DDR_APP_EXAMPLE=ON 
           -DDR_APP_TEST=ON && 
-          cmake --build ${{github.workspace}}/build
+          cmake --build ${{github.workspace}}/build-clang
 
       - name: Test
-        run: ${{github.workspace}}/build/test/dr-app-test
+        run: |
+          ${{github.workspace}}/build-gcc/test/dr-app-test
+          ${{github.workspace}}/build-clang/test/dr-app-test
 
   build-windows:
     runs-on: windows-latest
