@@ -1,6 +1,5 @@
 #include <dr/app/debug_renderer.hpp>
 
-#include <algorithm>
 #include <cassert>
 #include <cmath>
 
@@ -75,30 +74,6 @@ sg_pipeline_desc opaque_pipeline_desc(GfxShader::Handle const shader)
     };
 }
 
-sg_pipeline_desc transparent_pipeline_desc(GfxShader::Handle const shader)
-{
-    return {
-        .shader = shader,
-        .depth{
-            .compare = SG_COMPAREFUNC_LESS_EQUAL,
-            .write_enabled = false,
-        },
-        .colors{
-            {
-                .blend{
-                    .enabled = true,
-                    .src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA,
-                    .dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-                    .src_factor_alpha = SG_BLENDFACTOR_ONE,
-                    .dst_factor_alpha = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-                },
-            },
-        },
-        .primitive_type = SG_PRIMITIVETYPE_TRIANGLE_STRIP,
-        .cull_mode = SG_CULLMODE_NONE,
-    };
-}
-
 sg_pipeline_desc overlay_pipeline_desc(GfxShader::Handle const shader)
 {
     return {
@@ -143,7 +118,6 @@ struct Impl<LineInstance>
 
         sg_pipeline_desc descs[]{
             opaque_pipeline_desc(shader),
-            transparent_pipeline_desc(shader),
             overlay_pipeline_desc(shader),
         };
         static_assert(size(descs) == num_passes);
@@ -183,7 +157,6 @@ struct Impl<PointInstance>
 
         sg_pipeline_desc descs[]{
             opaque_pipeline_desc(shader),
-            transparent_pipeline_desc(shader),
             overlay_pipeline_desc(shader),
         };
         static_assert(size(descs) == num_passes);
@@ -207,11 +180,13 @@ struct Impl<PointInstance>
 
 void init_resources_once()
 {
-    if (Impl<LineInstance>::shader.is_valid())
-        return;
-
-    Impl<LineInstance>::init_pipelines();
-    Impl<PointInstance>::init_pipelines();
+    static bool needs_init = true;
+    if (needs_init)
+    {
+        Impl<LineInstance>::init_pipelines();
+        Impl<PointInstance>::init_pipelines();
+        needs_init = false;
+    }
 }
 
 void pack_color(Vec4<f32> const& src, u8 (&dst)[4])
@@ -229,27 +204,6 @@ LineInstance make_line(Vec3<f32> const& start, Vec3<f32> const& end, LineStyle c
     result.width = style.width;
     result.flags[0] = u8(style.cap);
     return result;
-}
-
-Vec3<f32> instance_center(LineInstance const& inst)
-{
-    return 0.5f * (as_vec(inst.start) + as_vec(inst.end));
-}
-
-Vec3<f32> instance_center(PointInstance const& inst) { return as_vec(inst.position); }
-
-template <typename Instance>
-void sort_back_to_front(Span<Instance> const& instances, Mat4<f32> const& world_to_clip)
-{
-    auto ndc_depth = [&](Instance const& inst) {
-        Vec4<f32> const c = world_to_clip * instance_center(inst).homogeneous();
-        constexpr f32 beyond_far = 2.0;
-        return (c.w() > 0.0f) ? c.z() / c.w() : beyond_far;
-    };
-
-    std::sort(begin(instances), end(instances), [&](Instance const& a, Instance const& b) {
-        return ndc_depth(a) > ndc_depth(b);
-    });
 }
 
 PointInstance make_point(Vec3<f32> const& position, PointStyle const& style)
@@ -289,17 +243,7 @@ void DebugRenderer::submit(View const& view)
         i32 num_instances;
     } batches[num_passes * 2]{};
 
-    // NOTE(dr): Instances of each type are depth sorted on the transparent pass. This only resolves
-    // transparency/occlusion between instances of the *same* type. Interaction between different
-    // instance types is still determined by draw order (i.e. lines then points).
-    {
-        constexpr u8 pass = u8(Pass::Transparent);
-        sort_back_to_front(as_span(lines_[pass]), view.world_to_clip);
-        sort_back_to_front(as_span(points_[pass]), view.world_to_clip);
-    }
-
-    // Stage instance data for each non-empty bucket. Batches are ordered so that depth tested
-    // geometry is drawn before overlay geometry.
+    // Stage instance data for each non-empty bucket
     isize num_batches = 0;
     auto stage = [&](GfxPipeline::Handle const pipeline,
                      Span<u8 const> const& instance_data,

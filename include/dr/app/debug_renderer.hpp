@@ -20,8 +20,6 @@ struct DebugRenderer
     {
         /// Depth tested and written, coverage resolves via alpha to coverage
         Opaque = 0,
-        /// Depth tested but not written, blended, and depth sorted within each primitive type
-        Transparent,
         /// No depth test or write, blended, resolved purely by draw order
         Overlay,
         _Count,
