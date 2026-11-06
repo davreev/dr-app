@@ -1,10 +1,18 @@
 #include "scene.hpp"
 
-#include <dr/num_types.hpp>
-#include <dr/bitwise.hpp>
-#include <dr/linalg_reshape.hpp>
-#include <dr/math.hpp>
+#include <sokol_app.h>
+#include <sokol_gfx.h>
 
+#include <dr/container_utils.hpp>
+#include <dr/linalg_reshape.hpp>
+#include <dr/math_constants.hpp>
+#include <dr/math_ctors.hpp>
+#include <dr/math_types.hpp>
+#include <dr/num_types.hpp>
+#include <dr/transform.hpp>
+
+#include <dr/app/app.hpp>
+#include <dr/app/camera_rig.hpp>
 #include <dr/app/debug_renderer.hpp>
 #include <dr/app/event_handlers.hpp>
 #include <dr/app/gfx_resource.hpp>
@@ -148,10 +156,18 @@ Affine3<f32> to_affine(Mat4<f32> const& m)
     };
 }
 
-void draw_debug(Mat4<f32> const& local_to_world, Mat4<f32> const& world_to_clip)
+DebugRenderer::BatchHandle draw_debug(
+    Mat4<f32> const& local_to_world,
+    Mat4<f32> const& world_to_clip)
 {
     auto& dbr = state.renderer;
-    dbr.begin_frame();
+    dbr.begin_batch({
+        .world_to_clip = world_to_clip,
+        .viewport{
+            .size = {sapp_widthf(), sapp_heightf()},
+            .dpi_scale = sapp_dpi_scale(),
+        },
+    });
     dbr.draw_frame({.scale = 0.2}, {.width = 3.0});
     dbr.draw_box(
         {
@@ -162,13 +178,7 @@ void draw_debug(Mat4<f32> const& local_to_world, Mat4<f32> const& world_to_clip)
             .width = 2.0,
             .pass = DebugRenderer::Pass::Overlay,
         });
-    dbr.submit({
-        .world_to_clip = world_to_clip,
-        .viewport{
-            .size = {sapp_widthf(), sapp_heightf()},
-            .dpi_scale = sapp_dpi_scale(),
-        },
-    });
+    return dbr.end_batch();
 }
 
 void draw_ui()
@@ -230,6 +240,12 @@ void draw()
     Mat4<f32> const local_to_world = make_scale_translate(vec<3>(2.0f), vec<3>(-1.0f));
     Mat4<f32> const local_to_view = world_to_view * local_to_world;
 
+    auto& db_render = state.renderer;
+    db_render.next_frame();
+
+    auto const db_batch = draw_debug(local_to_world, view_to_clip * world_to_view);
+    db_render.commit_batches();
+
     sg_begin_pass(App::swapchain_pass());
     draw_mesh(local_to_view, view_to_clip);
     sg_end_pass();
@@ -241,7 +257,7 @@ void draw()
     };
 
     sg_begin_pass(App::swapchain_pass(load_col));
-    draw_debug(local_to_world, view_to_clip * world_to_view);
+    db_render.submit_batch(db_batch);
     draw_ui();
     sg_end_pass();
 }

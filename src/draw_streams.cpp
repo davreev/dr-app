@@ -1,76 +1,53 @@
 #include <dr/app/draw_streams.hpp>
 
-#include <cassert>
+#include <sokol_gfx.h>
 
-#include <dr/memory.hpp>
+#include <dr/bitwise.hpp>
+#include <dr/dynamic_array.hpp>
+#include <dr/hash.hpp>
+#include <dr/num_types.hpp>
+#include <dr/span.hpp>
+
+#include <dr/app/gfx_resource.hpp>
 
 namespace dr
 {
 namespace
 {
 
-usize aligned_size(usize const size, usize const align)
+void align_end(DynamicArray<u8>& buffer, usize const align)
 {
-    return (size + (align - 1)) & ~(align - 1);
+    buffer.resize(aligned_size(buffer.size(), align));
 }
 
 } // namespace
 
 i32 StreamBuffer::push(Span<u8 const> const& bytes, usize const align)
 {
-    host_buffer.resize(aligned_size(host_buffer.size(), align));
+    align_end(host_buffer, align);
     i32 const offset = host_buffer.size();
     host_buffer.insert(host_buffer.end(), begin(bytes), end(bytes));
     return offset;
 }
 
-bool StreamBuffer::transfer(sg_buffer_usage usage)
+void StreamBuffer::transfer(sg_buffer_usage usage)
 {
     // Early out if nothing to transfer
     if (host_buffer.empty())
-        return true;
+        return;
 
-    // NOTE(dr): Pass boundary is 4-byte aligned to match Sokol's append-cursor rounding. This
-    // ensures host offsets match device offsets across passes.
-    host_buffer.resize(aligned_size(host_buffer.size(), 4));
-
-    // NOTE(dr): A resize recreates the device buffer, discarding anything already appended this
-    // frame, so it's only safe to do before the frame's first transfer (host_offset == 0). Sizing
-    // to the host buffer's capacity predicts this frame's needs based on the high-water mark from
-    // the previous frame.
-    if (host_offset == 0 && host_buffer.capacity() > device_size)
+    // Resize the device buffer if necessary
+    if (host_buffer.capacity() > device_size)
     {
-        // First transfer; resize the device buffer
         device_size = host_buffer.capacity();
         usage.stream_update = true;
         device_buffer.init({.size = device_size, .usage = usage});
     }
-    else if (host_buffer.size() > device_size)
-    {
-        // Overflow detected; can't resize device buffer on subsequent transfers
-        host_offset = host_buffer.size();
-        return false;
-    }
 
-    // Upload any data was pushed since the last transfer
-    if (host_buffer.size() > host_offset)
-    {
-        [[maybe_unused]]
-        i32 const offset = sg_append_buffer(
-            device_buffer,
-            {host_buffer.data() + host_offset, host_buffer.size() - host_offset});
-        assert(usize(offset) == host_offset);
-        host_offset = host_buffer.size();
-    }
-
-    return true;
+    sg_update_buffer(device_buffer, {host_buffer.data(), host_buffer.size()});
 }
 
-void StreamBuffer::reset()
-{
-    host_buffer.clear();
-    host_offset = 0;
-}
+void StreamBuffer::reset() { host_buffer.clear(); }
 
 bool VertexStream::Key::operator==(Key const& other) const
 {
@@ -93,7 +70,7 @@ i32 VertexStream::push_vertices_once(Key const& key, Span<u8 const> const& bytes
     return it->second;
 }
 
-bool VertexStream::transfer() { return buffer_.transfer({.vertex_buffer = true}); }
+void VertexStream::transfer() { buffer_.transfer({.vertex_buffer = true}); }
 
 void VertexStream::reset()
 {
@@ -120,7 +97,7 @@ i32 IndexStream::push_once(void const* key, Span<u8 const> const& bytes)
     return it->second;
 }
 
-bool IndexStream::transfer() { return buffer_.transfer({.index_buffer = true}); }
+void IndexStream::transfer() { buffer_.transfer({.index_buffer = true}); }
 
 void IndexStream::reset()
 {

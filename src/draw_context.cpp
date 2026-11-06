@@ -1,6 +1,16 @@
 #include <dr/app/draw_context.hpp>
 
 #include <algorithm>
+#include <cassert>
+
+#include <sokol_gfx.h>
+
+#include <dr/constants.hpp>
+#include <dr/container_utils.hpp>
+#include <dr/num_types.hpp>
+#include <dr/span.hpp>
+
+#include <dr/app/draw_command.hpp>
 
 namespace dr
 {
@@ -25,15 +35,15 @@ void apply_uniforms(UniformBlock const block, Span<u8 const> const data)
     sg_apply_uniforms(int(block), {data.data(), usize(data.size())});
 }
 
-bool has_binding_offsets(DrawCommand const& cmd)
+bool binding_offsets_differ(DrawCommand const& a, DrawCommand const& b)
 {
-    for (u8 i = 0; i < cmd.num_vertex_slots; ++i)
+    for (u8 i = 0; i < DrawCommand::num_vertex_slots; ++i)
     {
-        if (cmd.bindings.vertex_offsets[i] > 0)
+        if (a.bindings.vertex_offsets[i] != b.bindings.vertex_offsets[i])
             return true;
     }
 
-    return cmd.bindings.index_offset > 0;
+    return a.bindings.index_offset != b.bindings.index_offset;
 }
 
 void set_binding_offsets(DrawCommand const& cmd, sg_bindings& bindings)
@@ -46,50 +56,129 @@ void set_binding_offsets(DrawCommand const& cmd, sg_bindings& bindings)
 
 } // namespace
 
-void DrawContext::begin_frame()
+void DrawContext::next_frame()
 {
-    draw_cmds.clear();
+    assert(stage_ != Stage::Record);
+
+    draw_cmds_.clear();
+    batches_.clear();
+
     vertex_stream.reset();
     index_stream.reset();
     uniform_stream.reset();
+
+    stage_ = Stage::Record;
 }
 
-void DrawContext::submit(PassInfo const& pass)
+void DrawContext::begin_batch(BatchInfo const& info)
 {
-    // NOTE(dr): If either transfer fails, the pass is skipped for a frame since any draw command
-    // making use of streams refers to data that wasn't uploaded. We recover on the next frame after
-    // stream device buffers have been resized.
-    bool transfer_ok = true;
-    transfer_ok &= vertex_stream.transfer();
-    transfer_ok &= index_stream.transfer();
-    if (!transfer_ok)
+    assert(stage_ == Stage::Record);
+    assert(!curr_batch());
+
+    batches_.push_back({
+        .bindings = info.bindings,
+        .uniform_slice = uniform_stream.push(info.uniform_data),
+        .cmd_from = i32(size(draw_cmds_)),
+    });
+}
+
+void DrawContext::draw(DrawCommand const& cmd)
+{
+    assert(stage_ == Stage::Record);
+    assert(curr_batch());
+    draw_cmds_.push_back(cmd);
+}
+
+DrawContext::BatchHandle DrawContext::end_batch()
+{
+    assert(stage_ == Stage::Record);
+
+    Batch* batch = curr_batch();
+    assert(batch);
+
+    batch->cmd_to = size(draw_cmds_);
+    assert(batch->cmd_to >= batch->cmd_from);
+
+    return {i32(size(batches_) - 1)};
+}
+
+DrawContext::BatchHandle DrawContext::repeat_batch(BatchHandle handle, BatchInfo const& info)
+{
+    assert(stage_ == Stage::Record);
+    assert(!curr_batch());
+
+    Batch const& other = batches_[handle.index];
+    batches_.push_back({
+        .bindings = info.bindings,
+        .uniform_slice = uniform_stream.push(info.uniform_data),
+        .cmd_from = other.cmd_from,
+        .cmd_to = other.cmd_to,
+        .is_repeat = true,
+    });
+
+    return {i32(size(batches_) - 1)};
+}
+
+DrawContext::Batch* DrawContext::curr_batch()
+{
+    if (batches_.empty())
+        return nullptr;
+
+    Batch& b = batches_.back();
+    return (b.cmd_to == invalid_index<i32>) ? &b : nullptr;
+}
+
+void DrawContext::commit_batches()
+{
+    assert(stage_ == Stage::Record);
+
+    vertex_stream.transfer();
+    index_stream.transfer();
+
+    // Sort each batch of draw cmds
+    auto cmds = as_span(draw_cmds_);
+    for (Batch const& b : batches_)
     {
-        draw_cmds.clear();
-        return;
+        // Don't re-sort a repeated batch
+        if (b.is_repeat)
+            continue;
+
+        order_draw_cmds(cmds.range(b.cmd_from, b.cmd_to));
     }
 
-    order_draw_cmds(as_span(draw_cmds));
+    stage_ = Stage::Submit;
+}
 
-    GfxPipeline::Handle pipeline{};
-    void const* prev_geometry = nullptr;
-    void const* prev_material = nullptr;
+void DrawContext::submit_batch(BatchHandle const handle)
+{
+    assert(stage_ == Stage::Submit);
 
-    for (auto const& cmd : draw_cmds)
+    Batch const& batch = batches_[handle.index];
+
+    DrawCommand default_cmd{};
+    DrawCommand const* prev_cmd = &default_cmd;
+
+    for (auto const& cmd : as_span(draw_cmds_).range(batch.cmd_from, batch.cmd_to))
     {
-        if (cmd.pipeline.id != pipeline.id)
+        bool pipeline_changed = false;
+
+        if (cmd.pipeline.id != prev_cmd->pipeline.id)
         {
-            pipeline = cmd.pipeline;
-            sg_apply_pipeline(pipeline);
+            sg_apply_pipeline(cmd.pipeline);
 
-            if (pass.uniform_data.size() > 0)
-                apply_uniforms(UniformBlock::Pass, pass.uniform_data);
+            if (batch.uniform_slice != invalid_index<i32>)
+            {
+                Span<u8 const> const data = uniform_stream[batch.uniform_slice];
+                if (data.size() > 0)
+                    apply_uniforms(UniformBlock::Pass, data);
+            }
 
-            prev_geometry = prev_material = nullptr;
+            pipeline_changed = true;
         }
 
         bool bindings_dirty = false;
 
-        if (cmd.material != prev_material)
+        if (pipeline_changed || cmd.material != prev_cmd->material)
         {
             if (cmd.uniform_slices.material != invalid_index<i32>)
             {
@@ -98,11 +187,10 @@ void DrawContext::submit(PassInfo const& pass)
                     apply_uniforms(UniformBlock::Material, data);
             }
 
-            prev_material = cmd.material;
             bindings_dirty = true;
         }
 
-        if (cmd.geometry != prev_geometry)
+        if (pipeline_changed || cmd.geometry != prev_cmd->geometry)
         {
             if (cmd.uniform_slices.geometry != invalid_index<i32>)
             {
@@ -111,21 +199,13 @@ void DrawContext::submit(PassInfo const& pass)
                     apply_uniforms(UniformBlock::Geometry, data);
             }
 
-            prev_geometry = cmd.geometry;
             bindings_dirty = true;
         }
 
-        // NOTE(dr): Force rebind if the current command uses buffer offsets. Clearing prev_geometry
-        // ensures we rebind on the next command even if it has the same source geometry.
-        if (has_binding_offsets(cmd))
+        // Rebind if pipeline, resources, or binding offsets have changed
+        if (bindings_dirty || binding_offsets_differ(cmd, *prev_cmd))
         {
-            bindings_dirty = true;
-            prev_geometry = {};
-        }
-
-        if (bindings_dirty)
-        {
-            auto bindings = pass.bindings;
+            auto bindings = batch.bindings;
             set_binding_offsets(cmd, bindings);
             cmd.bindings.assign(cmd, bindings);
             sg_apply_bindings(bindings);
@@ -140,6 +220,8 @@ void DrawContext::submit(PassInfo const& pass)
 
         auto const& args = cmd.args;
         sg_draw(args.first_element, args.num_elements, args.num_instances);
+
+        prev_cmd = &cmd;
     }
 }
 

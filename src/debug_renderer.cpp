@@ -3,11 +3,19 @@
 #include <cassert>
 #include <cmath>
 
+#include <sokol_gfx.h>
+
+#include <dr/constants.hpp>
 #include <dr/container_utils.hpp>
 #include <dr/linalg_reshape.hpp>
 #include <dr/math.hpp>
 #include <dr/math_constants.hpp>
+#include <dr/math_types.hpp>
 #include <dr/memory.hpp>
+#include <dr/num_types.hpp>
+#include <dr/span.hpp>
+
+#include <dr/app/gfx_resource.hpp>
 
 #include "debug_renderer_shader_src.hpp"
 
@@ -218,44 +226,55 @@ PointInstance make_point(Vec3<f32> const& position, PointStyle const& style)
 
 } // namespace
 
-void DebugRenderer::begin_frame()
+void DebugRenderer::next_frame()
 {
+    assert(stage_ != Stage::Record);
+
     init_resources_once();
-    clear();
+
+    draw_calls_.clear();
+    batches_.clear();
     stream_.reset();
+
+    stage_ = Stage::Record;
 }
 
-void DebugRenderer::clear()
+void DebugRenderer::begin_batch(View const& view)
 {
+    assert(stage_ == Stage::Record);
+    assert(!curr_batch());
+
     for (u8 i = 0; i < num_passes; ++i)
     {
         lines_[i].clear();
         points_[i].clear();
     }
+
+    batches_.push_back({
+        .view = view,
+        .draw_from = i32(size(draw_calls_)),
+    });
 }
 
-void DebugRenderer::submit(View const& view)
+DebugRenderer::BatchHandle DebugRenderer::end_batch()
 {
-    struct
-    {
-        GfxPipeline::Handle pipeline;
-        i32 buffer_offset;
-        i32 num_instances;
-    } batches[num_passes * 2]{};
+    assert(stage_ == Stage::Record);
+
+    Batch* batch = curr_batch();
+    assert(batch);
 
     // Stage instance data for each non-empty bucket
-    isize num_batches = 0;
     auto stage = [&](GfxPipeline::Handle const pipeline,
                      Span<u8 const> const& instance_data,
                      i32 const num_instances) {
         if (num_instances == 0)
             return;
 
-        batches[num_batches++] = {
+        draw_calls_.push_back({
             .pipeline = pipeline,
             .buffer_offset = stream_.push(instance_data),
             .num_instances = num_instances,
-        };
+        });
     };
 
     for (u8 i = 0; i < num_passes; ++i)
@@ -267,26 +286,59 @@ void DebugRenderer::submit(View const& view)
         stage(Impl<PointInstance>::pipelines[i], as<u8>(as_span(points)), i32(points.size()));
     }
 
-    if (num_batches == 0)
-        return;
+    batch->draw_to = i32(size(draw_calls_));
+    return {i32(size(batches_) - 1)};
+}
 
-    // NOTE(dr): A failed transfer means the stream's device buffer was too small to fit everything
-    // pushed this frame. It's resized on the first transfer of the next frame, so skip drawing and
-    // recover then.
-    if (!stream_.transfer())
-        return;
+DebugRenderer::BatchHandle DebugRenderer::repeat_batch(BatchHandle const handle, View const& view)
+{
+    assert(stage_ == Stage::Record);
+    assert(!curr_batch());
 
-    auto const pass_params = PassParams::make(view);
-    for (isize i = 0; i < num_batches; ++i)
+    Batch const& other = batches_[handle.index];
+    batches_.push_back({
+        .view = view,
+        .draw_from = other.draw_from,
+        .draw_to = other.draw_to,
+    });
+
+    return {i32(size(batches_) - 1)};
+}
+
+DebugRenderer::Batch* DebugRenderer::curr_batch()
+{
+    if (batches_.empty())
+        return nullptr;
+
+    Batch& b = batches_.back();
+    return (b.draw_to == invalid_index<i32>) ? &b : nullptr;
+}
+
+void DebugRenderer::commit_batches()
+{
+    assert(stage_ == Stage::Record);
+    assert(!curr_batch());
+
+    stream_.transfer();
+    stage_ = Stage::Submit;
+}
+
+void DebugRenderer::submit_batch(BatchHandle const handle)
+{
+    assert(stage_ == Stage::Submit);
+
+    Batch const& batch = batches_[handle.index];
+    auto const pass_params = PassParams::make(batch.view);
+
+    for (auto const& call : as_span(draw_calls_).range(batch.draw_from, batch.draw_to))
     {
-        auto const& batch = batches[i];
-        sg_apply_pipeline(batch.pipeline);
+        sg_apply_pipeline(call.pipeline);
         sg_apply_uniforms(0, {&pass_params, sizeof(pass_params)});
         sg_apply_bindings({
             .vertex_buffers{stream_.device_buffer()},
-            .vertex_buffer_offsets{batch.buffer_offset},
+            .vertex_buffer_offsets{call.buffer_offset},
         });
-        sg_draw(0, 4, batch.num_instances);
+        sg_draw(0, 4, call.num_instances);
     }
 }
 
@@ -296,16 +348,25 @@ void DebugRenderer::submit(View const& view)
 
 void DebugRenderer::draw_line(Vec3<f32> const& a, Vec3<f32> const& b, LineStyle const& style)
 {
+    assert(stage_ == Stage::Record);
+    assert(curr_batch());
+
     lines_[u8(style.pass)].push_back(make_line(a, b, style));
 }
 
 void DebugRenderer::draw_point(Vec3<f32> const& p, PointStyle const& style)
 {
+    assert(stage_ == Stage::Record);
+    assert(curr_batch());
+
     points_[u8(style.pass)].push_back(make_point(p, style));
 }
 
 void DebugRenderer::draw_polyline(Polyline const& poly, LineStyle const& style)
 {
+    assert(stage_ == Stage::Record);
+    assert(curr_batch());
+
     auto const& pts = poly.points;
     if (pts.size() < 2)
         return;

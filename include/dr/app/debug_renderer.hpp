@@ -1,13 +1,16 @@
 #pragma once
 
-#include <dr/num_types.hpp>
+#include <dr/constants.hpp>
+#include <dr/container_utils.hpp>
 #include <dr/dynamic_array.hpp>
 #include <dr/function_ref.hpp>
 #include <dr/math_types.hpp>
+#include <dr/num_types.hpp>
 #include <dr/span.hpp>
 #include <dr/transform.hpp>
 
 #include <dr/app/draw_streams.hpp>
+#include <dr/app/gfx_resource.hpp>
 
 namespace dr
 {
@@ -15,7 +18,7 @@ namespace dr
 /// Immediate-mode renderer for debug geometry
 struct DebugRenderer
 {
-    /// Determines how a primitive is composited. Passes are drawn in the order listed.
+    /// Determines how a primitive is composited. Passes are drawn in this order within each batch.
     enum struct Pass : u8
     {
         /// Depth tested and written, coverage resolves via alpha to coverage
@@ -85,14 +88,34 @@ struct DebugRenderer
         u8 flags[4] = {};
     };
 
-    /// Call once per frame before drawing any geometry.
-    void begin_frame();
+    /// Call once per frame before recording any batches. Invalidates all batch handles.
+    void next_frame();
 
-    /// Submits draw calls for accumulated geometry. Must be called within an active render pass.
-    void submit(View const& view);
+    struct BatchHandle
+    {
+        i32 index{invalid_index<i32>};
 
-    /// Clears accumulated geometry. Can be called mutliple times within a single frame.
-    void clear();
+        constexpr bool is_valid() const { return index != invalid_index<i32>; }
+        constexpr explicit operator bool() const { return is_valid(); }
+    };
+
+    /// Opens a new batch of draw calls using the given view
+    void begin_batch(View const& view);
+
+    /// Closes the current batch of draw calls
+    BatchHandle end_batch();
+
+    /// Repeats a an existing batch of draw calls using a new view
+    BatchHandle repeat_batch(BatchHandle handle, View const& view);
+
+    /// Transfers all recorded draw calls
+    void commit_batches();
+
+    /// Submits a batch of draw calls
+    void submit_batch(BatchHandle handle);
+
+    /// Returns the number of batches created so far this frame
+    isize num_batches() const { return size(batches_); }
 
     /*
         Draw commands
@@ -199,9 +222,36 @@ struct DebugRenderer
     void draw_grid_points(Grid const& grid, PointStyle const& style);
 
   private:
+    struct DrawCall
+    {
+        GfxPipeline::Handle pipeline;
+        i32 buffer_offset;
+        i32 num_instances;
+    };
+
+    struct Batch
+    {
+        View view;
+        i32 draw_from{invalid_index<i32>};
+        i32 draw_to{invalid_index<i32>};
+    };
+
+    enum Stage : u8
+    {
+        Undefined = 0,
+        Record,
+        Submit,
+    };
+
     DynamicArray<LineInstance> lines_[u8(Pass::_Count)];
     DynamicArray<PointInstance> points_[u8(Pass::_Count)];
     VertexStream stream_;
+    DynamicArray<DrawCall> draw_calls_;
+    DynamicArray<Batch> batches_;
+    Stage stage_{};
+
+    /// Returns a pointer to the currently open batch
+    Batch* curr_batch();
 };
 
 } // namespace dr

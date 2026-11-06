@@ -1,17 +1,27 @@
 #include "scene.hpp"
 
-#include <sokol_time.h>
+#include <cmath>
 
-#include <dr/num_types.hpp>
+#include <sokol_app.h>
+#include <sokol_gfx.h>
+
+#include <dr/container_utils.hpp>
+#include <dr/dynamic_array.hpp>
 #include <dr/linalg_reshape.hpp>
-#include <dr/math.hpp>
+#include <dr/math_constants.hpp>
 #include <dr/math_ctors.hpp>
+#include <dr/math_types.hpp>
 #include <dr/memory.hpp>
+#include <dr/num_types.hpp>
+#include <dr/span.hpp>
 
+#include <dr/app/app.hpp>
+#include <dr/app/camera_rig.hpp>
+#include <dr/app/draw_command.hpp>
 #include <dr/app/draw_context.hpp>
+#include <dr/app/draw_streams.hpp>
 #include <dr/app/event_handlers.hpp>
 #include <dr/app/gfx_resource.hpp>
-#include <dr/app/gfx_utils.hpp>
 #include <dr/app/orbit_camera.hpp>
 #include <dr/app/shim/imgui.hpp>
 #include <dr/app/shim/tracy.hpp>
@@ -193,77 +203,78 @@ void open()
 
 void close() { state = {}; }
 
-void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view)
+// Non-owning frame-scoped scene representation
+struct SceneView
+{
+    struct
+    {
+        GfxBuffer::Handle vertex;
+        GfxBuffer::Handle index;
+        VertexStream* instance; // Instance data is streamed
+    } mesh;
+    Mat4<f32> view_to_clip;
+    Mat4<f32> world_to_view;
+};
+
+DrawContext::BatchHandle draw_scene(SceneView const& scene)
 {
     ZoneScoped;
 
     auto& draw_ctx = state.draw_ctx;
 
-    // NOTE(dr): Using immutable buffers for static mesh data and the draw context's vertex stream
-    // for dynamic instance data
-
-    struct Geometry
+    struct
     {
-        GfxBuffer::Handle vertex;
-        GfxBuffer::Handle index;
-        VertexStream* stream;
-    };
+        f32 view_to_clip[16];
+    } pass_uniforms;
+    as_mat<4, 4>(pass_uniforms.view_to_clip) = scene.view_to_clip;
 
-    Geometry const geom{
-        .vertex = state.gfx.mesh.vertex_buffer,
-        .index = state.gfx.mesh.index_buffer,
-        .stream = &draw_ctx.vertex_stream,
-    };
+    // Open batch of draw cmds
+    draw_ctx.begin_batch({.uniform_data = as_bytes(pass_uniforms)});
 
-    // Create draw commands
+    // Add draw cmds
+    // ....
+    // ....
+    // ....
+
+    struct
     {
-        struct
-        {
-            f32 local_to_view[16];
-        } obj_uniforms;
-        as_mat<4, 4>(obj_uniforms.local_to_view) = world_to_view;
+        f32 local_to_view[16];
+    } obj_uniforms;
+    as_mat<4, 4>(obj_uniforms.local_to_view) = scene.world_to_view;
 
-        draw_ctx.draw_cmds.push_back({
-            .pipeline = state.gfx.pipeline,
-            .geometry = &geom,
-            .bindings{
-                .assign =
-                    [](DrawCommand const& cmd, sg_bindings& bindings) {
-                        auto geom = static_cast<Geometry const*>(cmd.geometry);
-                        bindings.vertex_buffers[0] = geom->vertex;
-                        bindings.vertex_buffers[1] = geom->stream->device_buffer();
-                        bindings.index_buffer = geom->index;
-                    },
-                .vertex_offsets{
-                    0,
-                    draw_ctx.vertex_stream.push_once<0>(&geom, as<u8>(as_span(state.instances))),
+    draw_ctx.draw({
+        .pipeline = state.gfx.pipeline,
+        .geometry = &scene.mesh,
+        .bindings{
+            .assign =
+                [](DrawCommand const& cmd, sg_bindings& bindings) {
+                    using Mesh = decltype(SceneView::mesh);
+                    auto mesh = static_cast<Mesh const*>(cmd.geometry);
+                    bindings.vertex_buffers[0] = mesh->vertex;
+                    bindings.vertex_buffers[1] = mesh->instance->device_buffer();
+                    bindings.index_buffer = mesh->index;
                 },
+            .vertex_offsets{
+                0,
+                draw_ctx.vertex_stream.push_once<0>(&scene.mesh, as<u8>(as_span(state.instances))),
             },
-            .uniform_slices{
-                .object = draw_ctx.uniform_stream.push(as_bytes(obj_uniforms)),
-            },
-            .args{
-                .num_elements = 3 * i32(mesh_indices().size()),
-                .num_instances = i32(state.instances.size()),
-            },
-        });
-    }
+        },
+        .uniform_slices{
+            .object = draw_ctx.uniform_stream.push(as_bytes(obj_uniforms)),
+        },
+        .args{
+            .num_elements = 3 * i32(mesh_indices().size()),
+            .num_instances = i32(state.instances.size()),
+        },
+    });
 
-    // Submit draw commands
-    {
-        ZoneScopedN("submit draw commands");
-        TracyGpuZone("submit draw commands");
+    // Add draw cmds
+    // ...
+    // ...
+    // ...
 
-        struct
-        {
-            f32 view_to_clip[16];
-        } pass_uniforms;
-        as_mat<4, 4>(pass_uniforms.view_to_clip) = view_to_clip;
-
-        draw_ctx.submit({
-            .uniform_data = as_bytes(pass_uniforms),
-        });
-    }
+    // Close draw batch
+    return draw_ctx.end_batch();
 }
 
 void draw_ui()
@@ -325,12 +336,31 @@ void draw_ui()
 
 void draw()
 {
-    sg_begin_pass(App::swapchain_pass());
-
-    state.draw_ctx.begin_frame();
+    auto& draw_ctx = state.draw_ctx;
+    draw_ctx.next_frame();
 
     auto const& cam = state.camera;
-    draw_scene(cam.make_view_to_clip(App::aspect()), cam.make_world_to_view());
+
+    SceneView const scene{
+        .mesh{
+            .vertex = state.gfx.mesh.vertex_buffer,
+            .index = state.gfx.mesh.index_buffer,
+            .instance = &state.draw_ctx.vertex_stream,
+        },
+        .view_to_clip = cam.make_view_to_clip(App::aspect()),
+        .world_to_view = cam.make_world_to_view(),
+    };
+
+    // Record *all* draw commands
+    auto const batch = draw_scene(scene);
+
+    // Commit recorded commands (once per frame)
+    draw_ctx.commit_batches();
+
+    sg_begin_pass(App::swapchain_pass());
+
+    // Submit batch within a render pass. A single batch can be submitted in multiple passes.
+    draw_ctx.submit_batch(batch);
     draw_ui();
 
     sg_end_pass();

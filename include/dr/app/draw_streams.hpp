@@ -1,9 +1,11 @@
 #pragma once
 
-#include <dr/num_types.hpp>
+#include <sokol_gfx.h>
+
 #include <dr/dynamic_array.hpp>
 #include <dr/hash.hpp>
 #include <dr/hash_map.hpp>
+#include <dr/num_types.hpp>
 #include <dr/sliced_array.hpp>
 #include <dr/span.hpp>
 
@@ -16,20 +18,17 @@ struct StreamBuffer
 {
     DynamicArray<u8> host_buffer;
     GfxBuffer device_buffer;
-    usize host_offset{};
     usize device_size{};
 
     /// Appends a chunk of bytes to the host buffer, returning the offset to the beginning of the
-    /// chunk. This will match the offset of chunk in the device buffer once transferred.
+    /// appended chunk.
     i32 push(Span<u8 const> const& bytes, usize align);
 
-    /// Transfers pushed data from host buffer to device buffer. This can be called repeatedly
-    /// within the same frame to upload data in batches over multiple render passes. Returns false
-    /// if the device buffer isn't large enough; it's automatically resized on the *first* transfer
-    /// each frame to match the capacity of the host buffer.
-    bool transfer(sg_buffer_usage usage);
+    /// Transfers pushed data from host buffer to device buffer. Call once per frame after all data
+    /// is pushed.
+    void transfer(sg_buffer_usage usage);
 
-    /// Clears the host buffer. Typically called once per frame, before pushing any data.
+    /// Clears the host buffer. Call once per frame, before pushing any data.
     void reset();
 };
 
@@ -46,7 +45,7 @@ struct VertexStream
         return push_vertices_once({key, slot}, bytes);
     }
 
-    bool transfer();
+    void transfer();
 
     void reset();
 
@@ -77,7 +76,7 @@ struct IndexStream
 
     i32 push_once(void const* key, Span<u8 const> const& bytes);
 
-    bool transfer();
+    void transfer();
 
     void reset();
 

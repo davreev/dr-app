@@ -2,17 +2,23 @@
 
 #include <cmath>
 
-#include <dr/num_types.hpp>
+#include <sokol_app.h>
+#include <sokol_gfx.h>
+
+#include <dr/container_utils.hpp>
 #include <dr/dynamic_array.hpp>
 #include <dr/linalg_reshape.hpp>
 #include <dr/math.hpp>
 #include <dr/math_constants.hpp>
 #include <dr/math_ctors.hpp>
+#include <dr/math_types.hpp>
 #include <dr/mesh_primitives.hpp>
+#include <dr/num_types.hpp>
 #include <dr/span.hpp>
 
+#include <dr/app/app.hpp>
+#include <dr/app/camera_rig.hpp>
 #include <dr/app/debug_renderer.hpp>
-#include <dr/app/draw_context.hpp>
 #include <dr/app/event_handlers.hpp>
 #include <dr/app/gfx_utils.hpp>
 #include <dr/app/orbit_camera.hpp>
@@ -136,18 +142,32 @@ struct Trefoil
     Vec3<f32> operator()(f32 const t) const { return torus(freq[0] * t, freq[1] * t); }
 };
 
-void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view, f64 const time)
+// Non-owning frame-scoped scene representation
+struct SceneDesc
+{
+    Mat4<f32> view_to_clip;
+    Mat4<f32> world_to_view;
+    f64 const time{};
+};
+
+DebugRenderer::BatchHandle draw_scene(SceneDesc const& scene)
 {
     ZoneScoped;
 
     auto& dbr = state.renderer;
-    state.renderer.begin_frame();
+    dbr.begin_batch({
+        .world_to_clip = scene.view_to_clip * scene.world_to_view,
+        .viewport{
+            .size = {sapp_widthf(), sapp_heightf()},
+            .dpi_scale = sapp_dpi_scale(),
+        },
+    });
 
     constexpr f32 loops_per_sec = 0.025;
-    f32 const t_loop = fract(loops_per_sec * time);
+    f32 const t_loop = fract(loops_per_sec * scene.time);
 
     constexpr f32 cycles_per_sec = 0.1;
-    f32 const t_cycle = 0.5 - std::cos(two_pi * cycles_per_sec * time) * 0.5; // In [0, 1]
+    f32 const t_cycle = 0.5 - std::cos(two_pi * cycles_per_sec * scene.time) * 0.5; // In [0, 1]
 
     struct
     {
@@ -248,7 +268,7 @@ void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view, f
         auto& params = state.params.box;
 
         Mat3<f32> rotate = Mat3<f32>::Identity();
-        rotate.topLeftCorner<2, 2>() = make_rotate(two_pi * cycles_per_sec * time);
+        rotate.topLeftCorner<2, 2>() = make_rotate(two_pi * cycles_per_sec * scene.time);
 
         DebugRenderer::Box box{
             .transform{
@@ -297,7 +317,7 @@ void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view, f
                 .width = 4,
             });
 
-        Mat2<f32> const rot = make_rotate(two_pi * cycles_per_sec * time);
+        Mat2<f32> const rot = make_rotate(two_pi * cycles_per_sec * scene.time);
 
         Mat3<f32> rot_yz = Mat3<f32>::Identity();
         rot_yz({1, 2}, {1, 2}) = rot;
@@ -482,13 +502,7 @@ void draw_scene(Mat4<f32> const& view_to_clip, Mat4<f32> const& world_to_view, f
             });
     }
 
-    dbr.submit({
-        .world_to_clip = view_to_clip * world_to_view,
-        .viewport{
-            .size = {sapp_widthf(), sapp_heightf()},
-            .dpi_scale = sapp_dpi_scale(),
-        },
-    });
+    return dbr.end_batch();
 }
 
 void draw_ui()
@@ -578,13 +592,29 @@ void draw_ui()
 
 void draw()
 {
-    sg_begin_pass(App::swapchain_pass());
+    auto& renderer = state.renderer;
+    renderer.next_frame();
 
     auto const& cam = state.camera;
     Mat4<f32> const view_to_clip = cam.make_view_to_clip(App::aspect());
     Mat4<f32> const world_to_view = cam.make_world_to_view();
 
-    draw_scene(view_to_clip, world_to_view, App::time_s());
+    SceneDesc const scene{
+        .view_to_clip = view_to_clip,
+        .world_to_view = world_to_view,
+        .time = App::time_s(),
+    };
+
+    // Record *all* draw calls
+    auto const batch = draw_scene(scene);
+
+    // Commmit all draw call batches (once per frame)
+    renderer.commit_batches();
+
+    sg_begin_pass(App::swapchain_pass());
+
+    // Submit batch within a render pass. A single batch can be submitted in multiple passes.
+    renderer.submit_batch(batch);
     draw_ui();
 
     sg_end_pass();
