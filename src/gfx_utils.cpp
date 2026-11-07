@@ -1,5 +1,7 @@
 #include <dr/app/gfx_utils.hpp>
 
+#include <cmath>
+
 namespace dr
 {
 
@@ -77,7 +79,11 @@ Mat4<f32> make_look_at(Vec3<f32> const& eye, Vec3<f32> const& target, Vec3<f32> 
 }
 
 template <>
-Mat4<f32> make_perspective<NdcType_Default>(f32 const fov_y, f32 const aspect, f32 const near, f32 const far)
+Mat4<f32> make_perspective<NdcType_Default>(
+    f32 const fov_y,
+    f32 const aspect,
+    f32 const near,
+    f32 const far)
 {
     // NOTE: This assumes a right-handed y-up view space i.e. [-near, -far] in view space maps to
     // [0, 1] in NDC space
@@ -94,7 +100,11 @@ Mat4<f32> make_perspective<NdcType_Default>(f32 const fov_y, f32 const aspect, f
 }
 
 template <>
-Mat4<f32> make_perspective<NdcType_OpenGl>(f32 const fov_y, f32 const aspect, f32 const near, f32 const far)
+Mat4<f32> make_perspective<NdcType_OpenGl>(
+    f32 const fov_y,
+    f32 const aspect,
+    f32 const near,
+    f32 const far)
 {
     // NOTE: This assumes a right-handed y-up view space i.e. [-near, -far] in view space maps to
     // [-1, 1] in NDC space
@@ -111,7 +121,11 @@ Mat4<f32> make_perspective<NdcType_OpenGl>(f32 const fov_y, f32 const aspect, f3
 }
 
 template <>
-Mat4<f32> make_perspective<NdcType_Vulkan>(f32 const fov_y, f32 const aspect, f32 const near, f32 const far)
+Mat4<f32> make_perspective<NdcType_Vulkan>(
+    f32 const fov_y,
+    f32 const aspect,
+    f32 const near,
+    f32 const far)
 {
     // NOTE: This assumes a right-handed y-up view space i.e. [-near, -far] in view space maps to
     // [0, 1] in NDC space

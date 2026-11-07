@@ -1,6 +1,7 @@
 #include <dr/app/orbit_camera.hpp>
 
 #include <cassert>
+#include <cmath>
 
 #include <dr/math.hpp>
 

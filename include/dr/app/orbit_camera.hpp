@@ -1,6 +1,11 @@
 #pragma once
 
+#include <dr/math_constants.hpp>
+#include <dr/math_types.hpp>
+#include <dr/num_types.hpp>
+
 #include <dr/app/camera_controls.hpp>
+#include <dr/app/camera_rig.hpp>
 #include <dr/app/config.hpp>
 
 namespace dr

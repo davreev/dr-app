@@ -1,6 +1,8 @@
 #include <implot.h>
 #include <implot3d.h>
 
+#include <sokol_app.h>
+
 #include <dr/app/app.hpp>
 
 #include "scene.hpp"

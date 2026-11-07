@@ -15,7 +15,6 @@
 #include <dr/num_types.hpp>
 #include <dr/span.hpp>
 
-#include <dr/app/app.hpp>
 #include <dr/app/camera_rig.hpp>
 #include <dr/app/draw_command.hpp>
 #include <dr/app/draw_context.hpp>

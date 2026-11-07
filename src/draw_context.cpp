@@ -3,15 +3,6 @@
 #include <algorithm>
 #include <cassert>
 
-#include <sokol_gfx.h>
-
-#include <dr/constants.hpp>
-#include <dr/container_utils.hpp>
-#include <dr/num_types.hpp>
-#include <dr/span.hpp>
-
-#include <dr/app/draw_command.hpp>
-
 namespace dr
 {
 namespace

@@ -1,3 +1,5 @@
+#pragma once
+
 #if defined(TRACY_ENABLE) && !defined(__APPLE__) && !defined(__EMSCRIPTEN__)
 #if defined(_WIN32)
 #ifndef NOMINMAX

@@ -1,14 +1,6 @@
 #include <dr/app/draw_streams.hpp>
 
-#include <sokol_gfx.h>
-
 #include <dr/bitwise.hpp>
-#include <dr/dynamic_array.hpp>
-#include <dr/hash.hpp>
-#include <dr/num_types.hpp>
-#include <dr/span.hpp>
-
-#include <dr/app/gfx_resource.hpp>
 
 namespace dr
 {

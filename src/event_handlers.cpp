@@ -2,11 +2,11 @@
 
 #include <cmath>
 
-#include <dr/linalg_reshape.hpp>
+#include <sokol_app.h>
+
 #include <dr/math.hpp>
 
-#include <dr/app/app.hpp>
-#include <dr/app/camera_rig.hpp>
+#include <dr/app/camera_controls.hpp>
 #include <dr/app/orbit_camera.hpp>
 
 namespace dr

@@ -1,12 +1,18 @@
 #include "scene.hpp"
 
-#include <sokol_time.h>
+#include <cmath>
 
-#include <dr/num_types.hpp>
+#include <sokol_app.h>
+#include <sokol_gfx.h>
+
+#include <dr/container_utils.hpp>
 #include <dr/dynamic_array.hpp>
 #include <dr/linalg_reshape.hpp>
 #include <dr/math.hpp>
+#include <dr/math_constants.hpp>
+#include <dr/math_types.hpp>
 #include <dr/memory.hpp>
+#include <dr/num_types.hpp>
 #include <dr/span.hpp>
 
 #include <dr/app/draw_streams.hpp>
@@ -14,7 +20,6 @@
 #include <dr/app/gfx_resource.hpp>
 #include <dr/app/gfx_utils.hpp>
 #include <dr/app/orbit_camera.hpp>
-
 #include <dr/app/shim/imgui.hpp>
 #include <dr/app/shim/tracy.hpp>
 
@@ -367,6 +372,7 @@ void update()
     // Push additional data to streams here
     // ...
 
+    // Transfer staged data to device buffers (once per frame)
     vs.transfer();
     is.transfer();
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <dr/num_types.hpp>
 #include <dr/dynamic_array.hpp>
+#include <dr/num_types.hpp>
 #include <dr/string.hpp>
 
 namespace dr

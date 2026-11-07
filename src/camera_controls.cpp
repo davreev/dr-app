@@ -1,5 +1,7 @@
 #include <dr/app/camera_controls.hpp>
 
+#include <cmath>
+
 #include <dr/linalg_reshape.hpp>
 #include <dr/math.hpp>
 
@@ -57,8 +59,8 @@ void Orbit::apply(CameraRig& rig) const
     constexpr f32 right[]{1.0, 0.0, 0.0};
     constexpr f32 up[]{0.0, 0.0, 1.0};
 
-    Eigen::AngleAxis const r_x{polar.current, as_vec<3>(right)};
-    Eigen::AngleAxis const r_z{azimuth.current, as_vec<3>(up)};
+    AngleAxis<f32> const r_x{polar.current, as_vec<3>(right)};
+    AngleAxis<f32> const r_z{azimuth.current, as_vec<3>(up)};
     rig.pivot.rotation.q = r_z * r_x;
 }
 

@@ -1,6 +1,9 @@
 #include <dr/app/file_utils.hpp>
 
+#include <algorithm>
 #include <fstream>
+#include <ios>
+#include <iterator>
 
 namespace dr
 {

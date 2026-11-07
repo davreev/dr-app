@@ -1,3 +1,5 @@
+#include <sokol_app.h>
+
 #include <dr/app/app.hpp>
 
 #include "scene.hpp"

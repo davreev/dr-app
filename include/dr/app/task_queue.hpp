@@ -3,10 +3,9 @@
 #include <atomic>
 
 #include <dr/allocator.hpp>
-#include <dr/num_types.hpp>
 #include <dr/deque.hpp>
 #include <dr/dynamic_array.hpp>
-#include <dr/string.hpp>
+#include <dr/num_types.hpp>
 
 #include <dr/app/task_ref.hpp>
 

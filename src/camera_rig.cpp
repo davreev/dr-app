@@ -1,5 +1,7 @@
 #include <dr/app/camera_rig.hpp>
 
+#include <cmath>
+
 namespace dr
 {
 namespace
