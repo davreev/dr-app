@@ -5,16 +5,8 @@
 #include <sokol_app.h>
 #include <sokol_gfx.h>
 
-#include <dr/container_utils.hpp>
-#include <dr/dynamic_array.hpp>
-#include <dr/linalg_reshape.hpp>
-#include <dr/math.hpp>
-#include <dr/math_constants.hpp>
-#include <dr/math_ctors.hpp>
-#include <dr/math_types.hpp>
 #include <dr/mesh_primitives.hpp>
-#include <dr/num_types.hpp>
-#include <dr/span.hpp>
+#include <dr/numerics.hpp>
 
 #include <dr/app/camera_rig.hpp>
 #include <dr/app/debug_renderer.hpp>
