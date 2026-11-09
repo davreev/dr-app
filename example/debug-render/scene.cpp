@@ -46,6 +46,7 @@ struct
         struct
         {
             f32 spread = 0.5;
+            f32 width = 5.0;
         } frame;
         struct
         {
@@ -188,7 +189,11 @@ DebugRenderer::BatchHandle draw_scene(SceneDesc const& scene)
         Vec3<f32> const origin = layout.next_pos();
         auto& params = state.params.frame;
 
-        dbr.draw_frame({.transform{.translation = origin}}, {.width = 5.0f});
+        DebugRenderer::FrameStyle const style{
+            .width = params.width,
+        };
+
+        dbr.draw_frame({.transform{.translation = origin}}, style);
 
         Mat3<f32> const l_a = Mat3<f32>::Identity();
         Vec3<f32> const t_a = {};
@@ -205,7 +210,7 @@ DebugRenderer::BatchHandle draw_scene(SceneDesc const& scene)
                     .translation = origin + t_a + t * (t_b - t_a),
                 },
             },
-            {.width = 5.0f});
+            style);
 
         dbr.draw_frame(
             {
@@ -214,7 +219,7 @@ DebugRenderer::BatchHandle draw_scene(SceneDesc const& scene)
                     .translation = origin + t_a - t * (t_b - t_a),
                 },
             },
-            {.width = 5.0f});
+            style);
     }
 
     // Grids
@@ -518,6 +523,7 @@ void draw_ui()
             {
                 auto& p = state.params.frame;
                 ImGui::SliderFloat("Spread", &p.spread, 0.0f, 1.0f);
+                ImGui::SliderFloat("Width", &p.width, 1.0f, 12.0f);
             }
 
             ImGui::SeparatorText("Grid");

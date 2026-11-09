@@ -48,6 +48,7 @@ struct DebugRenderer
     struct LineStyle
     {
         Vec4<f32> color = {1.0, 1.0, 1.0, 1.0};
+        Vec2<f32> trim = {0.0, 0.0};
         f32 width = 2.0;
         LineCap cap = LineCap::Round;
         Pass pass = Pass::Opaque;
@@ -75,16 +76,17 @@ struct DebugRenderer
     {
         f32 start[3] = {};
         f32 end[3] = {};
-        u8 color[4] = {};
+        f32 trim[2] = {};
         f32 width = {};
+        u8 color[4] = {};
         u8 flags[4] = {};
     };
 
     struct PointInstance
     {
         f32 position[3] = {};
-        u8 color[4] = {};
         f32 size = {};
+        u8 color[4] = {};
         u8 flags[4] = {};
     };
 
@@ -201,6 +203,7 @@ struct DebugRenderer
         {
             Vec4<f32> color{1.0, 1.0, 1.0, 1.0};
             f32 rel_size = 1.5;
+            f32 rel_trim = 1.75;
         } origin;
     };
 

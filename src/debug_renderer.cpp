@@ -130,8 +130,9 @@ struct Impl<LineInstance>
                 .attrs{
                     {.buffer_index = 0, .format = SG_VERTEXFORMAT_FLOAT3}, // start
                     {.buffer_index = 0, .format = SG_VERTEXFORMAT_FLOAT3}, // end
-                    {.buffer_index = 0, .format = SG_VERTEXFORMAT_UBYTE4N}, // color
+                    {.buffer_index = 0, .format = SG_VERTEXFORMAT_FLOAT2}, // trim
                     {.buffer_index = 0, .format = SG_VERTEXFORMAT_FLOAT}, // width
+                    {.buffer_index = 0, .format = SG_VERTEXFORMAT_UBYTE4N}, // color
                     {.buffer_index = 0, .format = SG_VERTEXFORMAT_UBYTE4}, // flags
                 },
             };
@@ -168,8 +169,8 @@ struct Impl<PointInstance>
                 .buffers{{.step_func = SG_VERTEXSTEP_PER_INSTANCE}},
                 .attrs{
                     {.buffer_index = 0, .format = SG_VERTEXFORMAT_FLOAT3}, // position
-                    {.buffer_index = 0, .format = SG_VERTEXFORMAT_UBYTE4N}, // color
                     {.buffer_index = 0, .format = SG_VERTEXFORMAT_FLOAT}, // size
+                    {.buffer_index = 0, .format = SG_VERTEXFORMAT_UBYTE4N}, // color
                     {.buffer_index = 0, .format = SG_VERTEXFORMAT_UBYTE4}, // flags
                 },
             };
@@ -201,8 +202,9 @@ LineInstance make_line(Vec3<f32> const& start, Vec3<f32> const& end, LineStyle c
     LineInstance result{};
     as_vec(result.start) = start;
     as_vec(result.end) = end;
-    pack_color(style.color, result.color);
+    as_vec(result.trim) = style.trim;
     result.width = style.width;
+    pack_color(style.color, result.color);
     result.flags[0] = u8(style.cap);
     return result;
 }
@@ -211,8 +213,8 @@ PointInstance make_point(Vec3<f32> const& position, PointStyle const& style)
 {
     PointInstance result{};
     as_vec(result.position) = position;
-    pack_color(style.color, result.color);
     result.size = style.size;
+    pack_color(style.color, result.color);
     result.flags[0] = u8(style.shape);
     return result;
 }
@@ -468,26 +470,23 @@ void DebugRenderer::draw_frame(Frame const& frame, FrameStyle const& style)
 {
     Vec3<f32> const& origin = frame.transform.translation;
     Mat3<f32> const axes = frame.scale * frame.transform.linear;
+    f32 const origin_size = style.origin.rel_size * style.width;
+    Vec2<f32> const trim{style.origin.rel_trim * style.width, 0.0};
     draw_line(
         origin,
         origin + axes.col(0),
-        {.color = style.color_x, .width = style.width, .pass = Pass::Opaque});
+        {.color = style.color_x, .trim = trim, .width = style.width});
     draw_line(
         origin,
         origin + axes.col(1),
-        {.color = style.color_y, .width = style.width, .pass = Pass::Opaque});
+        {.color = style.color_y, .trim = trim, .width = style.width});
     draw_line(
         origin,
         origin + axes.col(2),
-        {.color = style.color_z, .width = style.width, .pass = Pass::Opaque});
+        {.color = style.color_z, .trim = trim, .width = style.width});
     draw_point(
         origin,
-        {
-            .color = style.origin.color,
-            .size = style.origin.rel_size * style.width,
-            .shape = PointShape::Disc,
-            .pass = Pass::Overlay,
-        });
+        {.color = style.origin.color, .size = origin_size, .shape = PointShape::Disc});
 }
 
 void DebugRenderer::draw_grid_lines(Grid const& grid, LineStyle const& style)
