@@ -23,12 +23,6 @@ struct DrawContext
     /// Call once per frame before adding any draw commands. Invalidates all batch handles.
     void next_frame();
 
-    struct BatchInfo
-    {
-        sg_bindings bindings;
-        Span<u8 const> uniform_data;
-    };
-
     struct BatchHandle
     {
         i32 index{invalid_index<i32>};
@@ -38,7 +32,7 @@ struct DrawContext
     };
 
     /// Opens a new batch of draw commands
-    void begin_batch(BatchInfo const& info);
+    void begin_batch(Span<u8 const> const& uniform_data);
 
     /// Records a draw command to the current batch
     void draw(DrawCommand const& cmd);
@@ -46,14 +40,14 @@ struct DrawContext
     /// Closes the current batch of draw commands
     BatchHandle end_batch();
 
-    /// Repeats an existing batch of draw commands using new info
-    BatchHandle repeat_batch(BatchHandle handle, BatchInfo const& info);
+    /// Repeats a previously recorded batch of draw commands
+    BatchHandle repeat_batch(BatchHandle handle, Span<u8 const> const& uniform_data);
 
     /// Orders draw commands within each batch and transfers streamed data to device buffers
     void commit_batches();
 
     /// Submits a batch of draw commands
-    void submit_batch(BatchHandle handle);
+    void submit_batch(BatchHandle handle, sg_bindings const& base_bindings);
 
     /// Returns the number of batches created so far this frame
     isize num_batches() const { return size(batches_); }
@@ -61,7 +55,6 @@ struct DrawContext
   private:
     struct Batch
     {
-        sg_bindings bindings;
         i32 uniform_slice{invalid_index<i32>};
         i32 cmd_from{invalid_index<i32>};
         i32 cmd_to{invalid_index<i32>};

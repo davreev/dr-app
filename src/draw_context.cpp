@@ -61,14 +61,13 @@ void DrawContext::next_frame()
     stage_ = Stage::Record;
 }
 
-void DrawContext::begin_batch(BatchInfo const& info)
+void DrawContext::begin_batch(Span<u8 const> const& uniform_data)
 {
     assert(stage_ == Stage::Record);
     assert(!curr_batch());
 
     batches_.push_back({
-        .bindings = info.bindings,
-        .uniform_slice = uniform_stream.push(info.uniform_data),
+        .uniform_slice = uniform_stream.push(uniform_data),
         .cmd_from = i32(size(draw_cmds_)),
     });
 }
@@ -93,15 +92,16 @@ DrawContext::BatchHandle DrawContext::end_batch()
     return {i32(size(batches_) - 1)};
 }
 
-DrawContext::BatchHandle DrawContext::repeat_batch(BatchHandle handle, BatchInfo const& info)
+DrawContext::BatchHandle DrawContext::repeat_batch(
+    BatchHandle handle,
+    Span<u8 const> const& uniform_data)
 {
     assert(stage_ == Stage::Record);
     assert(!curr_batch());
 
     Batch const& other = batches_[handle.index];
     batches_.push_back({
-        .bindings = info.bindings,
-        .uniform_slice = uniform_stream.push(info.uniform_data),
+        .uniform_slice = uniform_stream.push(uniform_data),
         .cmd_from = other.cmd_from,
         .cmd_to = other.cmd_to,
         .is_repeat = true,
@@ -140,7 +140,7 @@ void DrawContext::commit_batches()
     stage_ = Stage::Submit;
 }
 
-void DrawContext::submit_batch(BatchHandle const handle)
+void DrawContext::submit_batch(BatchHandle const handle, sg_bindings const& base_bindings)
 {
     assert(stage_ == Stage::Submit);
 
@@ -196,7 +196,7 @@ void DrawContext::submit_batch(BatchHandle const handle)
         // Rebind if pipeline, resources, or binding offsets have changed
         if (bindings_dirty || binding_offsets_differ(cmd, *prev_cmd))
         {
-            auto bindings = batch.bindings;
+            auto bindings = base_bindings;
             set_binding_offsets(cmd, bindings);
             cmd.bindings.assign(cmd, bindings);
             sg_apply_bindings(bindings);

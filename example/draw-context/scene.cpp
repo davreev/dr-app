@@ -220,7 +220,7 @@ DrawContext::BatchHandle draw_scene(SceneView const& scene)
     as_mat<4, 4>(pass_uniforms.view_to_clip) = scene.view_to_clip;
 
     // Open batch of draw cmds
-    draw_ctx.begin_batch({.uniform_data = as_bytes(pass_uniforms)});
+    draw_ctx.begin_batch(as_bytes(pass_uniforms));
 
     // Add draw cmds
     // ....
@@ -351,7 +351,7 @@ void draw()
     sg_begin_pass(App::swapchain_pass());
 
     // Submit batch within a render pass. A single batch can be submitted in multiple passes.
-    draw_ctx.submit_batch(batch);
+    draw_ctx.submit_batch(batch, {});
     draw_ui();
 
     sg_end_pass();
