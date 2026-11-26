@@ -193,7 +193,7 @@ DebugRenderer::BatchHandle draw_scene(SceneDesc const& scene)
             .width = params.width,
         };
 
-        dbr.draw_frame({.transform{.translation = origin}}, style);
+        dbr.draw_frame({.transform{origin, Mat3<f32>::Identity()}}, style);
 
         Mat3<f32> const l_a = Mat3<f32>::Identity();
         Vec3<f32> const t_a = {};
@@ -206,8 +206,8 @@ DebugRenderer::BatchHandle draw_scene(SceneDesc const& scene)
         dbr.draw_frame(
             {
                 .transform{
-                    .linear = l_a + t * (l_b - l_a),
-                    .translation = origin + t_a + t * (t_b - t_a),
+                    origin + t_a + t * (t_b - t_a),
+                    l_a + t * (l_b - l_a),
                 },
             },
             style);
@@ -215,8 +215,8 @@ DebugRenderer::BatchHandle draw_scene(SceneDesc const& scene)
         dbr.draw_frame(
             {
                 .transform{
-                    .linear = l_a - t * (l_b - l_a),
-                    .translation = origin + t_a - t * (t_b - t_a),
+                    origin + t_a - t * (t_b - t_a),
+                    l_a - t * (l_b - l_a),
                 },
             },
             style);
@@ -228,9 +228,7 @@ DebugRenderer::BatchHandle draw_scene(SceneDesc const& scene)
         auto& params = state.params.grid;
 
         DebugRenderer::Grid grid{
-            .transform{
-                .translation = origin,
-            },
+            .transform{origin, Mat3<f32>::Identity()},
             .spacing = params.spacing,
             .num_cells = params.num_cells,
             .centered = true,
@@ -267,10 +265,7 @@ DebugRenderer::BatchHandle draw_scene(SceneDesc const& scene)
         rotate.topLeftCorner<2, 2>() = make_rotate(two_pi * cycles_per_sec * scene.time);
 
         DebugRenderer::Box box{
-            .transform{
-                .linear = rotate,
-                .translation = origin,
-            },
+            .transform{origin, rotate},
             .from = params.from,
             .to = params.to,
         };
@@ -300,9 +295,7 @@ DebugRenderer::BatchHandle draw_scene(SceneDesc const& scene)
         auto& params = state.params.circle;
 
         DebugRenderer::Circle circ{
-            .transform{
-                .translation = origin,
-            },
+            .transform{origin, Mat3<f32>::Identity()},
             .radius = params.radius,
         };
 
@@ -437,9 +430,7 @@ DebugRenderer::BatchHandle draw_scene(SceneDesc const& scene)
         };
 
         DebugRenderer::Curve curve{
-            .transform{
-                .translation = origin,
-            },
+            .transform{origin, Mat3<f32>::Identity()},
             .eval = &helix,
             .domain = {-0.5, 0.5},
             .num_segments = 128,
@@ -480,9 +471,7 @@ DebugRenderer::BatchHandle draw_scene(SceneDesc const& scene)
         Trefoil const trefoil{.freq = {params.freq[0], params.freq[1]}};
 
         DebugRenderer::Curve curve{
-            .transform{
-                .translation = origin,
-            },
+            .transform{origin, Mat3<f32>::Identity()},
             .eval = &trefoil,
             .domain = {t_loop, t_loop + 1.0f},
             .segment_trim = {0.0, 0.5},

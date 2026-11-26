@@ -67,7 +67,7 @@ void OrbitCamera::frame_target_now()
     rig.pivot.position = target.position;
 }
 
-Mat4<f32> OrbitCamera::make_world_to_view() const { return rig.transform().inverse_to_matrix(); }
+Mat4<f32> OrbitCamera::make_world_to_view() const { return rig.transform().inverse(); }
 
 template <NdcType ndc>
 Mat4<f32> OrbitCamera::make_view_to_clip(f32 const aspect) const

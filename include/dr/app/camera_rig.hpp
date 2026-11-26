@@ -23,7 +23,7 @@ struct CameraRig
     Vec3<f32> position() const { return pivot.position + pivot.rotation * offset; }
 
     /// Returns the transformation from camera space to world space
-    Rigid3<f32> transform() const { return {pivot.rotation, position()}; }
+    Rigid3<f32> transform() const { return {position(), pivot.rotation}; }
 
     /// Translates the camera rig to fit a given bounding sphere in view
     void frame_bounds(Vec3<f32> const& center, f32 radius, f32 fov_min);

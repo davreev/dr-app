@@ -46,7 +46,7 @@ void Orbit::set(CameraRig const& rig)
 
 void Orbit::set_target(CameraRig const& rig)
 {
-    Mat3<f32> const piv_rot = rig.pivot.rotation.to_matrix();
+    Mat3<f32> const piv_rot = rig.pivot.rotation;
     Vec3<f32> const rx = piv_rot.col(0);
     Vec3<f32> const rz = piv_rot.col(2);
 

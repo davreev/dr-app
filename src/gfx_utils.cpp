@@ -2,40 +2,27 @@
 
 #include <cmath>
 
+#include <dr/math_ctors.hpp>
+#include <dr/transform.hpp>
+
 namespace dr
 {
 
-Mat4<f32> make_scale(Vec3<f32> const& scale)
-{
-    Mat4<f32> m = Mat4<f32>::Identity();
-    m.diagonal().head<3>() = scale;
-    return m;
-}
+Mat4<f32> make_scale(Vec3<f32> const& scale) { return Affine3<f32>{Vec3<f32>::Zero(), mat(scale)}; }
 
 Mat4<f32> make_translate(Vec3<f32> const& translate)
 {
-    Mat4<f32> m = Mat4<f32>::Identity();
-    m.col(3).head<3>() = translate;
-    return m;
+    return Affine3<f32>{translate, Mat3<f32>::Identity()};
 }
 
 Mat4<f32> make_scale_translate(Vec3<f32> const& scale, Vec3<f32> const& translate)
 {
-    Mat4<f32> m{};
-    m.diagonal().head<3>() = scale;
-    m.col(3) = translate.homogeneous();
-    return m;
+    return Affine3<f32>{translate, mat(scale)};
 }
 
 Mat2<f32> make_rotate(f32 const angle)
 {
-    f32 const c = std::cos(angle);
-    f32 const s = std::sin(angle);
-
-    Mat2<f32> m;
-    m.col(0) << c, s;
-    m.col(1) << -s, c;
-    return m;
+    return Rotation2<f32>{{std::cos(angle), std::sin(angle)}};
 }
 
 Mat3<f32> make_orthogonal(Vec3<f32> const& unit_x, Vec3<f32> const& xy)
@@ -49,19 +36,11 @@ Mat3<f32> make_orthogonal(Vec3<f32> const& unit_x, Vec3<f32> const& xy)
     return m;
 }
 
-Mat4<f32> make_affine(Mat3<f32> const& linear)
-{
-    Mat4<f32> m = Mat4<f32>::Identity();
-    m.topLeftCorner<3, 3>() = linear;
-    return m;
-}
+Mat4<f32> make_affine(Mat3<f32> const& linear) { return Affine3<f32>{Vec3<f32>::Zero(), linear}; }
 
-Mat4<f32> make_affine(Mat3<f32> const& linear, Vec3<f32> const& translate)
+Mat4<f32> make_affine(Mat3<f32> const& linear, Vec3<f32> const& translate = Vec3<f32>::Zero())
 {
-    Mat4<f32> m{};
-    m.topLeftCorner<3, 3>() = linear;
-    m.rightCols<1>() = translate.homogeneous();
-    return m;
+    return Affine3<f32>{translate, linear};
 }
 
 Mat4<f32> make_look_at(Vec3<f32> const& eye, Vec3<f32> const& target, Vec3<f32> const& up)

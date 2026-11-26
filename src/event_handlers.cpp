@@ -5,6 +5,8 @@
 #include <sokol_app.h>
 
 #include <dr/math.hpp>
+#include <dr/math_ctors.hpp>
+#include <dr/transform.hpp>
 
 #include <dr/app/camera_controls.hpp>
 #include <dr/app/orbit_camera.hpp>
@@ -32,11 +34,7 @@ Mat3<f32> make_screen_to_view(f32 const fov_y, bool const flip_y)
     f32 const sx = screen_to_view_scale(fov_y, h);
     f32 const sy = flip_y ? -sx : sx;
 
-    Mat3<f32> m;
-    m(0, 0) = sx;
-    m(1, 1) = sy;
-    m.col(2) << sx * w * -0.5f, sy * h * -0.5f, 1.0f;
-    return m;
+    return Affine2<f32>{{sx * w * -0.5f, sy * h * -0.5f}, mat(vec(sx, sy))};
 }
 
 Mat3<f32> make_view_to_screen(f32 const fov_y, bool const flip_y)
@@ -45,11 +43,7 @@ Mat3<f32> make_view_to_screen(f32 const fov_y, bool const flip_y)
     f32 const h = sapp_heightf();
     f32 const s = 1.0f / screen_to_view_scale(fov_y, h);
 
-    Mat3<f32> m;
-    m(0, 0) = s;
-    m(1, 1) = flip_y ? -s : s;
-    m.col(2) << w * 0.5f, h * 0.5f, 1.0f;
-    return m;
+    return Affine2<f32>{{w * 0.5f, h * 0.5f}, mat(vec(s, flip_y ? -s : s))};
 }
 
 bool camera_handle_mouse_event(

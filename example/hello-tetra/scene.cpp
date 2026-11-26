@@ -141,14 +141,6 @@ void draw_mesh(Mat4<f32> const& local_to_view, Mat4<f32> const& view_to_clip)
     sg_draw(0, 12, 1);
 }
 
-Affine3<f32> to_affine(Mat4<f32> const& m)
-{
-    return {
-        .linear = m.topLeftCorner<3, 3>(),
-        .translation = m.topRightCorner<3, 1>(),
-    };
-}
-
 DebugRenderer::BatchHandle draw_debug(
     Mat4<f32> const& local_to_world,
     Mat4<f32> const& world_to_clip)
@@ -164,7 +156,7 @@ DebugRenderer::BatchHandle draw_debug(
     dbr.draw_frame({.scale = 0.2}, {.width = 3.0});
     dbr.draw_box(
         {
-            .transform = to_affine(local_to_world),
+            .transform = local_to_world,
         },
         {
             .color = {1.0, 1.0, 1.0, 0.1},
