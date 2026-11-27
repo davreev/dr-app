@@ -11,16 +11,16 @@ namespace dr
 #define FRAGMENT_HEADER "#version 330 core"
 #endif
 
-#define PASS_UNIFORMS_SRC                                                                          \
-    R"(
+%:define PASS_UNIFORMS_SRC                                                                         \
+    R"GLSL(
 
 uniform mat4 u_world_to_clip;
 uniform vec3 u_viewport; // xy: size, z: dpi scale
 
-)"
+)GLSL"
 
-#define COMMON_SRC                                                                                 \
-    R"(
+%:define COMMON_SRC                                                                                \
+    R"GLSL(
 
 // Assuming OpenGL NDC convention for now (z in [-1, 1], y up)
 #define NDC_OPENGL
@@ -117,9 +117,9 @@ vec2 quad_corner(int vertex_id)
     return vec2(float(vertex_id >> 1), float(vertex_id & 1));
 }
 
-)"
+)GLSL"
 
-constexpr char line_vertex_src[] = VERTEX_HEADER PASS_UNIFORMS_SRC COMMON_SRC R"( 
+constexpr char line_vertex_src[] = VERTEX_HEADER PASS_UNIFORMS_SRC COMMON_SRC R"GLSL( 
 
 layout(location = 0) in vec3 a_start;
 layout(location = 1) in vec3 a_end;
@@ -231,9 +231,9 @@ void main()
     v_cap = cap;
 }
 
-)";
+)GLSL";
 
-constexpr char line_fragment_src[] = FRAGMENT_HEADER COMMON_SRC R"(
+constexpr char line_fragment_src[] = FRAGMENT_HEADER COMMON_SRC R"GLSL(
 
 in vec4 v_color;
 flat in vec2 v_start;
@@ -278,9 +278,9 @@ void main()
     f_color = vec4(v_color.rgb, v_color.a * cov);
 }
 
-)";
+)GLSL";
 
-constexpr char point_vertex_src[] = VERTEX_HEADER PASS_UNIFORMS_SRC COMMON_SRC R"(
+constexpr char point_vertex_src[] = VERTEX_HEADER PASS_UNIFORMS_SRC COMMON_SRC R"GLSL(
 
 layout(location = 0) in vec3 a_position;
 layout(location = 1) in float a_size;
@@ -315,9 +315,9 @@ void main()
     v_shape = int(a_flags.x);
 }
 
-)";
+)GLSL";
 
-constexpr char point_fragment_src[] = FRAGMENT_HEADER COMMON_SRC R"(
+constexpr char point_fragment_src[] = FRAGMENT_HEADER COMMON_SRC R"GLSL(
 
 in vec4 v_color;
 flat in vec2 v_center;
@@ -349,7 +349,7 @@ void main()
     f_color = vec4(v_color.rgb, v_color.a * cov);
 }
 
-)";
+)GLSL";
 
 #undef PASS_UNIFORMS_SRC
 #undef COMMON_SRC

@@ -11,7 +11,7 @@ namespace dr
 #define FRAGMENT_HEADER "#version 330 core"
 #endif
 
-constexpr char vertex_shader_src[] = VERTEX_HEADER R"(
+constexpr char vertex_shader_src[] = VERTEX_HEADER R"GLSL(
 
 uniform mat4 u_view_to_clip;
 uniform mat4 u_local_to_view;
@@ -29,9 +29,9 @@ void main()
     v_color = a_color;
 }
 
-)";
+)GLSL";
 
-constexpr char fragment_shader_src[] = FRAGMENT_HEADER R"(
+constexpr char fragment_shader_src[] = FRAGMENT_HEADER R"GLSL(
 
 in vec3 v_color;
 
@@ -42,6 +42,6 @@ void main()
     f_color = vec4(v_color, 1.0);
 }
 
-)";
+)GLSL";
 
 } // namespace dr
